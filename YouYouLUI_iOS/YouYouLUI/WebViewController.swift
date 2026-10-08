@@ -340,7 +340,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
                 controller.view.backgroundColor = .clear
                 if separateSearch {
                     let search = UISearchTab { _ in controller }
-                    if #available(iOS 26.0, *) { search.automaticallyActivatesSearch = false }
+                    if #available(iOS 26.0, *) { search.automaticallyActivatesSearch = true }
                     nativeTabs.append(search)
                 } else {
                     nativeTabs.append(UITab(title: "搜索", image: UIImage(systemName: "magnifyingglass"),
@@ -407,7 +407,12 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
 
     @available(iOS 18.0, *)
     func tabBarController(_ tabBarController: UITabBarController, shouldSelectTab tab: UITab) -> Bool {
-        if tab is UISearchTab || tab.identifier == "action.search" {
+        if tab is UISearchTab {
+            // Allow UIKit to activate the system-owned search tab rather
+            // than intercepting it with a custom modal search controller.
+            return true
+        }
+        if tab.identifier == "action.search" {
             presentBottomSearch()
             return false
         }
