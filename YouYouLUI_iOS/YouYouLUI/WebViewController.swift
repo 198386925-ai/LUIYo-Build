@@ -472,7 +472,9 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             }
             page.onLayout = { [weak self] in
                 guard let self else { return }
-                self.webView.evaluateJavaScript("window.__setNativeTabTop?.(window.innerHeight);window.__syncNativeCardGlass?.()")
+                guard let search = self.activeSearchPageController else { return }
+                let top = search.searchField.convert(search.searchField.bounds, to: self.webView).minY
+                self.webView.evaluateJavaScript("window.__setNativeTabTop?.(\(top));window.__syncNativeCardGlass?.()")
             }
             page.modalPresentationStyle = .fullScreen
             self.activeSearchPageController = page
@@ -978,7 +980,7 @@ private final class LUIYoSearchViewController: UIViewController, UITextFieldDele
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = WebViewController.adaptiveBackground
+        view.backgroundColor = .clear
         let effect: UIVisualEffect
         if #available(iOS 26.0, *) { effect = UIGlassEffect() }
         else { effect = UIBlurEffect(style: .systemMaterial) }
@@ -1001,17 +1003,24 @@ private final class LUIYoSearchViewController: UIViewController, UITextFieldDele
         icon.contentMode = .scaleAspectFit
         icon.isAccessibilityElement = false
         let close = UIButton(type: .system)
-        let symbol = UIImage.SymbolConfiguration(pointSize: 21, weight: .regular)
+        let symbol = UIImage.SymbolConfiguration(pointSize: 20, weight: .regular)
         if #available(iOS 26.0, *) {
             var configuration = UIButton.Configuration.glass()
-            configuration.image = UIImage(systemName: "xmark", withConfiguration: symbol)
+            configuration.image = nil
             configuration.cornerStyle = .capsule
             close.configuration = configuration
         } else {
-            close.setImage(UIImage(systemName: "xmark", withConfiguration: symbol), for: .normal)
+            close.setImage(nil, for: .normal)
             close.backgroundColor = .tertiarySystemFill
             close.layer.cornerRadius = 22
         }
+        let closeIcon = UIImageView(image: UIImage(systemName: "xmark", withConfiguration: symbol))
+        closeIcon.contentMode = .scaleAspectFit
+        closeIcon.tintColor = .label
+        closeIcon.isUserInteractionEnabled = false
+        closeIcon.isAccessibilityElement = false
+        closeIcon.translatesAutoresizingMaskIntoConstraints = false
+        close.addSubview(closeIcon)
         close.tintColor = .label
         close.accessibilityIdentifier = "bottomSearchClose"
         close.accessibilityLabel = "关闭搜索"
@@ -1028,7 +1037,7 @@ private final class LUIYoSearchViewController: UIViewController, UITextFieldDele
             contentHost.topAnchor.constraint(equalTo: view.topAnchor),
             contentHost.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             contentHost.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            contentHost.bottomAnchor.constraint(equalTo: inputSurface.topAnchor, constant: -12),
+            contentHost.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             inputSurface.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 20),
             inputSurface.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor, constant: -12),
             inputSurface.heightAnchor.constraint(equalToConstant: 44),
@@ -1037,6 +1046,10 @@ private final class LUIYoSearchViewController: UIViewController, UITextFieldDele
             close.centerYAnchor.constraint(equalTo: inputSurface.centerYAnchor),
             close.widthAnchor.constraint(equalToConstant: 44),
             close.heightAnchor.constraint(equalToConstant: 44),
+            closeIcon.widthAnchor.constraint(equalToConstant: 20),
+            closeIcon.heightAnchor.constraint(equalToConstant: 20),
+            closeIcon.centerXAnchor.constraint(equalTo: close.centerXAnchor),
+            closeIcon.centerYAnchor.constraint(equalTo: close.centerYAnchor),
             icon.leadingAnchor.constraint(equalTo: inputSurface.contentView.leadingAnchor, constant: 16),
             icon.centerYAnchor.constraint(equalTo: inputSurface.contentView.centerYAnchor),
             icon.widthAnchor.constraint(equalToConstant: 20),

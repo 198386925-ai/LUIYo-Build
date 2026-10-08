@@ -37,14 +37,13 @@ jobs:
       - name: Save compiled IPA
         uses: actions/upload-artifact@v4
         with:
-          name: LUIYo-Build16-${{ github.run_number }}-IPA
+          name: LUIYo-Build17-${{ github.run_number }}-IPA
           path: output/*.ipa
           if-no-files-found: error
           retention-days: 1
   simulator-check:
     # Verify real tab taps and keyboard focus on the public standard runner.
     if: github.event.repository.private == false
-    needs: build
     runs-on: macos-26
     timeout-minutes: 25
     steps:
@@ -62,7 +61,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: LUIYo-Build16-${{ github.run_number }}-native-check
+          name: LUIYo-Build17-${{ github.run_number }}-native-check
           path: |
             native-check/*.png
             native-check/*.json
