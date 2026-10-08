@@ -14,6 +14,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     private var activePageTag = 0
     private var separateSearch = false
     private weak var activeSearchPageController: LUIYoSearchViewController?
+    private var webHostConstraints: [NSLayoutConstraint] = []
     private var openingSearch = false
     private var activeSearchPage = "home"
     private var themeFont: UIFont?
@@ -154,6 +155,21 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         updateLayoutMetrics(force: true)
         // CI exercises the same taps, native traits and saved appearance as users.
         guard let rawScenario = ProcessInfo.processInfo.environment["LUI_SNAPSHOT"] else { return }
+        if rawScenario.hasPrefix("preview-") {
+            let page = rawScenario.contains("rules") ? "rules" : (rawScenario.contains("settings") ? "settings" : "home")
+            let tag = page == "rules" ? 1 : (page == "settings" ? 2 : 0)
+            webView.evaluateJavaScript("document.querySelector('[data-appearance-mode=light]').click();window.__setBottomSearchMode('separate');appNavTo('\(page)');window.__applyBottomSearch('','\(page)')")
+            selectNativePage(tag)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { [weak self] in
+                guard let self else { return }
+                if rawScenario.contains("search") { self.presentBottomSearch() }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                    let marker = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("preview-ready.txt")
+                    try? Data("ready".utf8).write(to: marker)
+                }
+            }
+            return
+        }
         var scenario = rawScenario.hasPrefix("dark-") ? String(rawScenario.dropFirst(5)) : rawScenario
         let appearance = scenario.contains("forced-dark-") ? "dark" : (scenario.contains("forced-light-") ? "light" : "system")
         scenario = scenario.replacingOccurrences(of: "forced-dark-", with: "").replacingOccurrences(of: "forced-light-", with: "")
@@ -294,7 +310,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
                 result["categoryTrack"] = track.map { Double($0) }
                 result["nativeSearchEnabled"] = self.bottomSearchEnabled
                 result["nativeSearchDialogVisible"] = self.activeSearchPageController?.presentingViewController != nil
-                result["nativeSearchDialogQuery"] = self.activeSearchPageController?.searchBar.text ?? ""
+                result["nativeSearchDialogQuery"] = self.activeSearchPageController?.searchField.text ?? ""
                 result["nativeSelectedTab"] = self.tabBar.selectedItem?.tag ?? -1
                 result["nativeToolsPresent"] = self.cardSpecs["id:homeTools"] != nil
                 result["searchLiquid"] = searchLiquid
@@ -376,22 +392,30 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     }
 
     private func keepContentBelowNativeBar() {
-        guard let webView, isViewLoaded,
-              let host = selectedViewController?.view else { return }
+        guard let webView, isViewLoaded else { return }
+        let host: UIView
+        if let search = activeSearchPageController {
+            search.loadViewIfNeeded()
+            host = search.contentHost
+        } else if let selectedHost = selectedViewController?.view {
+            host = selectedHost
+        } else { return }
         // UIKit inserts selected tab content above UITabBarController.view's
         // custom subviews. Hosting WKWebView on the controller root therefore
         // covers the native floating bar and steals all its touches.
         // Place WebKit inside the selected tab's content view instead.
         if webView.superview !== host {
+            NSLayoutConstraint.deactivate(webHostConstraints)
             webView.removeFromSuperview()
             host.addSubview(webView)
             webView.translatesAutoresizingMaskIntoConstraints = false
-            NSLayoutConstraint.activate([
+            webHostConstraints = [
                 webView.topAnchor.constraint(equalTo: host.topAnchor),
                 webView.leadingAnchor.constraint(equalTo: host.leadingAnchor),
                 webView.trailingAnchor.constraint(equalTo: host.trailingAnchor),
                 webView.bottomAnchor.constraint(equalTo: host.bottomAnchor)
-            ])
+            ]
+            NSLayoutConstraint.activate(webHostConstraints)
         }
     }
 
@@ -440,8 +464,19 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             page.query = state["query"] as? String ?? ""
             page.placeholder = state["placeholder"] as? String ?? "搜索"
             page.onSearch = { [weak self] query in self?.applyBottomSearch(query) }
+            page.onClose = { [weak self] in
+                guard let self else { return }
+                self.activeSearchPageController = nil
+                self.keepContentBelowNativeBar()
+                self.updateLayoutMetrics(force: true)
+            }
+            page.onLayout = { [weak self] in
+                guard let self else { return }
+                self.webView.evaluateJavaScript("window.__setNativeTabTop?.(window.innerHeight);window.__syncNativeCardGlass?.()")
+            }
             page.modalPresentationStyle = .fullScreen
             self.activeSearchPageController = page
+            self.keepContentBelowNativeBar()
             self.present(page, animated: true)
         }
     }
@@ -509,7 +544,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     }
 
     private func updateLayoutMetrics(force: Bool = false) {
-        guard let webView, tabBar.frame.minY > 0 else { return }
+        guard activeSearchPageController == nil, let webView, tabBar.frame.minY > 0 else { return }
         let top = tabBar.convert(tabBar.bounds, to: webView).minY
         guard force || abs(top - reportedTabTop) > 0.5 else { return }
         reportedTabTop = top
@@ -931,81 +966,108 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
 
 
 
-/// Native full-screen search, with its controls following the keyboard edge.
-private final class LUIYoSearchViewController: UIViewController, UISearchBarDelegate {
+/// Search keeps the current WebKit page visible and follows the keyboard.
+private final class LUIYoSearchViewController: UIViewController, UITextFieldDelegate {
     var query = ""
     var placeholder = "搜索"
     var onSearch: ((String) -> Void)?
-    let searchBar = UISearchBar()
+    var onClose: (() -> Void)?
+    var onLayout: (() -> Void)?
+    let contentHost = UIView()
+    let searchField = UITextField()
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .systemBackground
-        let title = UILabel()
-        title.text = "搜索"
-        title.font = .systemFont(ofSize: 34, weight: .bold)
-        title.accessibilityTraits.insert(.header)
+        view.backgroundColor = WebViewController.adaptiveBackground
         let effect: UIVisualEffect
         if #available(iOS 26.0, *) { effect = UIGlassEffect() }
         else { effect = UIBlurEffect(style: .systemMaterial) }
         let inputSurface = UIVisualEffectView(effect: effect)
-        inputSurface.layer.cornerRadius = 28
+        inputSurface.layer.cornerRadius = 22
         inputSurface.clipsToBounds = true
-        searchBar.searchBarStyle = .minimal
-        searchBar.placeholder = placeholder
-        searchBar.text = query
-        searchBar.delegate = self
-        searchBar.returnKeyType = .search
-        searchBar.searchTextField.autocorrectionType = .no
-        searchBar.searchTextField.backgroundColor = .clear
-        searchBar.searchTextField.accessibilityIdentifier = "bottomSearchField"
-        searchBar.searchTextField.enablesReturnKeyAutomatically = false
+        searchField.placeholder = placeholder
+        searchField.text = query
+        searchField.font = .systemFont(ofSize: 16)
+        searchField.delegate = self
+        searchField.returnKeyType = .search
+        searchField.autocorrectionType = .no
+        searchField.backgroundColor = .clear
+        searchField.borderStyle = .none
+        searchField.accessibilityIdentifier = "bottomSearchField"
+        searchField.enablesReturnKeyAutomatically = false
+        searchField.addTarget(self, action: #selector(queryChanged), for: .editingChanged)
+        let icon = UIImageView(image: UIImage(systemName: "magnifyingglass"))
+        icon.tintColor = .label
+        icon.contentMode = .scaleAspectFit
+        icon.isAccessibilityElement = false
         let close = UIButton(type: .system)
+        let symbol = UIImage.SymbolConfiguration(pointSize: 21, weight: .regular)
         if #available(iOS 26.0, *) {
             var configuration = UIButton.Configuration.glass()
-            configuration.image = UIImage(systemName: "xmark")
+            configuration.image = UIImage(systemName: "xmark", withConfiguration: symbol)
             configuration.cornerStyle = .capsule
             close.configuration = configuration
         } else {
-            close.setImage(UIImage(systemName: "xmark"), for: .normal)
+            close.setImage(UIImage(systemName: "xmark", withConfiguration: symbol), for: .normal)
             close.backgroundColor = .tertiarySystemFill
-            close.layer.cornerRadius = 28
+            close.layer.cornerRadius = 22
         }
         close.tintColor = .label
         close.accessibilityIdentifier = "bottomSearchClose"
         close.accessibilityLabel = "关闭搜索"
         close.addAction(UIAction { [weak self] _ in self?.dismiss(animated: true) }, for: .touchUpInside)
-        for control in [title, inputSurface, close] {
+        for control in [contentHost, inputSurface, close] {
             control.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview(control)
         }
-        searchBar.translatesAutoresizingMaskIntoConstraints = false
-        inputSurface.contentView.addSubview(searchBar)
+        for control in [icon, searchField] {
+            control.translatesAutoresizingMaskIntoConstraints = false
+            inputSurface.contentView.addSubview(control)
+        }
         NSLayoutConstraint.activate([
-            title.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 48),
-            title.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
-            inputSurface.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            contentHost.topAnchor.constraint(equalTo: view.topAnchor),
+            contentHost.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            contentHost.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            contentHost.bottomAnchor.constraint(equalTo: inputSurface.topAnchor, constant: -12),
+            inputSurface.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 20),
             inputSurface.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor, constant: -12),
-            inputSurface.heightAnchor.constraint(equalToConstant: 56),
-            close.leadingAnchor.constraint(equalTo: inputSurface.trailingAnchor, constant: 12),
-            close.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
+            inputSurface.heightAnchor.constraint(equalToConstant: 44),
+            close.leadingAnchor.constraint(equalTo: inputSurface.trailingAnchor, constant: 10),
+            close.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
             close.centerYAnchor.constraint(equalTo: inputSurface.centerYAnchor),
-            close.widthAnchor.constraint(equalToConstant: 56),
-            close.heightAnchor.constraint(equalToConstant: 56),
-            searchBar.topAnchor.constraint(equalTo: inputSurface.contentView.topAnchor),
-            searchBar.bottomAnchor.constraint(equalTo: inputSurface.contentView.bottomAnchor),
-            searchBar.leadingAnchor.constraint(equalTo: inputSurface.contentView.leadingAnchor),
-            searchBar.trailingAnchor.constraint(equalTo: inputSurface.contentView.trailingAnchor)
+            close.widthAnchor.constraint(equalToConstant: 44),
+            close.heightAnchor.constraint(equalToConstant: 44),
+            icon.leadingAnchor.constraint(equalTo: inputSurface.contentView.leadingAnchor, constant: 16),
+            icon.centerYAnchor.constraint(equalTo: inputSurface.contentView.centerYAnchor),
+            icon.widthAnchor.constraint(equalToConstant: 20),
+            icon.heightAnchor.constraint(equalToConstant: 20),
+            searchField.leadingAnchor.constraint(equalTo: icon.trailingAnchor, constant: 12),
+            searchField.trailingAnchor.constraint(equalTo: inputSurface.contentView.trailingAnchor, constant: -16),
+            searchField.topAnchor.constraint(equalTo: inputSurface.contentView.topAnchor),
+            searchField.bottomAnchor.constraint(equalTo: inputSurface.contentView.bottomAnchor)
         ])
     }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        searchBar.becomeFirstResponder()
+        searchField.becomeFirstResponder()
     }
 
-    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        onSearch?(searchBar.text ?? "")
-        dismiss(animated: true)
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        onLayout?()
+    }
+
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        if isBeingDismissed || presentingViewController == nil { onClose?() }
+    }
+
+    @objc private func queryChanged() { onSearch?(searchField.text ?? "") }
+
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        onSearch?(textField.text ?? "")
+        textField.resignFirstResponder()
+        return true
     }
 }
