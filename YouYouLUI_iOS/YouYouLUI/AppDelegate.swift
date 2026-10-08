@@ -64,6 +64,7 @@ private final class LUIYoActivationGate: UIViewController {
         view.layer.insertSublayer(ambientGradient, at: 0)
 
         let scroll = UIScrollView()
+        scroll.backgroundColor = UIColor(red: 0.95, green: 0.94, blue: 1.0, alpha: 1)
         scroll.keyboardDismissMode = .interactive
         scroll.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(scroll)
