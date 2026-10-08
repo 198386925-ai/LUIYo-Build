@@ -530,6 +530,10 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     }
 
     private func presentBottomSearch() {
+        guard isAuthorized else {
+            showAuthorizationRequired()
+            return
+        }
         guard bottomSearchEnabled, !openingSearch, presentedViewController == nil else { return }
         openingSearch = true
         webView.evaluateJavaScript("window.__bottomSearchState?.()") { [weak self] value, _ in
@@ -959,6 +963,16 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         renderVisibleNativeMaterials()
     }
 
+    private func showAuthorizationRequired() {
+        let alert = UIAlertController(title: "尚未激活", message: "当前可以浏览页面。前往设置输入卡密，激活后才可使用功能。", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "知道了", style: .cancel))
+        alert.addAction(UIAlertAction(title: "前往设置", style: .default) { [weak self] _ in
+            self?.selectNativePage(2)
+            self?.webView.evaluateJavaScript("appNavTo('settings')")
+        })
+        present(alert, animated: true)
+    }
+
     private func showError(_ message: String) {
         let label = UILabel()
         label.text = message
@@ -970,6 +984,11 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     }
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        if message.name == "activationOpen" {
+            onActivationRequested?()
+            return
+        }
+        if !isAuthorized && !["pageState", "infoPage", "cardGlassRects"].contains(message.name) { return }
         if message.name == "pageState" {
             if let payload = message.body as? [String: Any] { updatePageScroll(payload["page"] as? String ?? "home") }
             return
