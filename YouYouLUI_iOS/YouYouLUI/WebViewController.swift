@@ -441,13 +441,22 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             let close = UIButton(type: .system)
             close.setImage(UIImage(systemName: "xmark"), for: .normal)
             close.addAction(UIAction { [weak searchPage] _ in searchPage?.dismiss(animated: true) }, for: .touchUpInside)
-            let submit = UIButton(type: .system)
-            submit.setTitle("搜索", for: .normal)
-            submit.addAction(UIAction { [weak self, weak searchPage, weak field] _ in
+            // Keep the input at the keyboard edge like the native search layout.
+            // Return submits the query; no extra button obscures the field.
+            field.addAction(UIAction { [weak self, weak searchPage, weak field] _ in
                 self?.applyBottomSearch(field?.text ?? "")
                 searchPage?.dismiss(animated: true)
-            }, for: .touchUpInside)
-            for control in [title, field, close, submit] {
+            }, for: .editingDidEndOnExit)
+            field.leftViewMode = .always
+            let symbol = UIImageView(image: UIImage(systemName: "magnifyingglass"))
+            symbol.tintColor = .secondaryLabel
+            symbol.contentMode = .center
+            symbol.frame = CGRect(x: 0, y: 0, width: 34, height: 44)
+            field.leftView = symbol
+            close.backgroundColor = .tertiarySystemFill
+            close.tintColor = .label
+            close.layer.cornerRadius = 24
+            for control in [title, field, close] {
                 control.translatesAutoresizingMaskIntoConstraints = false
                 searchPage.view.addSubview(control)
             }
@@ -459,11 +468,9 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
                 close.leadingAnchor.constraint(equalTo: field.trailingAnchor, constant: 12),
                 close.trailingAnchor.constraint(equalTo: searchPage.view.trailingAnchor, constant: -24),
                 close.centerYAnchor.constraint(equalTo: field.centerYAnchor),
-                close.widthAnchor.constraint(equalToConstant: 44),
-                close.heightAnchor.constraint(equalToConstant: 44),
-                field.heightAnchor.constraint(equalToConstant: 48),
-                submit.trailingAnchor.constraint(equalTo: field.trailingAnchor, constant: -8),
-                submit.centerYAnchor.constraint(equalTo: field.centerYAnchor)
+                close.widthAnchor.constraint(equalToConstant: 48),
+                close.heightAnchor.constraint(equalToConstant: 48),
+                field.heightAnchor.constraint(equalToConstant: 48)
             ])
             self.present(searchPage, animated: true) {
                 field.becomeFirstResponder()
