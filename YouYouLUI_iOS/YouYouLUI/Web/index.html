@@ -1576,7 +1576,10 @@ async function makeZip(btn){
     const convertedImages=new WeakMap();
     function converted(file,mode){
       let modes=convertedImages.get(file);if(!modes){modes=new Map();convertedImages.set(file,modes)}
-      if(!modes.has(mode))modes.set(mode,mode==='normal'?toPng(file):mode==='dark'?toDarkPng(file,false):mode==='selected'?toSelectedPng(file):toDarkPng(file,true));
+      if(!modes.has(mode)){
+        const image=mode==='normal'?toPng(file):mode==='dark'?toDarkPng(file,false):mode==='selected'?toSelectedPng(file):toDarkPng(file,true);
+        modes.set(mode,Promise.resolve(image).then(async blob=>new Uint8Array(await blob.arrayBuffer())));
+      }
       return modes.get(mode);
     }
     for(const [i,f] of chosen){

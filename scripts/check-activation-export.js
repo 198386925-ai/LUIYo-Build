@@ -27,7 +27,7 @@ const dom=new JSDOM(html,{url:'https://test.local',runScripts:'dangerously',pret
  w.eval(fs.readFileSync(htmlPath.replace('index.html','jszip.min.js'),'utf8'));
  w.eval("const generate=JSZip.prototype.generateAsync;JSZip.prototype.generateAsync=async function(options){const bytes=await generate.call(this,{...options,type:'uint8array'});return new Blob([bytes],{type:'application/zip'})}");
  // Pixel conversion is independently tested; keep this regression focused on completion and bridges.
- w.eval("fillFile=new File(['test'],'fill.png',{type:'image/png'}); window.conversionCount=0;toPng=async()=>{window.conversionCount++;return new Uint8Array([1,2,3])};toDarkPng=toPng;toSelectedPng=toPng;");
+ w.eval("fillFile=new File(['test'],'fill.png',{type:'image/png'}); window.conversionCount=0;toPng=async()=>{window.conversionCount++;return {arrayBuffer:async()=>new Uint8Array([1,2,3]).buffer}};toDarkPng=toPng;toSelectedPng=toPng;");
  d.getElementById('fillBtn').click();assert(w.eval('chosen.size')>0);
  await w.eval('makeZip()');
  assert(w.conversionCount<=4,'Shared fill image should convert at most once per mode');
