@@ -1179,9 +1179,10 @@ function uploadRole(it){
     [/^(?:download_(?:regular|filled)@)/,'保存图片'],
   ];
   for(const [pattern,key] of families)if(pattern.test(f))return 'shared:'+key;
-  const tail=t.split('·').pop().trim().replace(/^「|」$/g,'');
+  const quoted=t.match(/「([^」]+)」$/);
+  const tail=(quoted?quoted[1]:t.split('·').pop()).trim().replace(/^「|」$/g,'');
   const aliases={'加为好友':'添加朋友','右上返回':'返回','右上更多':'更多','更改标题':'更改备注','语音键':'语音按钮','表情键':'表情','相机':'拍摄','视频通话':'视频通话','语音通话':'语音通话'};
-  const common=new Set(['扫一扫','收付款','我的二维码','收藏','拍摄','相册','转账','位置','红包','文件','搜索','设置','复制','发消息']);
+  const common=new Set(['扫一扫','收付款','我的二维码','收藏','拍摄','相册','转账','位置','红包','文件','搜索','设置','复制','发消息','添加朋友','返回','更多','关闭','表情','语音按钮','视频通话','语音通话','保存图片']);
   const key=aliases[tail]||tail;
   if(common.has(key)||aliases[tail])return 'shared:'+key;
   if(f==='input_tg_voice.png')return 'shared:语音按钮';
@@ -1197,7 +1198,7 @@ items.forEach((it,i)=>{
 const sameNameSyncMap=new Map();
 for(const idxs of titleGroups.values()){
   const representative=idxs.find(i=>items[i].category==='wechat')??idxs[0];
-  const stock=idxs.some(i=>items[i].category==='wechat');
+  const stock=idxs.some(i=>items[i].category==='wechat')||uploadRole(items[representative]).startsWith('shared:');
   items[representative].category=stock?'wechat':'liquidui';
   items[representative].aliases=[...new Set(idxs.flatMap(i=>[items[i].title,...(items[i].aliases||[])]))];
   items[representative].sections=[...new Set(idxs.flatMap(i=>[items[i].section,...(items[i].sections||[])]).filter(Boolean))];

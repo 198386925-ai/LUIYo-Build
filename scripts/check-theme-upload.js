@@ -19,7 +19,7 @@ for(const title of ['底栏微信','底栏通讯录','底栏发现','底栏我�
  ctx.removeChosenWithSync(index);assert(group.every(x=>!ctx.chosen.has(entries.indexOf(x))));
 }
 assert.deepEqual([...new Set(entries.flatMap(x=>[x.file,...(x.files||[]),...(x.selectedFiles||[])]))].sort(),[...new Set(beforeFiles)].sort(),'Merging entries must not discard any export filename');
-for(const role of ['扫一扫','搜索','收付款','转账','返回','表情']){
+for(const role of ['扫一扫','搜索','收付款','转账','返回','表情','相册','文件','位置','发消息']){
  const match=visible.filter(x=>ctx.uploadRole(x)==='shared:'+role);
  assert.equal(match.length,1,role+' must have one import entry');assert.equal(match[0].category,'wechat');
 }
