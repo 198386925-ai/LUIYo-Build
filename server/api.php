@@ -50,7 +50,7 @@ function body(): array {
     return $j;
 }
 function hashSecret(string $s): string { return hash('sha256', $s); }
-function touch(PDO $db, int $id): void {
+function recordDeviceActivity(PDO $db, int $id): void {
     $now=time();
     $db->prepare('UPDATE devices SET last_seen=? WHERE id=?')->execute([$now,$id]);
     $db->prepare('INSERT INTO events(device_id,day,last_seen) VALUES(?,?,?) ON CONFLICT(device_id,day) DO UPDATE SET last_seen=excluded.last_seen')
@@ -102,12 +102,12 @@ if ($method==='POST' && ($route==='activate' || ($_GET['action'] ?? '')==='activ
                ->execute([$l['id'],$deviceHash,hashSecret($token),time(),time()]);
             $d=['id'=>(int)$db->lastInsertId()];
         }
-        touch($db,(int)$d['id']);$db->commit();
+        recordDeviceActivity($db,(int)$d['id']);$db->commit();
         response(200,['token'=>$token,'status'=>'active']);
     } catch(Throwable $e) {if($db->inTransaction())$db->rollBack();throw $e;}
 }
 if ($method==='POST' && ($route==='check' || ($_GET['action']??'')==='check')) {
-    $d=authenticate($db);touch($db,(int)$d['id']);
+    $d=authenticate($db);recordDeviceActivity($db,(int)$d['id']);
     response(200,['status'=>'active']);
 }
 response(404,['error'=>'not_found']);
