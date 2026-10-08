@@ -67,8 +67,9 @@ final class NativeNavigationTests: XCTestCase {
         let app = XCUIApplication()
         app.launchEnvironment["LUI_SNAPSHOT"] = "preview-settings"
         app.launch()
-        let theme = app.webViews.staticTexts["主题"]
-        XCTAssertTrue(theme.waitForExistence(timeout: 120))
+        XCTAssertTrue(app.webViews.staticTexts["设置"].waitForExistence(timeout: 120))
+        let theme = app.webViews.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "主题")).firstMatch
+        XCTAssertTrue(theme.waitForExistence(timeout: 15), app.debugDescription)
         theme.tap()
         let slider = app.webViews.sliders["工具栏卡片透明度"]
         XCTAssertTrue(slider.waitForExistence(timeout: 10))
@@ -78,7 +79,7 @@ final class NativeNavigationTests: XCTestCase {
         let saved = slider.value as? String
         app.terminate()
         app.launch()
-        XCTAssertTrue(theme.waitForExistence(timeout: 120))
+        XCTAssertTrue(theme.waitForExistence(timeout: 15), app.debugDescription)
         theme.tap()
         XCTAssertTrue(slider.waitForExistence(timeout: 10))
         for _ in 0..<4 { if slider.isHittable { break }; app.swipeUp() }
@@ -86,7 +87,7 @@ final class NativeNavigationTests: XCTestCase {
         XCTAssertEqual(slider.value as? String, saved)
         slider.adjust(toNormalizedSliderPosition: 0)
         XCTAssertTrue(app.webViews.buttons["选择图片"].exists)
-        XCTAssertTrue(app.webViews.switches["滚动时缩小底栏"].exists)
+        XCTAssertTrue(app.webViews.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "滚动时缩小底栏")).firstMatch.exists)
         app.terminate()
         app.launchEnvironment["LUI_SNAPSHOT"] = "preview-zip-name"
         app.launch()
