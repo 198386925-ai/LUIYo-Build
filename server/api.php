@@ -85,7 +85,7 @@ if ($method==='POST' && ($route==='activate' || ($_GET['action'] ?? '')==='activ
         response(403,['error'=>'invalid_or_disabled_code']);
     }
     $deviceHash=hashSecret($device);
-    $db->exec('BEGIN IMMEDIATE');
+    $db->beginTransaction();
     try {
         $q=$db->prepare('SELECT * FROM devices WHERE device_hash=?');$q->execute([$deviceHash]);$d=$q->fetch(PDO::FETCH_ASSOC);
         if ($d) {
