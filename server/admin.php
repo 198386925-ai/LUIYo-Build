@@ -12,7 +12,12 @@ if (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS']==='off') {
 }
 $dbPath=getenv('LUIYO_DB_PATH');
 $passwordHash=getenv('LUIYO_ADMIN_PASSWORD_HASH');
-if (!$dbPath || !is_file($dbPath) || !$passwordHash) {http_response_code(503);exit('Configure LUIYO_DB_PATH and LUIYO_ADMIN_PASSWORD_HASH first; visit api.php after configuring DB path');}
+// Prefer the server's private password-hash file when PHP-FPM has no password env.
+if (!$passwordHash && is_readable('/www/luiyo-private/admin.hash')) {
+ $passwordHash=trim((string)file_get_contents('/www/luiyo-private/admin.hash'));
+}
+if (!$dbPath || !is_file($dbPath)) {http_response_code(503);exit('Database configuration unavailable');}
+if (!$passwordHash) {http_response_code(503);exit('Administrator password configuration unavailable');}
 $db=new PDO('sqlite:'.$dbPath,null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
 function e(string $s): string{return htmlspecialchars($s,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');}
 function redirectHome(): never {header('Location: admin.php');exit;}
