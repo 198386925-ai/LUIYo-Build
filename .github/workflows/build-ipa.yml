@@ -44,7 +44,7 @@ jobs:
       - name: Save compiled IPA
         uses: actions/upload-artifact@v4
         with:
-          name: LUIYo-Build19-${{ github.run_number }}-IPA
+          name: LUIYo-Build20-${{ github.run_number }}-IPA
           path: output/*.ipa
           if-no-files-found: error
           retention-days: 1
