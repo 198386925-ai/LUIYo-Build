@@ -423,29 +423,51 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     private func presentBottomSearch() {
         guard bottomSearchEnabled, presentedViewController == nil else { return }
         webView.evaluateJavaScript("window.__bottomSearchState?.()") { [weak self] value, _ in
-            guard let self, self.bottomSearchEnabled, self.presentedViewController == nil,
-                  let state = value as? [String: Any] else { return }
+            guard let self, self.presentedViewController == nil else { return }
+            let state = value as? [String: Any] ?? [:]
             self.activeSearchPage = state["page"] as? String ?? "home"
-            let alert = UIAlertController(title: "搜索", message: nil, preferredStyle: .alert)
-            alert.addTextField { field in
-                field.placeholder = state["placeholder"] as? String
-                field.text = state["query"] as? String
-                field.returnKeyType = .search
-                field.clearButtonMode = .whileEditing
-                field.autocorrectionType = .no
-                field.delegate = self
-                if let font = self.themeFont { field.font = font.withSize(16) }
+            let searchPage = UIViewController()
+            searchPage.view.backgroundColor = .systemBackground
+            searchPage.modalPresentationStyle = .fullScreen
+            let title = UILabel()
+            title.text = "搜索"
+            title.font = .systemFont(ofSize: 34, weight: .bold)
+            let field = UITextField()
+            field.placeholder = state["placeholder"] as? String ?? "搜索"
+            field.text = state["query"] as? String
+            field.returnKeyType = .search
+            field.borderStyle = .roundedRect
+            field.clearButtonMode = .whileEditing
+            let close = UIButton(type: .system)
+            close.setImage(UIImage(systemName: "xmark"), for: .normal)
+            close.addAction(UIAction { [weak searchPage] _ in searchPage?.dismiss(animated: true) }, for: .touchUpInside)
+            let submit = UIButton(type: .system)
+            submit.setTitle("搜索", for: .normal)
+            submit.addAction(UIAction { [weak self, weak searchPage, weak field] _ in
+                self?.applyBottomSearch(field?.text ?? "")
+                searchPage?.dismiss(animated: true)
+            }, for: .touchUpInside)
+            for control in [title, field, close, submit] {
+                control.translatesAutoresizingMaskIntoConstraints = false
+                searchPage.view.addSubview(control)
             }
-            alert.addAction(UIAlertAction(title: "取消", style: .cancel))
-            alert.addAction(UIAlertAction(title: "清除", style: .default) { [weak self] _ in
-                self?.applyBottomSearch("")
-            })
-            let search = UIAlertAction(title: "搜索", style: .default) { [weak self, weak alert] _ in
-                self?.applyBottomSearch(alert?.textFields?.first?.text ?? "")
+            NSLayoutConstraint.activate([
+                title.topAnchor.constraint(equalTo: searchPage.view.safeAreaLayoutGuide.topAnchor, constant: 48),
+                title.leadingAnchor.constraint(equalTo: searchPage.view.leadingAnchor, constant: 24),
+                field.leadingAnchor.constraint(equalTo: searchPage.view.leadingAnchor, constant: 24),
+                field.bottomAnchor.constraint(equalTo: searchPage.view.keyboardLayoutGuide.topAnchor, constant: -16),
+                close.leadingAnchor.constraint(equalTo: field.trailingAnchor, constant: 12),
+                close.trailingAnchor.constraint(equalTo: searchPage.view.trailingAnchor, constant: -24),
+                close.centerYAnchor.constraint(equalTo: field.centerYAnchor),
+                close.widthAnchor.constraint(equalToConstant: 44),
+                close.heightAnchor.constraint(equalToConstant: 44),
+                field.heightAnchor.constraint(equalToConstant: 48),
+                submit.trailingAnchor.constraint(equalTo: field.trailingAnchor, constant: -8),
+                submit.centerYAnchor.constraint(equalTo: field.centerYAnchor)
+            ])
+            self.present(searchPage, animated: true) {
+                field.becomeFirstResponder()
             }
-            alert.addAction(search); alert.preferredAction = search
-            self.activeSearchAlert = alert
-            self.present(alert, animated: true)
         }
     }
 
