@@ -4,7 +4,7 @@
 
 ## 环境
 
-PHP 8.3 + `pdo_sqlite` + HTTPS。部署 `server/api.php`、`server/admin.php` 到网站专用目录，例如 `https://你的域名/luiyo-auth/`。两份 PHP 文件放在可访问目录，**数据库放网站根目录之外**。禁止把任何密码或数据库文件提交至 GitHub。
+PHP 8.3 + `pdo_sqlite` + HTTPS。部署 `server/api.php`、`server/admin.php` 到网站专用目录，例如 `https://你的域名/luiyo/`。两份 PHP 文件放在可访问目录，**数据库放网站根目录之外**。禁止把任何密码或数据库文件提交至 GitHub。
 
 在 PHP-FPM 池或服务器环境中设置：
 
@@ -22,7 +22,7 @@ PHP 8.3 + `pdo_sqlite` + HTTPS。部署 `server/api.php`、`server/admin.php` �
 
 ### 1. 激活
 
-`POST https://你的域名/luiyo-auth/api.php?action=activate`
+`POST https://你的域名/luiyo/api.php?action=activate`
 
 请求 JSON:
 
@@ -40,7 +40,7 @@ PHP 8.3 + `pdo_sqlite` + HTTPS。部署 `server/api.php`、`server/admin.php` �
 
 ### 2. 心跳与权限验证
 
-`POST https://你的域名/luiyo-auth/api.php?action=check`
+`POST https://你的域名/luiyo/api.php?action=check`
 
 HTTP Header: `Authorization: Bearer <token>`
 
