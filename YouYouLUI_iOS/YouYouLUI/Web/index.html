@@ -1571,9 +1571,17 @@ async function makeZip(btn){
   document.getElementById('status').textContent='正在生成 ZIP，请稍候…';
   try{
     const zip=new JSZip();
+    // A fill image is reused by hundreds of filenames. Convert each image/mode
+    // once per export instead of decoding and drawing it for every filename.
+    const convertedImages=new WeakMap();
+    function converted(file,mode){
+      let modes=convertedImages.get(file);if(!modes){modes=new Map();convertedImages.set(file,modes)}
+      if(!modes.has(mode))modes.set(mode,mode==='normal'?toPng(file):mode==='dark'?toDarkPng(file,false):mode==='selected'?toSelectedPng(file):toDarkPng(file,true));
+      return modes.get(mode);
+    }
     for(const [i,f] of chosen){
       const it=items[i];
-      const b=await toPng(f),db=await toDarkPng(f,false);
+      const b=await converted(f,'normal'),db=await converted(f,'dark');
       const names=it.files||[it.file];
       for(const name of names){
         zip.file(name,b);
@@ -1581,7 +1589,7 @@ async function makeZip(btn){
         if(darkName!==name)zip.file(darkName,db)
       }
       if(it.selectedFiles&&it.selectedFiles.length){
-        const sb=await toSelectedPng(f),sdb=await toDarkPng(f,true);
+        const sb=await converted(f,'selected'),sdb=await converted(f,'selectedDark');
         for(const name of it.selectedFiles){
           zip.file(name,sb);
           const darkName=name.replace(/@3x\.png$/i,'_Dark@3x.png');
@@ -1597,8 +1605,8 @@ async function makeZip(btn){
       else if(extraFillApplied && fillFile) src=fillFile;
       if(!src) continue;
       const selected=rule.mode==='selected';
-      const normalBlob=selected?await toSelectedPng(src):await toPng(src);
-      const darkBlob=selected?await toDarkPng(src,true):await toDarkPng(src,false);
+      const normalBlob=await converted(src,selected?'selected':'normal');
+      const darkBlob=await converted(src,selected?'selectedDark':'dark');
       zip.file(rule.file,normalBlob);
       addDarkVariantForExtra(zip,rule.file,darkBlob);
     }

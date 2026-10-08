@@ -72,7 +72,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         body.native-card-glass .luiyoActivationEntry{background:transparent!important;box-shadow:none!important}
         .luiyoActivationEntry strong{display:block;font-size:15px}.luiyoActivationEntry small{display:block;margin-top:5px;color:var(--muted,#8b8f98);font-size:12px}
         .luiyoActivationForm{display:flex;gap:8px;margin-top:14px;align-items:center}.luiyoActivationForm[hidden]{display:none!important}
-        #luiyoLicenseCode{flex:1;min-width:0;height:44px;box-sizing:border-box;padding:0 12px;border:1px solid rgba(130,130,140,.25);border-radius:14px;background:transparent;color:var(--text-color,#20242b);font-size:14px}
+        #luiyoLicenseCode{flex:1;min-width:0;height:44px;box-sizing:border-box;padding:0 12px;border:1px solid rgba(130,130,140,.25);border-radius:14px;background:transparent;color:inherit;font-size:14px}
         #luiyoLicenseSubmit{height:44px;border:0;border-radius:14px;padding:0 14px;background:#6968e8;color:white;font-weight:600;white-space:nowrap}`;
       document.head.appendChild(css);
       const settings = document.getElementById('settingsTarget');

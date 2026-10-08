@@ -27,9 +27,10 @@ const dom=new JSDOM(html,{url:'https://test.local',runScripts:'dangerously',pret
  w.eval(fs.readFileSync(htmlPath.replace('index.html','jszip.min.js'),'utf8'));
  w.eval("const generate=JSZip.prototype.generateAsync;JSZip.prototype.generateAsync=async function(options){const bytes=await generate.call(this,{...options,type:'uint8array'});return new Blob([bytes],{type:'application/zip'})}");
  // Pixel conversion is independently tested; keep this regression focused on completion and bridges.
- w.eval("fillFile=new File(['test'],'fill.png',{type:'image/png'}); toPng=async()=>new Uint8Array([1,2,3]);toDarkPng=toPng;toSelectedPng=toPng;");
+ w.eval("fillFile=new File(['test'],'fill.png',{type:'image/png'}); window.conversionCount=0;toPng=async()=>{window.conversionCount++;return new Uint8Array([1,2,3])};toDarkPng=toPng;toSelectedPng=toPng;");
  d.getElementById('fillBtn').click();assert(w.eval('chosen.size')>0);
  await w.eval('makeZip()');
+ assert(w.conversionCount<=4,'Shared fill image should convert at most once per mode');
  assert(messages.some(m=>m.name==='zipName'),'Filled export must request native filename alert');
  w.__shareZipWithName('我的图标');await new Promise(r=>setTimeout(r,100));
  const share=messages.find(m=>m.name==='shareZip');assert(share);assert.equal(share.body.fileName,'我的图标.zip');assert(share.body.base64.startsWith('UEs'),'Share payload must be a ZIP archive');
