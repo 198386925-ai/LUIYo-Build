@@ -371,9 +371,23 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     }
 
     private func keepContentBelowNativeBar() {
-        guard let webView, webView.superview === view else { return }
-        view.bringSubviewToFront(webView)
-        view.bringSubviewToFront(tabBar)
+        guard let webView, isViewLoaded,
+              let host = selectedViewController?.view else { return }
+        // UIKit inserts selected tab content above UITabBarController.view's
+        // custom subviews. Hosting WKWebView on the controller root therefore
+        // covers the native floating bar and steals all its touches.
+        // Place WebKit inside the selected tab's content view instead.
+        if webView.superview !== host {
+            webView.removeFromSuperview()
+            host.addSubview(webView)
+            webView.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                webView.topAnchor.constraint(equalTo: host.topAnchor),
+                webView.leadingAnchor.constraint(equalTo: host.leadingAnchor),
+                webView.trailingAnchor.constraint(equalTo: host.trailingAnchor),
+                webView.bottomAnchor.constraint(equalTo: host.bottomAnchor)
+            ])
+        }
     }
 
     private func setBottomSearchEnabled(_ enabled: Bool) {
