@@ -14,7 +14,7 @@ permissions:
 
 concurrency:
   group: luiyo-ipa-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -41,6 +41,18 @@ jobs:
           path: output/*.ipa
           if-no-files-found: error
           retention-days: 1
+  simulator-check:
+    if: github.event.repository.private == false
+    needs: build
+    runs-on: macos-15-intel
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Xcode 26
+        shell: bash
+        run: |
+          test -d /Applications/Xcode_26.3.app/Contents/Developer
+          echo 'DEVELOPER_DIR=/Applications/Xcode_26.3.app/Contents/Developer' >> "$GITHUB_ENV"
       - name: Check native materials in iOS 26 simulator
         timeout-minutes: 20
         shell: bash
