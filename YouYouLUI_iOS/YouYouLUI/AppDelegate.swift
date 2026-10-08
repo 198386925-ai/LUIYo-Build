@@ -36,6 +36,8 @@ private final class LUIYoActivationGate: UIViewController {
     private let activateButton = UIButton(type: .system)
     private let ambientGradient = CAGradientLayer()
     private var appController: WebViewController?
+    private weak var activationScroll: UIScrollView?
+    private let closeActivationButton = UIButton(type: .system)
     private var checkInFlight = false
     private var lastCheck: Date?
     private let timerInterval: TimeInterval = 300
@@ -176,6 +178,20 @@ private final class LUIYoActivationGate: UIViewController {
             content.widthAnchor.constraint(equalTo: scroll.frameLayoutGuide.widthAnchor, constant: -52),
             scroll.contentLayoutGuide.heightAnchor.constraint(greaterThanOrEqualTo: scroll.frameLayoutGuide.heightAnchor)
         ])
+        activationScroll = scroll
+        scroll.isHidden = true
+        closeActivationButton.setTitle("关闭", for: .normal)
+        closeActivationButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
+        closeActivationButton.translatesAutoresizingMaskIntoConstraints = false
+        closeActivationButton.isHidden = true
+        closeActivationButton.addTarget(self, action: #selector(closeActivation), for: .touchUpInside)
+        view.addSubview(closeActivationButton)
+        NSLayoutConstraint.activate([
+            closeActivationButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -23),
+            closeActivationButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
+            closeActivationButton.heightAnchor.constraint(equalToConstant: 40)
+        ])
+        ensureAppVisible()
         refreshVisibility()
         NotificationCenter.default.addObserver(self, selector: #selector(foreground), name: UIApplication.willEnterForegroundNotification, object: nil)
         foreground()
@@ -188,10 +204,43 @@ private final class LUIYoActivationGate: UIViewController {
     deinit { NotificationCenter.default.removeObserver(self) }
 
     private func refreshVisibility() {
-        let loggedIn = appController != nil
-        codeField.isHidden = loggedIn
-        activateButton.isHidden = loggedIn
-        status.isHidden = loggedIn
+        status.isHidden = false
+        codeField.isHidden = false
+        activateButton.isHidden = false
+    }
+
+    @objc private func closeActivation() {
+        codeField.resignFirstResponder()
+        activationScroll?.isHidden = true
+        closeActivationButton.isHidden = true
+    }
+
+    private func openActivation() {
+        codeField.text = ""
+        status.text = "输入激活码以开启完整功能"
+        activationScroll?.isHidden = false
+        if let scroll = activationScroll { view.bringSubviewToFront(scroll) }
+        view.bringSubviewToFront(closeActivationButton)
+        closeActivationButton.isHidden = false
+    }
+
+    private func ensureAppVisible() {
+        guard appController == nil else { return }
+        let app = WebViewController()
+        app.setAuthorization(false)
+        app.onActivationRequested = { [weak self] in self?.openActivation() }
+        addChild(app)
+        app.view.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(app.view)
+        NSLayoutConstraint.activate([
+            app.view.topAnchor.constraint(equalTo: view.topAnchor),
+            app.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            app.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            app.view.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+        ])
+        app.didMove(toParent: self)
+        appController = app
+        view.bringSubviewToFront(closeActivationButton)
     }
 
     @objc private func foreground() {
@@ -277,35 +326,19 @@ private final class LUIYoActivationGate: UIViewController {
 
     private func allowAccess() {
         lastCheck = Date()
-        if appController == nil {
-            let app = WebViewController()
-            addChild(app)
-            app.view.translatesAutoresizingMaskIntoConstraints = false
-            view.addSubview(app.view)
-            NSLayoutConstraint.activate([
-                app.view.topAnchor.constraint(equalTo: view.topAnchor),
-                app.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-                app.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-                app.view.trailingAnchor.constraint(equalTo: view.trailingAnchor)
-            ])
-            app.didMove(toParent: self)
-            appController = app
-        }
+        ensureAppVisible()
+        appController?.setAuthorization(true)
+        closeActivation()
         refreshVisibility()
         DispatchQueue.main.asyncAfter(deadline: .now() + timerInterval) { [weak self] in
-            guard let self, self.appController != nil, let checked = self.lastCheck,
+            guard let self, let checked = self.lastCheck,
                   Date().timeIntervalSince(checked) >= self.timerInterval - 1 else { return }
             self.foreground()
         }
     }
 
     private func hideApp() {
-        guard let app = appController else { return }
-        app.willMove(toParent: nil)
-        app.view.removeFromSuperview()
-        app.removeFromParent()
-        appController = nil
-        refreshVisibility()
+        appController?.setAuthorization(false)
     }
 
     private func invalidateAccess(message: String) {
