@@ -55,6 +55,43 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             : UIColor(red: 244.0/255.0, green: 242.0/255.0, blue: 238.0/255.0, alpha: 1)
     }
 
+    private static let activationPreviewScript = #"""
+    (() => {
+      let authorized = false;
+      window.__luiyoSetAuthorized = enabled => {
+        authorized = !!enabled;
+        document.documentElement.dataset.luiyoAuthorized = authorized ? 'yes' : 'no';
+        const state = document.getElementById('luiyoAuthState');
+        if (state) state.textContent = authorized ? '已激活 · 全部功能可用' : '未激活 · 仅可浏览';
+      };
+      const css = document.createElement('style');
+      css.textContent = '.luiyoActivationEntry{margin:0 0 14px;padding:17px 18px;border:1px solid rgba(125,130,204,.22);border-radius:20px;background:rgba(145,141,232,.09);display:flex;align-items:center;justify-content:space-between;gap:10px}.luiyoActivationEntry strong{display:block;font-size:15px}.luiyoActivationEntry small{display:block;margin-top:5px;color:#8585a5;font-size:12px}.luiyoActivationEntry button{border:0;border-radius:12px;background:#6968e8;color:white;padding:12px 17px;font-weight:600;white-space:nowrap}';
+      document.head.appendChild(css);
+      const settings = document.getElementById('settingsTarget');
+      if (settings) {
+        const box = document.createElement('div');
+        box.className = 'luiyoActivationEntry';
+        box.innerHTML = '<div><strong>激活授权</strong><small id="luiyoAuthState">未激活 · 仅可浏览</small></div><button id="luiyoActivateOpen" type="button">输入卡密</button>';
+        settings.querySelector('.settingsHead')?.insertAdjacentElement('afterend', box);
+        box.querySelector('button')?.addEventListener('click', () => window.webkit?.messageHandlers?.activationOpen?.postMessage({open:true}));
+      }
+      function allowedTarget(t) {
+        if (!(t instanceof Element)) return false;
+        return !!t.closest('#luiyoActivateOpen, .appBottomNav, summary, .categorytabs, .nativeInfoHeader');
+      }
+      function protect(e) {
+        if (authorized || allowedTarget(e.target)) return;
+        const t = e.target;
+        const interactive = t instanceof Element && t.closest('button,input,textarea,select,label,a,[contenteditable],[role="button"]');
+        if (!interactive) return;
+        e.preventDefault();
+        e.stopImmediatePropagation();
+      }
+      ['click','change','input','submit','keydown','drop','paste'].forEach(t => document.addEventListener(t, protect, true));
+      window.__luiyoSetAuthorized(false);
+    })();
+    """#
+
     override func loadView() {
         super.loadView()
         let rootView = view!
