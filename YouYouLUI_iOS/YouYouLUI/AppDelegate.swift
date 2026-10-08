@@ -34,6 +34,7 @@ private final class LUIYoActivationGate: UIViewController {
     private let status = UILabel()
     private let codeField = UITextField()
     private let activateButton = UIButton(type: .system)
+    private let ambientGradient = CAGradientLayer()
     private var appController: WebViewController?
     private var checkInFlight = false
     private var lastCheck: Date?
@@ -47,7 +48,16 @@ private final class LUIYoActivationGate: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .systemGroupedBackground
+        view.backgroundColor = .systemBackground
+        ambientGradient.colors = [
+            UIColor(red: 0.92, green: 0.95, blue: 1.00, alpha: 1).cgColor,
+            UIColor(red: 0.97, green: 0.93, blue: 1.00, alpha: 1).cgColor,
+            UIColor(red: 0.94, green: 0.97, blue: 1.00, alpha: 1).cgColor
+        ]
+        ambientGradient.locations = [0.0, 0.54, 1.0]
+        ambientGradient.startPoint = CGPoint(x: 0, y: 0)
+        ambientGradient.endPoint = CGPoint(x: 1, y: 1)
+        view.layer.insertSublayer(ambientGradient, at: 0)
 
         let scroll = UIScrollView()
         scroll.keyboardDismissMode = .interactive
@@ -60,8 +70,8 @@ private final class LUIYoActivationGate: UIViewController {
             scroll.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
 
-        let emblem = UIImageView(image: UIImage(systemName: "checkmark.shield.fill"))
-        emblem.tintColor = .systemBlue
+        let emblem = UIImageView(image: UIImage(systemName: "key.fill"))
+        emblem.tintColor = UIColor(red: 0.38, green: 0.41, blue: 0.93, alpha: 1)
         emblem.contentMode = .scaleAspectFit
         emblem.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -70,14 +80,14 @@ private final class LUIYoActivationGate: UIViewController {
         ])
 
         let title = UILabel()
-        title.text = "欢迎使用 LUIYo"
+        title.text = "激活 LUIYo"
         title.font = .systemFont(ofSize: 32, weight: .bold)
         title.textColor = .label
         title.textAlignment = .center
         title.adjustsFontForContentSizeCategory = true
 
         let subtitle = UILabel()
-        subtitle.text = "输入激活码，开启你的专属体验"
+        subtitle.text = "输入您的专属激活码，即可解锁完整体验"
         subtitle.font = .systemFont(ofSize: 15, weight: .regular)
         subtitle.textColor = .secondaryLabel
         subtitle.textAlignment = .center
@@ -99,7 +109,7 @@ private final class LUIYoActivationGate: UIViewController {
         codeField.textContentType = .oneTimeCode
         codeField.font = .monospacedSystemFont(ofSize: 16, weight: .medium)
         codeField.textColor = .label
-        codeField.backgroundColor = .secondarySystemGroupedBackground
+        codeField.backgroundColor = UIColor.white.withAlphaComponent(0.80)
         codeField.borderStyle = .none
         codeField.layer.cornerRadius = 15
         codeField.layer.borderWidth = 1
@@ -125,7 +135,7 @@ private final class LUIYoActivationGate: UIViewController {
         buttonStyle.imagePlacement = .trailing
         buttonStyle.imagePadding = 10
         buttonStyle.cornerStyle = .large
-        buttonStyle.baseBackgroundColor = .systemBlue
+        buttonStyle.baseBackgroundColor = UIColor(red: 0.40, green: 0.43, blue: 0.95, alpha: 1)
         buttonStyle.baseForegroundColor = .white
         activateButton.configuration = buttonStyle
         activateButton.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
@@ -134,7 +144,7 @@ private final class LUIYoActivationGate: UIViewController {
         activateButton.addTarget(self, action: #selector(redeem), for: .touchUpInside)
 
         let hint = UILabel()
-        hint.text = "激活码由管理员提供 · 每台设备仅需激活一次"
+        hint.text = "没有激活码？请联系管理员获取"
         hint.textAlignment = .center
         hint.textColor = .tertiaryLabel
         hint.font = .systemFont(ofSize: 12)
@@ -143,12 +153,18 @@ private final class LUIYoActivationGate: UIViewController {
         let form = UIStackView(arrangedSubviews: [fieldLabel, codeField, status, activateButton, hint])
         form.axis = .vertical
         form.spacing = 14
+        form.isLayoutMarginsRelativeArrangement = true
+        form.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 27, leading: 22, bottom: 27, trailing: 22)
+        form.backgroundColor = UIColor.white.withAlphaComponent(0.72)
+        form.layer.cornerRadius = 28
+        form.layer.borderWidth = 1
+        form.layer.borderColor = UIColor.white.withAlphaComponent(0.9).cgColor
         form.setCustomSpacing(8, after: fieldLabel)
         form.setCustomSpacing(24, after: status)
 
         let content = UIStackView(arrangedSubviews: [heading, form])
         content.axis = .vertical
-        content.spacing = 62
+        content.spacing = 38
         content.translatesAutoresizingMaskIntoConstraints = false
         scroll.addSubview(content)
         NSLayoutConstraint.activate([
@@ -164,6 +180,11 @@ private final class LUIYoActivationGate: UIViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(foreground), name: UIApplication.willEnterForegroundNotification, object: nil)
         foreground()
     }
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        ambientGradient.frame = view.bounds
+    }
+
     deinit { NotificationCenter.default.removeObserver(self) }
 
     private func refreshVisibility() {
