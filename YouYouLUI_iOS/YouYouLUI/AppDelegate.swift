@@ -47,36 +47,118 @@ private final class LUIYoActivationGate: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = .systemGroupedBackground
+
+        let scroll = UIScrollView()
+        scroll.keyboardDismissMode = .interactive
+        scroll.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(scroll)
+        NSLayoutConstraint.activate([
+            scroll.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            scroll.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor),
+            scroll.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            scroll.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+        ])
+
+        let emblem = UIImageView(image: UIImage(systemName: "checkmark.shield.fill"))
+        emblem.tintColor = .systemBlue
+        emblem.contentMode = .scaleAspectFit
+        emblem.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            emblem.heightAnchor.constraint(equalToConstant: 58),
+            emblem.widthAnchor.constraint(equalToConstant: 58)
+        ])
+
         let title = UILabel()
-        title.text = "LUIYo 用户验证"
-        title.font = .systemFont(ofSize: 28, weight: .bold)
+        title.text = "欢迎使用 LUIYo"
+        title.font = .systemFont(ofSize: 32, weight: .bold)
+        title.textColor = .label
         title.textAlignment = .center
+        title.adjustsFontForContentSizeCategory = true
 
-        status.text = "正在检查使用权限…"
-        status.numberOfLines = 0
-        status.textAlignment = .center
-        status.textColor = .secondaryLabel
+        let subtitle = UILabel()
+        subtitle.text = "输入激活码，开启你的专属体验"
+        subtitle.font = .systemFont(ofSize: 15, weight: .regular)
+        subtitle.textColor = .secondaryLabel
+        subtitle.textAlignment = .center
 
-        codeField.placeholder = "请输入管理员提供的激活码"
+        let heading = UIStackView(arrangedSubviews: [emblem, title, subtitle])
+        heading.axis = .vertical
+        heading.alignment = .center
+        heading.spacing = 12
+        heading.setCustomSpacing(20, after: emblem)
+
+        let fieldLabel = UILabel()
+        fieldLabel.text = "激活码"
+        fieldLabel.font = .systemFont(ofSize: 14, weight: .semibold)
+        fieldLabel.textColor = .secondaryLabel
+
+        codeField.placeholder = "LUI-XXXXX-XXXXX-XXXXX-XXXXX"
         codeField.autocapitalizationType = .allCharacters
         codeField.autocorrectionType = .no
         codeField.textContentType = .oneTimeCode
-        codeField.borderStyle = .roundedRect
+        codeField.font = .monospacedSystemFont(ofSize: 16, weight: .medium)
+        codeField.textColor = .label
+        codeField.backgroundColor = .secondarySystemGroupedBackground
+        codeField.borderStyle = .none
+        codeField.layer.cornerRadius = 15
+        codeField.layer.borderWidth = 1
+        codeField.layer.borderColor = UIColor.separator.withAlphaComponent(0.35).cgColor
+        codeField.clearButtonMode = .whileEditing
+        codeField.returnKeyType = .done
+        codeField.translatesAutoresizingMaskIntoConstraints = false
+        let inset = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 1))
+        codeField.leftView = inset
+        codeField.leftViewMode = .always
+        NSLayoutConstraint.activate([codeField.heightAnchor.constraint(equalToConstant: 58)])
+        codeField.addTarget(self, action: #selector(redeem), for: .editingDidEndOnExit)
 
-        activateButton.setTitle("激活并进入", for: .normal)
-        activateButton.configuration = .filled()
+        status.text = "正在检查使用权限…"
+        status.font = .systemFont(ofSize: 13)
+        status.textAlignment = .center
+        status.textColor = .secondaryLabel
+        status.numberOfLines = 0
+
+        var buttonStyle = UIButton.Configuration.filled()
+        buttonStyle.title = "激活并进入"
+        buttonStyle.image = UIImage(systemName: "arrow.right")
+        buttonStyle.imagePlacement = .trailing
+        buttonStyle.imagePadding = 10
+        buttonStyle.cornerStyle = .large
+        buttonStyle.baseBackgroundColor = .systemBlue
+        buttonStyle.baseForegroundColor = .white
+        activateButton.configuration = buttonStyle
+        activateButton.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
+        activateButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([activateButton.heightAnchor.constraint(equalToConstant: 56)])
         activateButton.addTarget(self, action: #selector(redeem), for: .touchUpInside)
 
-        let stack = UIStackView(arrangedSubviews: [title, status, codeField, activateButton])
-        stack.axis = .vertical
-        stack.spacing = 22
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(stack)
+        let hint = UILabel()
+        hint.text = "激活码由管理员提供 · 每台设备仅需激活一次"
+        hint.textAlignment = .center
+        hint.textColor = .tertiaryLabel
+        hint.font = .systemFont(ofSize: 12)
+        hint.numberOfLines = 0
+
+        let form = UIStackView(arrangedSubviews: [fieldLabel, codeField, status, activateButton, hint])
+        form.axis = .vertical
+        form.spacing = 14
+        form.setCustomSpacing(8, after: fieldLabel)
+        form.setCustomSpacing(24, after: status)
+
+        let content = UIStackView(arrangedSubviews: [heading, form])
+        content.axis = .vertical
+        content.spacing = 62
+        content.translatesAutoresizingMaskIntoConstraints = false
+        scroll.addSubview(content)
         NSLayoutConstraint.activate([
-            stack.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor),
-            stack.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 24),
-            stack.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -24)
+            content.leadingAnchor.constraint(equalTo: scroll.contentLayoutGuide.leadingAnchor, constant: 26),
+            content.trailingAnchor.constraint(equalTo: scroll.contentLayoutGuide.trailingAnchor, constant: -26),
+            content.topAnchor.constraint(greaterThanOrEqualTo: scroll.contentLayoutGuide.topAnchor, constant: 40),
+            content.bottomAnchor.constraint(lessThanOrEqualTo: scroll.contentLayoutGuide.bottomAnchor, constant: -40),
+            content.centerYAnchor.constraint(equalTo: scroll.frameLayoutGuide.centerYAnchor),
+            content.widthAnchor.constraint(equalTo: scroll.frameLayoutGuide.widthAnchor, constant: -52),
+            scroll.contentLayoutGuide.heightAnchor.constraint(greaterThanOrEqualTo: scroll.frameLayoutGuide.heightAnchor)
         ])
         refreshVisibility()
         NotificationCenter.default.addObserver(self, selector: #selector(foreground), name: UIApplication.willEnterForegroundNotification, object: nil)
