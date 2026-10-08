@@ -117,13 +117,16 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             webView.bottomAnchor.constraint(equalTo: rootView.bottomAnchor)
         ])
 
-        separateSearch = UserDefaults.standard.string(forKey: "youyou.bottomSearchLayout") == "separate"
-        setBottomSearchEnabled(UserDefaults.standard.bool(forKey: "youyou.bottomSearchEnabled"))
-        applyAppearance(UserDefaults.standard.string(forKey: "youyou.appearanceMode") ?? "system")
+        // Avoid mutating UITabBarController.tabs during loadView: on iOS 26,
+        // changing the tab hierarchy while UIKit is creating its view can
+        // re-enter controller initialization before the root hierarchy exists.
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        separateSearch = UserDefaults.standard.string(forKey: "youyou.bottomSearchLayout") == "separate"
+        setBottomSearchEnabled(UserDefaults.standard.bool(forKey: "youyou.bottomSearchEnabled"))
+        applyAppearance(UserDefaults.standard.string(forKey: "youyou.appearanceMode") ?? "system")
         guard let webRoot = Bundle.main.url(forResource: "Web", withExtension: nil),
               let indexURL = Bundle.main.url(forResource: "index", withExtension: "html", subdirectory: "Web") else {
             showError("内置网页资源缺失")
