@@ -56,5 +56,45 @@ final class NativeNavigationTests: XCTestCase {
         app.buttons["bottomSearchClose"].tap()
         XCTAssertTrue(field.waitForNonExistence(timeout: 10))
         XCTAssertTrue(app.tabBars.buttons["首页"].isSelected)
+        let reopened = openSearch(app)
+        XCTAssertFalse((reopened.value as? String ?? "").contains("no-matching-item-xyz"), "Closing search must clear the previous query")
+        XCTAssertFalse(app.webViews.staticTexts["没有匹配的规则"].exists)
+        app.buttons["bottomSearchClose"].tap()
+    }
+
+    func testThemePersistenceAndNativeZipName() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchEnvironment["LUI_SNAPSHOT"] = "preview-settings"
+        app.launch()
+        let theme = app.webViews.staticTexts["主题"]
+        XCTAssertTrue(theme.waitForExistence(timeout: 120))
+        theme.tap()
+        let slider = app.webViews.sliders["工具栏卡片透明度"]
+        XCTAssertTrue(slider.waitForExistence(timeout: 10))
+        for _ in 0..<4 { if slider.isHittable { break }; app.swipeUp() }
+        XCTAssertTrue(slider.isHittable)
+        slider.adjust(toNormalizedSliderPosition: 0.5)
+        let saved = slider.value as? String
+        app.terminate()
+        app.launch()
+        XCTAssertTrue(theme.waitForExistence(timeout: 120))
+        theme.tap()
+        XCTAssertTrue(slider.waitForExistence(timeout: 10))
+        for _ in 0..<4 { if slider.isHittable { break }; app.swipeUp() }
+        XCTAssertTrue(slider.isHittable)
+        XCTAssertEqual(slider.value as? String, saved)
+        slider.adjust(toNormalizedSliderPosition: 0)
+        XCTAssertTrue(app.webViews.buttons["选择图片"].exists)
+        XCTAssertTrue(app.webViews.switches["滚动时缩小底栏"].exists)
+        app.terminate()
+        app.launchEnvironment["LUI_SNAPSHOT"] = "preview-zip-name"
+        app.launch()
+        let alert = app.alerts["导出 ZIP"]
+        XCTAssertTrue(alert.waitForExistence(timeout: 120))
+        XCTAssertTrue(alert.textFields["zipExportName"].exists)
+        XCTAssertTrue(alert.buttons["分享"].exists)
+        alert.buttons["取消"].tap()
+        XCTAssertTrue(alert.waitForNonExistence(timeout: 10))
     }
 }

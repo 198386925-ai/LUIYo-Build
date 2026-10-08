@@ -30,14 +30,16 @@ jobs:
           test -d /Applications/Xcode_26.3.app/Contents/Developer
           echo 'DEVELOPER_DIR=/Applications/Xcode_26.3.app/Contents/Developer' >> "$GITHUB_ENV"
       - name: Validate native bridge
-        run: node YouYouLUI_iOS/verify-material-bridge.js YouYouLUI_iOS/YouYouLUI/Web/index.html
+        run: |
+          node YouYouLUI_iOS/verify-material-bridge.js YouYouLUI_iOS/YouYouLUI/Web/index.html
+          node scripts/check-theme-upload.js YouYouLUI_iOS/YouYouLUI/Web/index.html
       - name: Build with iOS 26 SDK
         shell: bash
         run: bash scripts/build-ipa.sh
       - name: Save compiled IPA
         uses: actions/upload-artifact@v4
         with:
-          name: LUIYo-Build17-${{ github.run_number }}-IPA
+          name: LUIYo-Build18-${{ github.run_number }}-IPA
           path: output/*.ipa
           if-no-files-found: error
           retention-days: 1
@@ -61,7 +63,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: LUIYo-Build17-${{ github.run_number }}-native-check
+          name: LUIYo-Build18-${{ github.run_number }}-native-check
           path: |
             native-check/*.png
             native-check/*.json

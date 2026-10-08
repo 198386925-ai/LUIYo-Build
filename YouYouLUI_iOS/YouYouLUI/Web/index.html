@@ -1008,12 +1008,14 @@ body.bottom-search-enabled #homeTarget #searchInput,body.bottom-search-enabled #
 #list .uploadThumb{display:flex;align-items:center;justify-content:center;position:relative;flex:0 0 44px;width:44px;height:44px;border:1px solid rgba(128,134,144,.20);border-radius:16px;background:transparent;overflow:hidden;cursor:pointer}
 #list .uploadThumb input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer}
 #list .uploadPlus{font-size:28px;line-height:1;color:#8b929d;font-weight:400}
-#list .preview{position:absolute!important;inset:0!important;margin:0!important;width:100%!important;height:100%!important;padding:4px!important;background:var(--card-color,#fff)!important;border:0!important;border-radius:15px!important;display:none;box-sizing:border-box}
-#list .preview img{width:100%!important;height:100%!important;max-height:none!important;object-fit:contain;border-radius:10px!important}
+#list .preview{position:absolute!important;inset:0!important;margin:0!important;width:100%!important;height:100%!important;padding:0!important;background:transparent!important;border:0!important;border-radius:15px!important;display:none;box-sizing:border-box}
+#list .preview img{width:100%!important;height:100%!important;max-height:none!important;object-fit:contain;padding:0!important;border-radius:0!important}
 #list .uploadText{min-width:0;flex:1}
-#list .title{margin:0!important;font-size:14px!important;line-height:1.45!important;font-weight:600!important;min-height:0!important}
+#list .title{padding-right:0!important;margin:0!important;font-size:14px!important;line-height:1.45!important;font-weight:600!important;min-height:0!important}
 #list .uploadHint{font-size:11px;color:#8b929d;margin-top:4px}
-#list .removeIcon{position:static!important;flex:0 0 28px!important;width:28px!important;height:28px!important;font-size:20px!important;align-self:center!important}
+#list .card{position:relative!important}
++#list .removeIcon{position:absolute!important;right:5px!important;top:5px!important;width:20px!important;height:20px!important;min-width:20px!important;font-size:15px!important;line-height:20px!important}
++#list .card:has(.removeIcon) .uploadText{padding-top:8px}
 #ruleList{gap:16px!important}
 #ruleList .ruleCard{display:block!important;padding:16px!important;border-radius:24px!important}
 #ruleList .ruleGroupHead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-bottom:10px}
@@ -1024,7 +1026,22 @@ body.bottom-search-enabled #homeTarget #searchInput,body.bottom-search-enabled #
 #ruleList .ruleFile{font-size:11px!important;line-height:1.45!important;margin-top:4px;overflow-wrap:anywhere;white-space:normal!important;color:#8b929d}
 .searchEmpty{font-size:14px;color:#8b929d;text-align:center;padding:24px}
 </style>
-</head><body><div class="app"><section class="homeHero" id="homeTarget">
+<style id="theme-and-layout-build18">
+body{padding-bottom:max(20px,calc(100svh - var(--native-tab-top,calc(100svh - 90px)) + 12px))!important}
+.app{padding-bottom:0!important}
+body.nav-settings #settingsTarget{min-height:0!important;padding-bottom:0!important}
+#settingsCredits{margin-top:20px!important;padding-top:12px!important}
+.settingsFold:not([open])>.settingsFoldBody{display:none!important}
+body.nav-settings ::-webkit-scrollbar{display:none;width:0;height:0}
+:root[data-appearance] body.native-card-glass #homeTools,#homeTools{background:rgba(var(--card-rgb,255,255,255),var(--tool-opacity,1))!important}
+.themeSliderRow{flex-direction:column;align-items:stretch;gap:8px;padding:10px 0}
+.themeSliderLine{display:flex;align-items:center;gap:12px}
+.themeSliderLine input{flex:1;min-width:0;height:32px;accent-color:#007AFE}
+.themeSliderLine output{min-width:42px;text-align:right;font-size:12px;color:inherit}
+.themeSwitch{width:46px;height:28px;flex:0 0 auto;accent-color:#34c759}
+html.has-background-image,html.has-background-image body{background:transparent!important}
+#webBackgroundImage{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1;pointer-events:none}
+</style></head><body><div class="app"><section class="homeHero" id="homeTarget">
   <div class="homeEyebrow">LIQUIDUI ICON STUDIO</div>
   <h1>微信图标生成器</h1>
   <div class="homeSub">上传一次，自动处理 LiquidUI / 微信图标补全与打包。</div>
@@ -1046,6 +1063,9 @@ body.bottom-search-enabled #homeTarget #searchInput,body.bottom-search-enabled #
       <div class="themeRow"><div><b>卡片颜色</b><small>工具卡片使用纯色；其他卡片作为原生材质色调</small></div><div class="themeColor"><input id="appCardColor" type="color" value="#FFFFFF"><button type="button" id="resetCardColor">恢复</button></div></div>
       <div class="themeRow"><div><b>按钮颜色</b><small>首页按钮及选中项；清空、导出 ZIP 颜色固定</small></div><div class="themeColor"><input id="appButtonColor" type="color" value="#FFFFFF"><button type="button" id="resetButtonColor">恢复</button></div></div>
       <div class="themeRow appearanceThemeRow bottomSearchThemeRow"><div><b>底栏搜索按钮</b><small id="bottomSearchModeHint">关闭后使用顶部搜索框</small></div><div id="bottomSearchModePicker" role="radiogroup" aria-label="底栏搜索按钮"><button type="button" data-bottom-search-mode="off">关闭</button><button type="button" data-bottom-search-mode="merged">合并</button><button type="button" data-bottom-search-mode="separate">分开</button></div></div>
+      <div class="themeRow themeSliderRow"><div><b>工具栏卡片透明度</b><small>仅调整首页工具栏卡片，不影响文字和按钮</small></div><div class="themeSliderLine"><input id="toolbarTransparency" aria-label="工具栏卡片透明度" type="range" min="0" max="100" step="1" value="0"><output id="toolbarTransparencyValue">0%</output></div></div>
+      <div class="themeRow"><div><b>自定义背景图片</b><small id="backgroundImageName">未设置背景图片</small></div><div class="themeFontControls"><button type="button" id="chooseBackgroundImage">选择图片</button><button type="button" id="resetBackgroundImage">移除</button><input id="backgroundImageFile" type="file" accept="image/*" hidden></div></div>
+      <div class="themeRow"><div><b>滚动时缩小底栏</b><small>向下滚动缩小，向上滚动恢复</small></div><input id="minimizeBottomBar" aria-label="滚动时缩小底栏" class="themeSwitch" type="checkbox" switch role="switch"></div>
       <div class="themeRow themeFontRow"><div><b>自定义字体</b><small id="customFontName">使用默认字体</small></div><div class="themeFontControls"><button type="button" id="chooseCustomFont">导入字体</button><button type="button" id="resetCustomFont">恢复</button><input id="customFontFile" type="file" accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2" hidden></div></div>
     </div>
   </details>
@@ -1069,7 +1089,8 @@ body.bottom-search-enabled #homeTarget #searchInput,body.bottom-search-enabled #
   <details class="settingsFold">
     <summary><span class="settingsFoldIcon">↻</span><span class="settingsFoldText"><b>更新日志</b><small>Version 1.0.4 · 当前版本</small></span><span class="settingsFoldChevron"></span></summary>
     <div class="settingsFoldBody changelogInline">
-<section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.4 <span>当前版本 · Build 16</span></div><p><b class="add">新增</b> 底栏搜索改为关闭、合并、分开三段切换，保留已保存的搜索布局；关闭后恢复顶部搜索框。</p><p><b class="add">新增</b> APP 更名为 LUIYo。</p><p><b class="opt">优化</b> 补全图片和自定义颜色入口略微加粗描边，增加柔和淡色底。</p><p><b class="opt">优化</b> 首页工具卡片改用纯色，其他卡片保持原生材质。</p><p><b class="opt">优化</b> 清空固定蓝色、白色文字；导出 ZIP 固定绿色、白色文字。</p><p><b class="opt">优化</b> 首页分类和设置切换同步配色：未选中底色跟随卡片颜色，选中底色跟随按钮颜色。</p><p><b class="opt">优化</b> 首页按钮使用极轻阴影；关键词批量导入、清空默认 #007AFE，双分类补全默认 #46D86A；导出 ZIP 固定 #46D86A。</p><p><b class="opt">优化</b> 放大设置页特别鸣谢文字，展开内容时继续随页面让位。</p><p><b class="fix">修复</b> 合并和分开底栏搜索均可点击，打开原生全屏搜索页，自动弹出键盘，关闭后返回原页面。</p><p><b class="fix">修复</b> 设置与规则顶部标题统一大小，保持卡片尺寸。</p><p><b class="fix">修复</b> 深色液态玻璃下六个按钮不明显，按钮保持独立纯色并自动适配文字颜色。</p><p><b class="fix">修复</b> 原生底栏文字跟随导入字体，恢复默认和重新打开也同步生效。</p><p><b class="fix">修复</b> 分开搜索改用系统原生独立搜索标签，底栏与搜索统一对齐、尺寸及安全区位置。</p></section>
+<section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.4 <span>当前版本 · Build 18</span></div><p><b class="add">新增</b> 主题支持工具栏卡片透明度、滚动缩小底栏及自定义背景图片；设置自动保存。</p><p><b class="opt">优化</b> 相同或相近用途的图标合并为一个上传入口，共用图标归原版微信；LiquidUI 分类保留专属入口，导出保留全部对应文件名。</p><p><b class="opt">优化</b> 首页上传项每排两列，左图右标题；更新规则按大标题合并展示。</p><p><b class="opt">优化</b> 导出 ZIP 改名使用系统原生弹窗。</p><p><b class="fix">修复</b> 搜索关闭后清空筛选，去掉整页上下滑动过渡；设置页去除多余留白和滚动条；上传预览不再叠加内边距。</p></section>
+<section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.4 <span>Build 16</span></div><p><b class="add">新增</b> 底栏搜索改为关闭、合并、分开三段切换，保留已保存的搜索布局；关闭后恢复顶部搜索框。</p><p><b class="add">新增</b> APP 更名为 LUIYo。</p><p><b class="opt">优化</b> 补全图片和自定义颜色入口略微加粗描边，增加柔和淡色底。</p><p><b class="opt">优化</b> 首页工具卡片改用纯色，其他卡片保持原生材质。</p><p><b class="opt">优化</b> 清空固定蓝色、白色文字；导出 ZIP 固定绿色、白色文字。</p><p><b class="opt">优化</b> 首页分类和设置切换同步配色：未选中底色跟随卡片颜色，选中底色跟随按钮颜色。</p><p><b class="opt">优化</b> 首页按钮使用极轻阴影；关键词批量导入、清空默认 #007AFE，双分类补全默认 #46D86A；导出 ZIP 固定 #46D86A。</p><p><b class="opt">优化</b> 放大设置页特别鸣谢文字，展开内容时继续随页面让位。</p><p><b class="fix">修复</b> 合并和分开底栏搜索均可点击，打开原生全屏搜索页，自动弹出键盘，关闭后返回原页面。</p><p><b class="fix">修复</b> 设置与规则顶部标题统一大小，保持卡片尺寸。</p><p><b class="fix">修复</b> 深色液态玻璃下六个按钮不明显，按钮保持独立纯色并自动适配文字颜色。</p><p><b class="fix">修复</b> 原生底栏文字跟随导入字体，恢复默认和重新打开也同步生效。</p><p><b class="fix">修复</b> 分开搜索改用系统原生独立搜索标签，底栏与搜索统一对齐、尺寸及安全区位置。</p></section>
 <section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.3</div><p><b class="add">新增</b> 主题增加按钮颜色，首页按钮与分类底色同步；浅色、深色分别保存。</p><p><b class="add">新增</b> 跟随系统、浅色与深色外观；背景颜色分别保存并随外观切换。</p><p><b class="opt">优化</b> 搜索框位于反馈问题下方，随材质切换为液态玻璃或原生磨砂。</p><p><b class="opt">优化</b> 首页六个操作按钮保持纯色，其他卡片保留原有材质。</p><p><b class="opt">优化</b> 分类未选中底色使用按钮颜色，增加透明度以呈现柔和层次。</p><p><b class="opt">优化</b> 更新日志改为逐条彩色标签，按新增、优化、修复排序。</p><p><b class="opt">优化</b> 分类、材质与外观使用紧凑原生分段控件；缩短设置卡片。</p><p><b class="opt">优化</b> 移除自定义卡片描边，鸣谢仅在设置页随内容排布。</p><p><b class="fix">修复</b> 展开动画结束时的高度跳动和重复点击状态。</p></section>
       <section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.2</div><p><b class="add">新增</b> 卡片液态效果开关；关闭后切换为 UIKit 原生磨砂效果。</p><p><b class="add">新增</b> 主题内自定义字体，可导入 TTF、OTF、WOFF、WOFF2 文件并持久保存。</p><p><b class="add">新增</b> 卡片材质改为纯色、液态玻璃、原生磨砂三种模式直接切换。</p><p><b class="add">新增</b> 主题增加卡片颜色，可修改纯色卡片颜色，并为原生液态玻璃/磨砂提供材质色调。</p><p><b class="opt">优化</b> 规则页移除图片导入入口，仅显示规则名称与图标规则名。</p><p><b class="opt">优化</b> 首页采用新的双列卡片 UI，上传区、工具区与顶部信息重新布局。</p><p><b class="opt">优化</b> 设置页入口卡片进一步压缩高度与文字尺寸。</p><p><b class="opt">优化</b> 首页白色工具控件、搜索框、颜色展开项、清空按钮、分类未选中项和上传框统一接入 UIKit 原生玻璃/磨砂材质。</p><p><b class="opt">优化</b> 材质切换与首页分类分段切换改为参考图的胶囊式，选中项使用内嵌白色圆角块。</p><p><b class="opt">优化</b> 首页按钮、搜索框、颜色入口与导出操作统一为分类栏同类圆润胶囊轮廓。</p><p><b class="opt">优化</b> 纯色模式下首页操作框统一为同一中性底色，补全图片、自定义颜色、清空等入口保持清晰可见。</p><p><b class="opt">优化</b> 搜索框在纯色模式下仍单独使用 iOS 26+ UIKit 原生 Liquid Glass；液态玻璃/原生磨砂模式下首页操作框统一跟随系统材质。</p><p><b class="fix">修复</b> 设置页使用说明与更新日志改为原位下拉拉伸卡片。</p><p><b class="fix">修复</b> 规则页顶部安全区与状态栏重叠问题。</p><p><b class="fix">修复</b> 默认背景调整为 #F4F2EE，卡片底色统一为 #FFFFFF。</p><p><b class="fix">修复</b> 首页、规则、设置三页卡片视觉统一，首页工具卡不再使用单独的透明样式。</p><p><b class="fix">修复</b> 使用说明、更新日志与主题卡片收起响应延迟，收起动画改为快速响应。</p><p><b class="fix">修复</b> 纯色模式默认不显示卡片描边；只有主动开启卡片描边后才显示所选描边颜色。</p><p><b class="fix">修复</b> 背景颜色现在同步到 UIKit 根视图，修改后立即生效并保存。</p><p><b class="fix">修复</b> 首页双分类切换中间露出的白色材质块；分类容器不再重复叠加玻璃。</p><p><b class="fix">修复</b> 液态玻璃与原生磨砂在刷新、筛选和重绘时原生材质层重新绑定导致的跳动。</p></section>
       <section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.1</div><p><b class="add">新增</b> LiquidUI 全局换图标规则页，可按规则名称与图标规则名查找。</p><p><b class="add">新增</b> 关键词批量导入、双分类补全、同名项目自动联动与 ZIP 自定义名称分享。</p><p><b class="add">新增</b> 浅色选中、深色选中及全部图标颜色自定义。</p><p><b class="opt">优化</b> 设置页的使用说明与更新日志改为原位下拉拉伸，不再弹出独立页面。</p><p><b class="opt">优化</b> iOS 26+ 使用 UIKit 系统原生 Liquid Glass；不使用 CSS 自绘玻璃。</p><p><b class="opt">优化</b> iOS 25 及以下自动回退 UIKit 原生 systemMaterial 磨砂。</p><p><b class="opt">优化</b> 规则页移除图片导入入口，只保留规则名称与图标规则名。</p><p><b class="fix">修复</b> 规则页安全区，避免标题与状态栏重叠。</p></section>
@@ -1112,19 +1133,11 @@ for(const [title,normal,selected,category] of tabSets){
   items[first]={...items[first],title,file:normal,files:[normal],selectedFiles:[selected],category};
   for(let k=idxs.length-1;k>=1;k--) items.splice(idxs[k],1);
 }
-// 原生微信分类中隐藏这 4 个底栏上传卡片；数据仍保留并参与同名同步、补全和 ZIP 导出。
-const hiddenWechatTitles=new Set(['底栏微信','底栏通讯录','底栏发现','底栏我的']);
+// A LiquidUI section name does not make a stock/shared action exclusive.
 items.forEach(it=>{
-  if(it.category==='wechat' && hiddenWechatTitles.has(String(it.title||'').replace(/^LiquidUI\s*/i,'').trim())){
-    it.hiddenFromUI=true;
-  }
-});
-// 自动分类：lui_ / LiquidUI 自定义资源归 LiquidUI，其余为微信原版资源
-items.forEach(it=>{
-  if(it.category) return;
-  const fs=[...(it.files||[it.file]),...(it.selectedFiles||[])];
-  const hasLui=fs.some(n=>/^lui_/i.test(n)) || /LiquidUI/i.test(it.section||'') || /LiquidUI/i.test(it.title||'');
-  it.category=hasLui?'liquidui':'wechat';
+  delete it.hiddenFromUI;
+  const names=[...(it.files||[it.file]),...(it.selectedFiles||[])];
+  it.category=names.some(n=>/^lui_/i.test(n))||/第二投放口/.test(it.section||'')?'liquidui':'wechat';
 });
 const extraNamingRules=[{"file":"tabbar_main.png","targetFile":"lui_tab_main_regular@3x.png","mode":"normal","titles":["底栏微信"]},{"file":"tabbar_mainHL.png","targetFile":"lui_tab_main_regular@3x.png","mode":"selected","titles":["底栏微信选中"]},{"file":"tabbar_contacts.png","targetFile":"lui_tab_contacts_regular@3x.png","mode":"normal","titles":["底栏通讯录"]},{"file":"tabbar_contactsHL.png","targetFile":"lui_tab_contacts_regular@3x.png","mode":"selected","titles":["底栏通讯录选中"]},{"file":"tabbar_discover.png","targetFile":"lui_tab_discover_regular@3x.png","mode":"normal","titles":["底栏发现页"]},{"file":"tabbar_discoverHL.png","targetFile":"lui_tab_discover_regular@3x.png","mode":"selected","titles":["底栏发现页"]},{"file":"tabbar_me.png","targetFile":"lui_tab_me_regular@3x.png","mode":"normal","titles":["底栏我的"]},{"file":"tabbar_meHL.png","targetFile":"lui_tab_me_regular@3x.png","mode":"selected","titles":["底栏我的选中"]},{"file":"enterprisewechat_filled_colorful@3x.png","targetFile":"icons_filled_contacts@3x.png","mode":"normal","titles":["企业微信联系人"]},{"file":"add_friend_icon_scanqr@3x.png","targetFile":"scan_regular@3x.png","mode":"normal","titles":["扫一扫"]},{"file":"add_friend_icon_contacts@3x.png","targetFile":"phone_rectangle_regular@3x.png","mode":"normal","titles":["手机联系人"]},{"file":"add_friend_icon_addgroup@3x.png","targetFile":"person_2_regular@3x.png","mode":"normal","titles":["面对面建群","群聊图标"]},{"file":"add_friend_icon_offical@3x.png","targetFile":"person_tie_regular@3x.png","mode":"normal","titles":["公众号","公众号图标"]},{"file":"icons_filled_circle_delete@3x.png","targetFile":"eyes_off_filled@3x.png","mode":"normal","titles":["清理会话"]},{"file":"MoreFunctionFrame@3x.png","targetFile":null,"mode":"normal","titles":["快捷栏背景图片"]},{"file":"plugins_FriendNotify@3x.png","targetFile":null,"mode":"normal","titles":["新的朋友"]},{"file":"Contact_Chatonlyfriends@3x.png","targetFile":null,"mode":"normal","titles":["仅聊天的朋友"]},{"file":"add_friend_icon_brand_service@3x.png","targetFile":"person_tie_filled@3x.png","mode":"normal","titles":["服务号图标"]},{"file":"Contact_icon_ContactTag@3x.png","targetFile":null,"mode":"normal","titles":["标签图标"]},{"file":"openimbrand@3x.png","targetFile":"icons_filled_contacts@3x.png","mode":"normal","titles":["企业微信联系人"]},{"file":"WeChat_Lab_Logo_light_small@3x.png","targetFile":"lui_me_plugins@3x.png","mode":"normal","titles":["老猫收纳插件图标"]},{"file":"WeChat_Lab_Logo@3x.png","targetFile":"lui_me_plugins@3x.png","mode":"normal","titles":["老猫收纳插件内logo"]},{"file":"dt_icon@3x.png","targetFile":null,"mode":"normal","titles":["老猫斗图助手斗图标"]},{"file":"msg_tip_bg@3x.png  尺寸375*120","targetFile":null,"mode":"normal","titles":["群消息999+弹窗背景图片"]},{"file":"miss_read_Arrow@3x.png","targetFile":null,"mode":"normal","titles":["净化回到引用位置向下箭头"]},{"file":"Action_Moments@3x.png","targetFile":"icons_outlined_colorful_moment@3x.png","mode":"normal","titles":["点开链接更多-分享到朋友圈"]},{"file":"favorites_filled_colorful@3x.png","targetFile":"favorites_filled@3x.png","mode":"normal","titles":["点开链接-更多-收藏"]},{"file":"AS_Email@3x.png","targetFile":"email_regular@3x.png","mode":"normal","titles":["点开链接-更多-邮件"]},{"file":"weapp_more_darkmode@3x.png","targetFile":null,"mode":"normal","titles":["点开链接-更多-更多打开方式"]},{"file":"weapp_icon_debug@3x.png","targetFile":null,"mode":"normal","titles":["点开链接-更多-打开调试"]},{"file":"weapp_corner_icon_light@3x.png","targetFile":"icons_outlined_miniprogram@3x.png","mode":"normal","titles":["点开链接-更多-在小程序工具中打开"]},{"file":"weapp_menu_add_to_desktop@3x.png","targetFile":"icons_outlined_miniprogram@3x.png","mode":"normal","titles":["点开小程序-更多-添加到桌面"]},{"file":"weapp_icon_growguard@3x.png","targetFile":"icons_outlined_miniprogram@3x.png","mode":"normal","titles":["点开小程序-更多-成长守护防沉迷"]},{"file":"weapp_icon_star@3x.png","targetFile":"icons_outlined_miniprogram@3x.png","mode":"normal","titles":["点开小程序-更多-添加到我的小程序"]},{"file":"weapp_icon_unstar@3x.png","targetFile":"icons_outlined_miniprogram@3x.png","mode":"normal","titles":["点开小程序-更多-从我的小程序移除"]},{"file":"Payloading_01@3x.png","targetFile":null,"mode":"normal","titles":["转账和红包下方过渡动画"]},{"file":"Payloading_02@3x.png","targetFile":null,"mode":"normal","titles":["转账和红包下方过渡动画"]},{"file":"Payloading_03@3x.png","targetFile":null,"mode":"normal","titles":["转账和红包下方过渡动画"]},{"file":"icons_outlined_close_8@3x.png","targetFile":null,"mode":"normal","titles":["发送语音时取消发送"]},{"file":"icons_outlined_text_8@3x.png","targetFile":"icon_filled_convert_to_text_off@3x.png","mode":"normal","titles":["发送语音时转文字"]},{"file":"Icons_filled_voice1@3x.png","targetFile":"voice_circle_filled@3x.png","mode":"normal","titles":["选中转文字时发送原语音"]},{"file":"ui-resources_checkbox_selected_fill@3x.png","targetFile":null,"mode":"normal","titles":["工具栏发送照片时选择原图选中状态"]},{"file":"ui-resources_checkbox_checked@3x.png","targetFile":null,"mode":"normal","titles":["pkc照片加密选中状态"]},{"file":"ui-resources_checkbox_unchecked@3x.png","targetFile":null,"mode":"normal","titles":["pkc照片加密未选中状态"]},{"file":"ChatRoom_Bubble_HB_Overtime_Sender@3x.png","targetFile":"icons_filled_red_envelope@3x.png","mode":"normal","titles":["对方红包气泡已领取或已过期暗面"]},{"file":"ChatRoom_Bubble_Overtime_Sender_Light@3x.png","targetFile":"icons_filled_red_envelope@3x.png","mode":"normal","titles":["对方红包气泡已领取或已过期暗面"]},{"file":"ChatRoom_Bubble_HB_Sender_Handled@3x.png","targetFile":"icons_filled_red_envelope@3x.png","mode":"normal","titles":["对方红包气泡已领取或已过期暗面"]},{"file":"ChatRoom_Bubble_AA_Sender_Handled@3x.png","targetFile":"icons_filled_red_envelope@3x.png","mode":"normal","titles":["对方红包气泡已领取或已过期暗面"]},{"file":"ChatRoom_Bubble_AA_Sender@3x.png","targetFile":"icons_filled_red_envelope@3x.png","mode":"normal","titles":["对方红包已未领取状态亮面"]},{"file":"ChatRoom_Bubble_HB_Sender@3x.png","targetFile":"icons_filled_red_envelope@3x.png","mode":"normal","titles":["对方红包已未领取状态亮面"]},{"file":"ChatRoom_Bubble_AA_Receiver_Handled@3x.png","targetFile":"icons_filled_red_envelope@3x.png","mode":"normal","titles":["我方红包气泡已领取或已过期暗面"]},{"file":"ChatRoom_Bubble_HB_Receiver_Handled@3x.png","targetFile":"icons_filled_red_envelope@3x.png","mode":"normal","titles":["我方红包气泡已领取或已过期暗面"]},{"file":"ChatRoom_Bubble_Overtime_Receiver_Light@3x.png","targetFile":"icons_filled_red_envelope@3x.png","mode":"normal","titles":["我方红包气泡已领取或已过期暗面"]},{"file":"ChatRoom_Bubble_HB_Overtime_Receiver@3x.png","targetFile":"icons_filled_red_envelope@3x.png","mode":"normal","titles":["我方红包气泡已领取或已过期暗面"]},{"file":"ChatRoom_Bubble_AA_Receiver@3x.png","targetFile":"icons_filled_red_envelope@3x.png","mode":"normal","titles":["我方红包已未领取状态亮面"]},{"file":"ChatRoom_Bubble_HB_Receiver@3x.png","targetFile":"icons_filled_red_envelope@3x.png","mode":"normal","titles":["我方红包已未领取状态亮面"]},{"file":"LuckyMoney_RoundBtnDisable@3x.png","targetFile":"icons_filled_red_envelope@3x.png","mode":"normal","titles":["发红包时红包封面上（开）按钮"]},{"file":"c2c_overtime_icon@3x.png","targetFile":"icons_filled_red_envelope@3x.png","mode":"normal","titles":["转账过期红包封面上感叹号"]},{"file":"c2c_rejected_icon@3x.png","targetFile":"icons_filled_red_envelope@3x.png","mode":"normal","titles":["红包封面上向右箭头"]},{"file":"redenvelope_handled@3x.png","targetFile":"icons_filled_red_envelope@3x.png","mode":"normal","titles":["私聊群聊红包已领取红包符号"]},{"file":"c2c_hongbao_icon_cn@3x.png","targetFile":"icons_filled_red_envelope@3x.png","mode":"normal","titles":["普通红包气泡上未领取红包符号"]},{"file":"c2c_received_icon@3x.png","targetFile":"transfer_filled@3x.png","mode":"normal","titles":["转账已接收气泡上方√号"]},{"file":"c2c_cancle_icon@3x.png","targetFile":"transfer_filled@3x.png","mode":"normal","titles":["转账已被退还返回符号"]},{"file":"c2c_transfer_icon@3x.png","targetFile":"transfer_filled@3x.png","mode":"normal","titles":["转账气泡上面双向箭头符号"]},{"file":"icon_voice_playing1@3x.png","targetFile":"icons_outlined_call_end@3x.png","mode":"normal","titles":["语音消息气泡上面符号1"]},{"file":"icon_voice_playing2@3x.png","targetFile":"icons_outlined_call_end@3x.png","mode":"normal","titles":["语音消息气泡上面符号2"]},{"file":"icon_voice_playing3@3x.png","targetFile":"icons_outlined_call_end@3x.png","mode":"normal","titles":["语音消息气泡上面符号3"]},{"file":"ChatRoom_Bubble_Gift_Sender_Handled@3x.png","targetFile":"gift_filled_icon@3x.png","mode":"normal","titles":["礼物气泡"]},{"file":"ChatRoom_Bubble_Gift_Sender@3x.png","targetFile":"gift_filled_icon@3x.png","mode":"normal","titles":["礼物气泡"]},{"file":"ChatRoom_Bubble_Gift_Receiver_Handled@3x.png","targetFile":"gift_filled_icon@3x.png","mode":"normal","titles":["礼物气泡"]},{"file":"ChatRoom_Bubble_Gift_Receiver@3x.png","targetFile":"gift_filled_icon@3x.png","mode":"normal","titles":["礼物气泡"]},{"file":"icons_multitalk_scroll@3x.png","targetFile":null,"mode":"normal","titles":["复用","换行同复用"]},{"file":"expression@3x.png","targetFile":null,"mode":"normal","titles":["净化小丑","净化转发同小丑"]},{"file":"wcpay_records.svg","targetFile":"icons_filled_filter@3x.png","mode":"normal","titles":["misaka备忘录"]},{"file":"icons_filled_channels_recommend_group@3x.png","targetFile":"icons_filled_setting@3x.png","mode":"normal","titles":["黄白助手还原"]},{"file":"icons_outlined_table@3x.png","targetFile":null,"mode":"normal","titles":["编辑文字"]},{"file":"icons_filled_AddSticker@3x.png","targetFile":"smile_regular@3x.png","mode":"normal","titles":["长按图片添加至表情长按表情添加"]},{"file":"icons_red_story_volume_off@3x.png","targetFile":"volume_off_filled@3x.png","mode":"normal","titles":["视频静音播放"]},{"file":"ad_finder_link_icon@3x.png","targetFile":null,"mode":"normal","titles":["PKC密图密视转发","pkc解图"]},{"file":"icons_filled_retransmission@3x.png","targetFile":null,"mode":"normal","titles":["pkc解密","随机小姐姐"]},{"file":"icons_regualr_note_2@3x.png","targetFile":null,"mode":"normal","titles":["pkc语音转MP3"]},{"file":"icons_filled_effects@3x.png","targetFile":"icons_filled_filter@3x.png","mode":"normal","titles":["misaka"]},{"file":"icons_outlined_emoji_ani@3x.png","targetFile":"icons_filled_chats@3x.png","mode":"normal","titles":["Ai回复"]},{"file":"icons_outlined_like_1@3x.png","targetFile":"heart_regular@3x.png","mode":"normal","titles":["朋友圈点赞后爱心按钮"]},{"file":"AlbumReflashIcon@3x.png","targetFile":"refresh_regular@3x.png","mode":"normal","titles":["朋友圈下拉刷新图标"]},{"file":"icons_finder_minimize@3x.png","targetFile":null,"mode":"normal","titles":["语音视频电话时左上角缩小"]},{"file":"icons_outlined_channels_bulletscreen_open@3x.png","targetFile":"icons_outlined_channels_comment@3x.png","mode":"normal","titles":["视频号视频下面评论"]},{"file":"icon_color_momentcover@3x.png","targetFile":"lui_moments_qz_cover@3x.png","mode":"normal","titles":["视频号设为朋友圈封面"]},{"file":"icons_outlined_channels_bulletscreen_off@3x.png","targetFile":null,"mode":"normal","titles":["不看弹幕"]},{"file":"icons_outlined_channels_bulletscreen_on@3x.png","targetFile":null,"mode":"normal","titles":["显示弹幕"]},{"file":"finder_colorring@3x.png","targetFile":null,"mode":"normal","titles":["设为来电铃声"]},{"file":"icon_finder_pat_music@3x.png","targetFile":"icon_music_filled@3x.png","mode":"normal","titles":["视频号背景声音"]},{"file":"icons_filled_channel@3x","targetFile":"icons_outlined_finder@3x.png","mode":"normal","titles":["视频号封面up主前面符号"]},{"file":"icons_outline_author_copyid@3x.pmg","targetFile":"icons_outlined_finder@3x.png","mode":"normal","titles":["个人视频号复制视频id"]},{"file":"fileicon_zip_icon@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件zip图标命名"]},{"file":"fileicon_pdf_icon@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件PDF图标命名"]},{"file":"fileicon_excel_icon@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件Excel图标命名"]},{"file":"fileicon_word_icon@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件word图标命名"]},{"file":"fileicon_txt_icon@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件txt图标命名"]},{"file":"fileicon_music_icon@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件音乐图标命名"]},{"file":"fileicon_photo_icon_light@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件图像图标命名"]},{"file":"fileicon_ofd_icon@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件ofd图标命名"]},{"file":"fileicon_voice_icon_light@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件MP3图标命名"]},{"file":"fileicon_video_icon_light@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件视频图标命名"]},{"file":"fileicon_unknown_icon_light@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件视未知命名"]}];
 let extraFillApplied=false;
@@ -1141,20 +1154,57 @@ function syncTitleKey(title){
     .trim()
     .toLowerCase();
 }
+// Reuse one upload for the same action across stock and LiquidUI file names.
+// Distinct states (flash on/off, call on/off, etc.) retain separate entries.
+function uploadRole(it){
+  const f=it.file,t=String(it.title||'').replace(/^LiquidUI\s*/i,'').trim();
+  if(/^底栏(?:微信|通讯录|发现|我的)$/.test(t))return 'dock:'+t;
+  const families=[
+    [/^(?:magnifying_glass_|icons_filled_(?:new_)?search@|tabbar_search\.|search_sms\.)/,'搜索'],
+    [/^person_plus_/,'添加朋友'],
+    [/^(?:scan_(?:regular|filled)@|icons_filled_scan@)/,'扫一扫'],
+    [/^(?:pay_(?:regular|filled)@|icons_filled_qr_code@)/,'收付款'],
+    [/^qr_code_(?:regular|filled)@/,'我的二维码'],
+    [/^(?:favorites_(?:regular|filled)@|icons_outlined_colorful_favorites@)/,'收藏'],
+    [/^(?:camera_(?:regular|filled)@|icons_filled_camera@)/,'拍摄'],
+    [/^picture_filled@/,'相册'],[/^transfer_filled@/,'转账'],[/^location_filled@/,'位置'],
+    [/^icons_filled_red_envelope@/,'红包'],[/^folder_filled@/,'文件'],
+    [/^(?:icons_filled_video(?:call|_phone)@|video_(?:regular|filled)@)/,'视频通话'],
+    [/^call_on_filled@/,'语音通话'],[/^smile_regular@/,'表情'],
+    [/^voice_circle_(?:regular|filled)@/,'语音按钮'],
+    [/^(?:arrow_left_regular@|back_(?:flame|duo)\.)/,'返回'],
+    [/^(?:dot_3_(?:regular|filled)@|more_(?:flame|duo|qz)\.)/,'更多'],
+    [/^(?:xmark_(?:regular|filled)@|close_duo\.|duo_ring_close\.)/,'关闭'],
+    [/^gear_regular@/,'设置'],[/^(?:copy_filled@|doc_filled@)/,'复制'],
+    [/^(?:download_(?:regular|filled)@)/,'保存图片'],
+  ];
+  for(const [pattern,key] of families)if(pattern.test(f))return 'shared:'+key;
+  const tail=t.split('·').pop().trim().replace(/^「|」$/g,'');
+  const aliases={'加为好友':'添加朋友','右上返回':'返回','右上更多':'更多','更改标题':'更改备注','语音键':'语音按钮','表情键':'表情','相机':'拍摄','视频通话':'视频通话','语音通话':'语音通话'};
+  const common=new Set(['扫一扫','收付款','我的二维码','收藏','拍摄','相册','转账','位置','红包','文件','搜索','设置','复制','发消息']);
+  const key=aliases[tail]||tail;
+  if(common.has(key)||aliases[tail])return 'shared:'+key;
+  if(f==='input_tg_voice.png')return 'shared:语音按钮';
+  if(f==='input_tg_emoji.png')return 'shared:表情';
+  return 'title:'+syncTitleKey(t).replace(/(?:按钮)?图标$/,'');
+}
 const titleGroups=new Map();
 items.forEach((it,i)=>{
-  const key=syncTitleKey(it.title);
-  if(!key) return;
-  if(!titleGroups.has(key)) titleGroups.set(key,[]);
+  const key=uploadRole(it);
+  if(!titleGroups.has(key))titleGroups.set(key,[]);
   titleGroups.get(key).push(i);
 });
 const sameNameSyncMap=new Map();
 for(const idxs of titleGroups.values()){
-  const cats=new Set(idxs.map(i=>items[i].category));
-  if(!cats.has('liquidui') || !cats.has('wechat')) continue;
+  const representative=idxs.find(i=>items[i].category==='wechat')??idxs[0];
+  const stock=idxs.some(i=>items[i].category==='wechat');
+  items[representative].category=stock?'wechat':'liquidui';
+  items[representative].aliases=[...new Set(idxs.flatMap(i=>[items[i].title,...(items[i].aliases||[])]))];
+  items[representative].sections=[...new Set(idxs.flatMap(i=>[items[i].section,...(items[i].sections||[])]).filter(Boolean))];
   for(const i of idxs){
-    const peers=idxs.filter(j=>j!==i && items[j].category!==items[i].category);
-    if(peers.length) sameNameSyncMap.set(i,peers);
+    items[i].hiddenFromUI=i!==representative;
+    items[i].uploadRepresentative=representative;
+    sameNameSyncMap.set(i,idxs.filter(j=>j!==i));
   }
 }
 function setChosenWithSync(i,f){
@@ -1204,7 +1254,30 @@ function renderList(){
     if(chosen.has(i)) showPreviewOnly(i,chosen.get(i));
   });
 }
-function showPreviewOnly(i,f){const p=document.getElementById('p'+i);if(!p)return;const img=p.querySelector('img');if(img.dataset.url)URL.revokeObjectURL(img.dataset.url);const u=URL.createObjectURL(f);img.src=u;img.dataset.url=u;p.style.display='flex'}
+const previewThumbnails=new WeakMap();
+function previewBounds(pixels,width,height){
+  let left=width,top=height,right=-1,bottom=-1;
+  for(let y=0;y<height;y++)for(let x=0;x<width;x++)if(pixels[(y*width+x)*4+3]>0){left=Math.min(left,x);right=Math.max(right,x);top=Math.min(top,y);bottom=Math.max(bottom,y)}
+  return right<left?null:{left,top,width:right-left+1,height:bottom-top+1};
+}
+async function thumbnailFor(file){
+  if(previewThumbnails.has(file))return previewThumbnails.get(file);
+  const work=(async()=>{
+    const image=await createImageBitmap(file),scale=Math.min(1,1024/Math.max(image.width,image.height));
+    const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(image.width*scale));canvas.height=Math.max(1,Math.round(image.height*scale));
+    const context=canvas.getContext('2d',{willReadFrequently:true});context.drawImage(image,0,0,canvas.width,canvas.height);image.close();
+    const bounds=previewBounds(context.getImageData(0,0,canvas.width,canvas.height).data,canvas.width,canvas.height);
+    if(!bounds)return canvas.toDataURL('image/png');
+    const inset=Math.max(1,Math.ceil(Math.max(bounds.width,bounds.height)*.04)),crop=document.createElement('canvas');crop.width=bounds.width+inset*2;crop.height=bounds.height+inset*2;
+    crop.getContext('2d').drawImage(canvas,bounds.left,bounds.top,bounds.width,bounds.height,inset,inset,bounds.width,bounds.height);
+    return crop.toDataURL('image/png');
+  })();previewThumbnails.set(file,work);return work;
+}
+function showPreviewOnly(i,f){
+  const p=document.getElementById('p'+i);if(!p)return;const img=p.querySelector('img');if(img.dataset.url)URL.revokeObjectURL(img.dataset.url);
+  const u=URL.createObjectURL(f);img.src=u;img.dataset.url=u;p.style.display='flex';
+  thumbnailFor(f).then(thumbnail=>{if(img.isConnected&&chosen.get(i)===f)img.src=thumbnail}).catch(()=>{});
+}
 function showFile(i,f){
   setChosenWithSync(i,f);
   showPreviewOnly(i,f);
@@ -1212,7 +1285,7 @@ function showFile(i,f){
   peers.forEach(j=>showPreviewOnly(j,f));
   updateStatus()
 }
-function updateStatus(){const total=items.filter(x=>x.category===activeCategory&&!x.hiddenFromUI).length, done=[...chosen.keys()].filter(i=>items[i].category===activeCategory&&!items[i].hiddenFromUI).length;document.getElementById('status').textContent='已上传 '+done+' / '+total+' 项';const live=document.getElementById('liveImported');if(live)live.textContent='当前上传项目：'+chosen.size+' 项'}
+function updateStatus(){const total=items.filter(x=>x.category===activeCategory&&!x.hiddenFromUI).length, done=[...chosen.keys()].filter(i=>items[i].category===activeCategory&&!items[i].hiddenFromUI).length;document.getElementById('status').textContent='已上传 '+done+' / '+total+' 项';const live=document.getElementById('liveImported');if(live)live.textContent='当前上传项目：'+items.filter((it,i)=>!it.hiddenFromUI&&chosen.has(i)).length+' 项'}
 function switchCategory(cat){activeCategory=cat;document.getElementById('tabLui').classList.toggle('active',cat==='liquidui');document.getElementById('tabWechat').classList.toggle('active',cat==='wechat');document.getElementById('sectionTitle').textContent=cat==='liquidui'?'LiquidUI 图标':'原版微信图标';renderList();updateStatus()}
 document.getElementById('tabLui').onclick=()=>switchCategory('liquidui');
 document.getElementById('tabWechat').onclick=()=>switchCategory('wechat');
@@ -1438,6 +1511,7 @@ function safeZipBaseName(v){
   return base||'优优LUI图标包';
 }
 function openShareModal(){
+  if(window.webkit?.messageHandlers?.zipName){window.webkit.messageHandlers.zipName.postMessage({name:safeZipBaseName(document.getElementById('zipNameInput').value)});return}
   const m=document.getElementById('shareModal');
   const input=document.getElementById('zipNameInput');
   if(!input.value.trim())input.value='优优LUI图标包';
@@ -1538,6 +1612,7 @@ async function makeZip(btn){
     if(btn){btn.disabled=false;btn.textContent=oldText}
   }
 }
+window.__shareZipWithName=name=>{document.getElementById('zipNameInput').value=safeZipBaseName(name);sharePreparedZip()};
 async function sharePreparedZip(){
   if(!preparedZipBlob){alert('ZIP 还没有生成，请先点“导出 ZIP”');return}
   const base=safeZipBaseName(document.getElementById('zipNameInput').value);
@@ -1636,6 +1711,7 @@ function appNavTo(name){
   }
   setAppNavActive(name);
   window.__refreshBottomSearch?.();
+  window.webkit?.messageHandlers?.pageState?.postMessage({page:name});
   window.scrollTo({top:0,behavior:'instant'});
 }
 renderRuleReference();
@@ -1790,7 +1866,7 @@ function closeInfoPage(kind){
    const appearance=effective(),values=colors[appearance];
    root.dataset.appearance=appearance;root.style.colorScheme=appearance;
    root.style.setProperty('--app-bg',values.bg,'important');root.style.setProperty('--yy-page',values.bg,'important');
-   root.style.setProperty('--card-color',values.card,'important');root.style.setProperty('--surface',values.card,'important');
+   root.style.setProperty('--card-rgb',[1,3,5].map(i=>parseInt(values.card.slice(i,i+2),16)).join(','));root.style.setProperty('--card-color',values.card,'important');root.style.setProperty('--surface',values.card,'important');
    bg.value=values.bg;card.value=values.card;buttonColor.value=values.button;
    root.style.setProperty('--home-action-fill',values.button,'important');
    root.style.setProperty('--home-action-text',actionText(values.button),'important');
@@ -1971,6 +2047,10 @@ function closeInfoPage(kind){
    refresh();
    // Remain on current page.
  };
+ window.__clearBottomSearch=()=>{
+   settingsQuery='';home.value='';rules.value='';
+   home.dispatchEvent(new Event('input',{bubbles:true}));rules.dispatchEvent(new Event('input',{bubbles:true}));refresh();
+ };
  window.__refreshBottomSearch=refresh;
  window.__openBottomSearch=()=>{
    const handler=window.webkit?.messageHandlers?.bottomSearch;
@@ -1981,5 +2061,43 @@ function closeInfoPage(kind){
  window.__setBottomSearchMode=apply;
  home.addEventListener('input',refresh);rules.addEventListener('input',refresh);
  apply(mode);
+})();</script><script id="advanced-theme-build18">(function(){
+ const slider=document.getElementById('toolbarTransparency'),value=document.getElementById('toolbarTransparencyValue');
+ const shrink=document.getElementById('minimizeBottomBar');
+ const imageInput=document.getElementById('backgroundImageFile'),label=document.getElementById('backgroundImageName');
+ const native=Boolean(window.webkit?.messageHandlers?.backgroundImage);
+ function get(key,fallback){try{return localStorage.getItem(key)??fallback}catch(e){return fallback}}
+ function send(name,payload){window.webkit?.messageHandlers?.[name]?.postMessage(payload)}
+ function applyTransparency(raw){const n=Math.max(0,Math.min(100,Number(raw)||0));slider.value=n;value.textContent=n+'%';document.documentElement.style.setProperty('--tool-opacity',String((100-n)/100));try{localStorage.setItem('youyou.theme.toolbarTransparency',String(n))}catch(e){}}
+ function applyShrink(enabled){shrink.checked=enabled;try{localStorage.setItem('youyou.theme.minimizeBottomBar',enabled?'1':'0')}catch(e){}send('minimizeBottomBar',{enabled});}
+ slider.addEventListener('input',()=>applyTransparency(slider.value));
+ shrink.addEventListener('change',()=>applyShrink(shrink.checked));
+ applyTransparency(get('youyou.theme.toolbarTransparency','0'));applyShrink(get('youyou.theme.minimizeBottomBar','0')==='1');
+ const DB='YouYouLUITheme',STORE='assets',KEY='customBackground';
+ function dbOpen(){return new Promise((resolve,reject)=>{const r=indexedDB.open(DB,1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains(STORE))r.result.createObjectStore(STORE)};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
+ async function saved(action,record){const db=await dbOpen();return new Promise((resolve,reject)=>{const tx=db.transaction(STORE,action==='get'?'readonly':'readwrite'),store=tx.objectStore(STORE);let result;if(action==='get'){const r=store.get(KEY);r.onsuccess=()=>result=r.result}else if(action==='put')store.put(record,KEY);else store.delete(KEY);tx.oncomplete=()=>{db.close();resolve(result)};tx.onerror=()=>{db.close();reject(tx.error)}})}
+ let url='';
+ async function show(record){
+   document.documentElement.classList.toggle('has-background-image',Boolean(record));label.textContent=record?.name||'未设置背景图片';
+   if(url){URL.revokeObjectURL(url);url=''}
+   if(native){
+     if(!record){send('backgroundImage',{reset:true});return}
+     const reader=new FileReader();reader.onload=()=>send('backgroundImage',{name:record.name,data:String(reader.result).split(',')[1]});reader.readAsDataURL(record.blob);
+   }else{
+     let img=document.getElementById('webBackgroundImage');
+     if(!record){img?.remove();return}
+     if(!img){img=document.createElement('img');img.id='webBackgroundImage';document.body.prepend(img)}url=URL.createObjectURL(record.blob);img.src=url;
+   }
+ }
+ document.getElementById('chooseBackgroundImage').addEventListener('click',()=>imageInput.click());
+ imageInput.addEventListener('change',async()=>{
+   const file=imageInput.files?.[0];if(!file)return;
+   try{const bitmap=await createImageBitmap(file),scale=Math.min(1,2048/Math.max(bitmap.width,bitmap.height));const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(bitmap.width*scale));canvas.height=Math.max(1,Math.round(bitmap.height*scale));canvas.getContext('2d').drawImage(bitmap,0,0,canvas.width,canvas.height);bitmap.close();const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.9));if(!blob)throw Error();const record={name:file.name,blob};await saved('put',record);await show(record)}catch(e){alert('背景图片无法读取，请换一张图片再试。')}finally{imageInput.value=''}
+ });
+ document.getElementById('resetBackgroundImage').addEventListener('click',async()=>{try{await saved('delete');await show(null)}catch(e){alert('背景图片移除失败，请重试。')}});
+ saved('get').then(record=>show(record||null)).catch(()=>{});
+ window.__applyToolbarTransparency=applyTransparency;
+ window.__setMinimizeBottomBar=applyShrink;
+ window.__importBackgroundForTest=async record=>{await saved('put',record);await show(record)};
 })();</script></body></html>
 

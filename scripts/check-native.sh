@@ -15,7 +15,7 @@ xcodebuild test -project YouYouLUI_iOS/YouYouLUI.xcodeproj -scheme YouYouLUI \
   -configuration Release -sdk iphonesimulator -destination "id=$DEVICE" \
   -derivedDataPath sim-build -resultBundlePath native-check/ui-tests.xcresult \
   -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY="-" ONLY_ACTIVE_ARCH=YES
-for SCENE in home-liquid settings-liquid bottom-home-liquid bottom-separate-home-liquid dark-bottom-separate-home-liquid bottom-off-home-liquid; do
+for SCENE in home-liquid settings-liquid settings-folded-liquid bottom-home-liquid bottom-separate-home-liquid dark-bottom-separate-home-liquid bottom-off-home-liquid; do
   case "$SCENE" in
     dark-*) APPEARANCE=dark ;;
     *) APPEARANCE=light ;;
@@ -42,9 +42,12 @@ import json, sys
 scene, path = sys.argv[1:]
 result = json.load(open(path))
 assert result['passed'], result
-assert result['appVersion'] == '1.0.4' and result['appBuild'] == '17', result
+assert result['appVersion'] == '1.0.4' and result['appBuild'] == '18', result
 assert result['webContentInSelectedPage'], result
 assert result.get('nativeSeparateSearch', False) == ('separate' in scene), result
+if scene == 'settings-folded-liquid':
+    assert not result['settingsScrollIndicator'], result
+    assert result['documentHeight'] <= result['viewportHeight'] + 4, result
 if scene == 'home-liquid':
     assert result['searchLiquid'] and not result['searchBlur'], result
 if scene == 'bottom-home-liquid':

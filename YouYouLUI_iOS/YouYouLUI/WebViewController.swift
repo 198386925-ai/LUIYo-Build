@@ -15,6 +15,9 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     private var separateSearch = false
     private weak var activeSearchPageController: LUIYoSearchViewController?
     private var webHostConstraints: [NSLayoutConstraint] = []
+    private let backgroundImageView = UIImageView()
+    private var scrollMinimizeEnabled = false
+    private var nativePageName = "home"
     private var openingSearch = false
     private var activeSearchPage = "home"
     private var themeFont: UIFont?
@@ -49,6 +52,19 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         rootView.backgroundColor = Self.adaptiveBackground
 
         // Native host for per-card materials. HTML supplies content only.
+        backgroundImageView.contentMode = .scaleAspectFill
+        backgroundImageView.clipsToBounds = true
+        backgroundImageView.isUserInteractionEnabled = false
+        backgroundImageView.accessibilityElementsHidden = true
+        backgroundImageView.translatesAutoresizingMaskIntoConstraints = false
+        rootView.insertSubview(backgroundImageView, at: 0)
+        NSLayoutConstraint.activate([
+            backgroundImageView.topAnchor.constraint(equalTo: rootView.topAnchor),
+            backgroundImageView.bottomAnchor.constraint(equalTo: rootView.bottomAnchor),
+            backgroundImageView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor),
+            backgroundImageView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor)
+        ])
+        backgroundImageView.image = UIImage(contentsOfFile: nativeBackgroundURL.path)
         glassContainer.backgroundColor = .clear
         glassContainer.isUserInteractionEnabled = false
         glassContainer.accessibilityElementsHidden = true
@@ -65,6 +81,10 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         configuration.userContentController.add(self, name: "buttonColor")
         configuration.userContentController.add(self, name: "appearanceMode")
         configuration.userContentController.add(self, name: "themeFont")
+        configuration.userContentController.add(self, name: "zipName")
+        configuration.userContentController.add(self, name: "backgroundImage")
+        configuration.userContentController.add(self, name: "minimizeBottomBar")
+        configuration.userContentController.add(self, name: "pageState")
         configuration.userContentController.add(self, name: "bottomSearch")
 
         let webView = WKWebView(frame: .zero, configuration: configuration)
@@ -126,6 +146,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        setScrollMinimize(UserDefaults.standard.bool(forKey: "youyou.minimizeBottomBar"))
         separateSearch = UserDefaults.standard.string(forKey: "youyou.bottomSearchLayout") == "separate"
         setBottomSearchEnabled(UserDefaults.standard.bool(forKey: "youyou.bottomSearchEnabled"))
         applyAppearance(UserDefaults.standard.string(forKey: "youyou.appearanceMode") ?? "system")
@@ -148,6 +169,10 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "buttonColor")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "appearanceMode")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "themeFont")
+        webView?.configuration.userContentController.removeScriptMessageHandler(forName: "zipName")
+        webView?.configuration.userContentController.removeScriptMessageHandler(forName: "backgroundImage")
+        webView?.configuration.userContentController.removeScriptMessageHandler(forName: "minimizeBottomBar")
+        webView?.configuration.userContentController.removeScriptMessageHandler(forName: "pageState")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "bottomSearch")
     }
 
@@ -163,6 +188,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { [weak self] in
                 guard let self else { return }
                 if rawScenario.contains("search") { self.presentBottomSearch() }
+                if rawScenario.contains("zip-name") { self.webView.evaluateJavaScript("const zip=new JSZip();zip.file('check.txt','ok');zip.generateAsync({type:'blob'}).then(blob=>{preparedZipBlob=blob;openShareModal()})") }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                     let marker = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("preview-ready.txt")
                     try? Data("ready".utf8).write(to: marker)
@@ -234,7 +260,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
               const credits=document.getElementById('settingsCredits'), c=rect('settingsCredits');
               const folds=[...document.querySelectorAll('.settingsFold:not([hidden])')];
               const last=folds.at(-1).getBoundingClientRect();
-              return {pageTitleSizes:[...document.querySelectorAll('.pageHead h1,.settingsHead h1')].map(el=>parseFloat(getComputedStyle(el).fontSize)),neutralToolBorders:[...document.querySelectorAll('#homeTools .fillpick,#homeTools .colorfold')].map(el=>parseFloat(getComputedStyle(el).borderTopWidth)),bottomSearchEnabled:document.body.classList.contains('bottom-search-enabled'),homeSearchHidden:getComputedStyle(document.getElementById('searchInput')).display==='none',ruleSearchHidden:getComputedStyle(document.getElementById('ruleSearch')).display==='none',searchState:window.__bottomSearchState(),resultCount:document.querySelectorAll(document.body.classList.contains('nav-rules')?'.ruleCard':'.card').length,settingsSearchCount:folds.filter(f=>!f.classList.contains('search-hidden')).length,toolsFill:getComputedStyle(document.getElementById('homeTools')).backgroundColor,toolsShadow:getComputedStyle(document.getElementById('homeTools')).boxShadow,actionShadows:[...document.querySelectorAll('#homeTools .batch,#homeTools .fillpick,#homeTools .fill,#homeTools .colorfold,#homeTools .clear,#homeTools .zip')].map(el=>getComputedStyle(el).boxShadow),creditFontSize:parseFloat(getComputedStyle(credits).fontSize),actionHeights:[...document.querySelectorAll('#homeTools .batch,#homeTools .fillpick,#homeTools .fill,#homeTools .colorfold,#homeTools .clear,#homeTools .zip')].map(el=>el.getBoundingClientRect().height),actions:[...document.querySelectorAll('#homeTools .batch,#homeTools .fillpick,#homeTools .fill,#homeTools .colorfold,#homeTools .clear,#homeTools .zip')].map(el=>getComputedStyle(el).color),category:[...document.querySelectorAll('.categorytabs button')].map(el=>getComputedStyle(el).color),dark:document.documentElement.dataset.appearance==='dark',mode:localStorage.getItem('youyou.theme.appearance'),categoryHeight:document.querySelector('.categorytabs').getBoundingClientRect().height,materialHeight:rect('materialModePicker').height,appearanceHeight:rect('appearanceModePicker').height,creditVisible:c.width>0&&c.height>0,creditTop:c.top,creditBottom:c.bottom,logBottom:last.bottom,cardHeights:folds.filter(d=>!d.open).map(d=>d.getBoundingClientRect().height),cardBorders:folds.map(d=>getComputedStyle(d).borderTopWidth),surfaceBackgrounds:[...document.querySelectorAll(".inlineVersion,.card,.ruleCard,.settingsFold,.categorytabs,#materialModePicker,#appearanceModePicker")].map(el=>getComputedStyle(el).backgroundColor),searchBelowFeedback:(()=>{const q=rect('searchInput'),f=document.querySelector('.homeFeedback').getBoundingClientRect(),t=rect('homeTools');return q.top>=f.bottom&&q.bottom<t.top&&document.getElementById('searchInput').parentElement.id==='homeTarget'})(),actionFills:[...document.querySelectorAll('#homeTools .batch,#homeTools .fillpick,#homeTools .fill,#homeTools .colorfold,#homeTools .clear,#homeTools .zip')].map(el=>getComputedStyle(el).backgroundColor),motion:window.__foldMotionChecks||[]};
+              return {pageTitleSizes:[...document.querySelectorAll('.pageHead h1,.settingsHead h1')].map(el=>parseFloat(getComputedStyle(el).fontSize)),neutralToolBorders:[...document.querySelectorAll('#homeTools .fillpick,#homeTools .colorfold')].map(el=>parseFloat(getComputedStyle(el).borderTopWidth)),bottomSearchEnabled:document.body.classList.contains('bottom-search-enabled'),homeSearchHidden:getComputedStyle(document.getElementById('searchInput')).display==='none',ruleSearchHidden:getComputedStyle(document.getElementById('ruleSearch')).display==='none',searchState:window.__bottomSearchState(),resultCount:document.querySelectorAll(document.body.classList.contains('nav-rules')?'.ruleCard':'.card').length,settingsSearchCount:folds.filter(f=>!f.classList.contains('search-hidden')).length,documentHeight:document.documentElement.scrollHeight,viewportHeight:innerHeight,toolsFill:getComputedStyle(document.getElementById('homeTools')).backgroundColor,toolsShadow:getComputedStyle(document.getElementById('homeTools')).boxShadow,actionShadows:[...document.querySelectorAll('#homeTools .batch,#homeTools .fillpick,#homeTools .fill,#homeTools .colorfold,#homeTools .clear,#homeTools .zip')].map(el=>getComputedStyle(el).boxShadow),creditFontSize:parseFloat(getComputedStyle(credits).fontSize),actionHeights:[...document.querySelectorAll('#homeTools .batch,#homeTools .fillpick,#homeTools .fill,#homeTools .colorfold,#homeTools .clear,#homeTools .zip')].map(el=>el.getBoundingClientRect().height),actions:[...document.querySelectorAll('#homeTools .batch,#homeTools .fillpick,#homeTools .fill,#homeTools .colorfold,#homeTools .clear,#homeTools .zip')].map(el=>getComputedStyle(el).color),category:[...document.querySelectorAll('.categorytabs button')].map(el=>getComputedStyle(el).color),dark:document.documentElement.dataset.appearance==='dark',mode:localStorage.getItem('youyou.theme.appearance'),categoryHeight:document.querySelector('.categorytabs').getBoundingClientRect().height,materialHeight:rect('materialModePicker').height,appearanceHeight:rect('appearanceModePicker').height,creditVisible:c.width>0&&c.height>0,creditTop:c.top,creditBottom:c.bottom,logBottom:last.bottom,cardHeights:folds.filter(d=>!d.open).map(d=>d.getBoundingClientRect().height),cardBorders:folds.map(d=>getComputedStyle(d).borderTopWidth),surfaceBackgrounds:[...document.querySelectorAll(".inlineVersion,.card,.ruleCard,.settingsFold,.categorytabs,#materialModePicker,#appearanceModePicker")].map(el=>getComputedStyle(el).backgroundColor),searchBelowFeedback:(()=>{const q=rect('searchInput'),f=document.querySelector('.homeFeedback').getBoundingClientRect(),t=rect('homeTools');return q.top>=f.bottom&&q.bottom<t.top&&document.getElementById('searchInput').parentElement.id==='homeTarget'})(),actionFills:[...document.querySelectorAll('#homeTools .batch,#homeTools .fillpick,#homeTools .fill,#homeTools .colorfold,#homeTools .clear,#homeTools .zip')].map(el=>getComputedStyle(el).backgroundColor),motion:window.__foldMotionChecks||[]};
             })()
             """
             self.webView.evaluateJavaScript(styleJS) { value, _ in
@@ -286,6 +312,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
                 let bg = self.view.backgroundColor?.resolvedColor(with: self.traitCollection).cgColor.components ?? []
                 var result = styles
                 result["scenario"] = rawScenario
+                result["settingsScrollIndicator"] = self.webView.scrollView.showsVerticalScrollIndicator
                 result["pageTitlesMatch"] = titlesMatch
                 result["webContentInSelectedPage"] = self.webView.superview === self.selectedViewController?.view
                 result["passed"] = (!folded || !hasPicker) && titlesMatch && readable && nativeTitlesOnly && compactCategory && compactMaterial && creditCorrect && smooth && nativeSurfacesVisible && solidActions && solidToolCard && bottomCorrect && searchDialogCorrect && noNativeActions && searchCorrect && dark == expectedDark && (styles["dark"] as? Bool) == dark
@@ -416,6 +443,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
                 webView.bottomAnchor.constraint(equalTo: host.bottomAnchor)
             ]
             NSLayoutConstraint.activate(webHostConstraints)
+            if activeSearchPageController == nil, #available(iOS 15.0, *) { selectedViewController?.setContentScrollView(webView.scrollView, for: .bottom) }
         }
     }
 
@@ -462,13 +490,18 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             self.activeSearchPage = state["page"] as? String ?? "home"
             let page = LUIYoSearchViewController()
             page.query = state["query"] as? String ?? ""
+            page.backgroundImage = self.backgroundImageView.image
             page.placeholder = state["placeholder"] as? String ?? "搜索"
             page.onSearch = { [weak self] query in self?.applyBottomSearch(query) }
             page.onClose = { [weak self] in
                 guard let self else { return }
+                self.webView.evaluateJavaScript("window.__clearBottomSearch?.()")
                 self.activeSearchPageController = nil
-                self.keepContentBelowNativeBar()
-                self.updateLayoutMetrics(force: true)
+                UIView.performWithoutAnimation {
+                    self.keepContentBelowNativeBar()
+                    self.view.layoutIfNeeded()
+                    self.updateLayoutMetrics(force: true)
+                }
             }
             page.onLayout = { [weak self] in
                 guard let self else { return }
@@ -479,7 +512,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             page.modalPresentationStyle = .fullScreen
             self.activeSearchPageController = page
             self.keepContentBelowNativeBar()
-            self.present(page, animated: true)
+            self.present(page, animated: false)
         }
     }
 
@@ -633,6 +666,42 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
 
     override var preferredStatusBarStyle: UIStatusBarStyle {
         traitCollection.userInterfaceStyle == .dark ? .lightContent : .darkContent
+    }
+
+    private var nativeBackgroundURL: URL {
+        FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("ThemeBackground.jpg")
+    }
+
+    private func setScrollMinimize(_ enabled: Bool) {
+        scrollMinimizeEnabled = enabled
+        UserDefaults.standard.set(enabled, forKey: "youyou.minimizeBottomBar")
+        if #available(iOS 26.0, *) { tabBarMinimizeBehavior = enabled ? .onScrollDown : .never }
+    }
+
+    private func updatePageScroll(_ page: String) {
+        nativePageName = page
+        webView.scrollView.showsVerticalScrollIndicator = page != "settings"
+        webView.scrollView.showsHorizontalScrollIndicator = false
+        webView.scrollView.alwaysBounceVertical = page != "settings"
+    }
+
+    private func presentZipName(_ name: String) {
+        guard presentedViewController == nil else { return }
+        let alert = UIAlertController(title: "导出 ZIP", message: "修改文件名", preferredStyle: .alert)
+        alert.addTextField { field in
+            field.text = name
+            field.placeholder = "优优LUI图标包"
+            field.accessibilityIdentifier = "zipExportName"
+            field.clearButtonMode = .whileEditing
+            field.autocorrectionType = .no
+        }
+        alert.addAction(UIAlertAction(title: "取消", style: .cancel))
+        alert.addAction(UIAlertAction(title: "分享", style: .default) { [weak self, weak alert] _ in
+            let value = alert?.textFields?.first?.text ?? "优优LUI图标包"
+            guard let data = try? JSONSerialization.data(withJSONObject: [value]), let args = String(data: data, encoding: .utf8) else { return }
+            self?.webView.evaluateJavaScript("window.__shareZipWithName?.(..." + args + ")")
+        })
+        present(alert, animated: true)
     }
 
     private var nativeFontURL: URL {
@@ -846,6 +915,30 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     }
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        if message.name == "pageState" {
+            if let payload = message.body as? [String: Any] { updatePageScroll(payload["page"] as? String ?? "home") }
+            return
+        }
+        if message.name == "minimizeBottomBar" {
+            if let payload = message.body as? [String: Any] { setScrollMinimize(payload["enabled"] as? Bool ?? false) }
+            return
+        }
+        if message.name == "zipName" {
+            if let payload = message.body as? [String: Any] { presentZipName(payload["name"] as? String ?? "优优LUI图标包") }
+            return
+        }
+        if message.name == "backgroundImage" {
+            guard let payload = message.body as? [String: Any] else { return }
+            if payload["reset"] as? Bool == true {
+                backgroundImageView.image = nil
+                try? FileManager.default.removeItem(at: nativeBackgroundURL)
+            } else if let base64 = payload["data"] as? String, let data = Data(base64Encoded: base64), let image = UIImage(data: data) {
+                backgroundImageView.image = image
+                try? FileManager.default.createDirectory(at: nativeBackgroundURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+                try? data.write(to: nativeBackgroundURL, options: .atomic)
+            }
+            return
+        }
         if message.name == "bottomSearch" {
             guard let payload = message.body as? [String: Any] else { return }
             if let layout = payload["layout"] as? String { setBottomSearchLayout(layout) }
@@ -975,12 +1068,22 @@ private final class LUIYoSearchViewController: UIViewController, UITextFieldDele
     var onSearch: ((String) -> Void)?
     var onClose: (() -> Void)?
     var onLayout: (() -> Void)?
+    var backgroundImage: UIImage?
     let contentHost = UIView()
     let searchField = UITextField()
 
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .clear
+        if let backgroundImage {
+            let imageView = UIImageView(image: backgroundImage)
+            imageView.frame = view.bounds
+            imageView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            imageView.contentMode = .scaleAspectFill
+            imageView.clipsToBounds = true
+            imageView.isUserInteractionEnabled = false
+            view.addSubview(imageView)
+        }
         let effect: UIVisualEffect
         if #available(iOS 26.0, *) { effect = UIGlassEffect() }
         else { effect = UIBlurEffect(style: .systemMaterial) }
@@ -1024,7 +1127,7 @@ private final class LUIYoSearchViewController: UIViewController, UITextFieldDele
         close.tintColor = .label
         close.accessibilityIdentifier = "bottomSearchClose"
         close.accessibilityLabel = "关闭搜索"
-        close.addAction(UIAction { [weak self] _ in self?.dismiss(animated: true) }, for: .touchUpInside)
+        close.addAction(UIAction { [weak self] _ in self?.searchField.resignFirstResponder(); self?.dismiss(animated: false) }, for: .touchUpInside)
         for control in [contentHost, inputSurface, close] {
             control.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview(control)
