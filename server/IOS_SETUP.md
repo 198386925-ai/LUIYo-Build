@@ -1,7 +1,7 @@
 # APP 与后台连接方式
 
 - 先完成 `server/README.md` 中的 PHP 8.3 和 HTTPS 部署。
-- 在 `YouYouLUI_iOS/YouYouLUI/Info.plist` 内添加 String 键 `LUIYO_AUTH_URL`，值为 **完整 HTTPS 接口地址**，例如 `https://example.com/luiyo-auth/api.php`。
+- 在 `YouYouLUI_iOS/YouYouLUI/Info.plist` 内添加 String 键 `LUIYO_AUTH_URL`，值为 **完整 HTTPS 接口地址**，例如 `https://example.com/luiyo/api.php`。
 - 该值不配置时，旧 APP 行为保持不变；**这时统计/封禁功能并未生效**。
 - 配置后，APP 启动时显示激活码入口，进入功能页面前请求服务器验证；使用期间约每 5 分钟复验，切回前台立即重新验证。断网默认不可使用，防止通过断网绕过封禁。
 - 激活码和设备管理由 `server/admin.php` 执行。设备随机 UUID 与会话令牌保存在本机 Keychain；不会访问硬件唯一标识。
