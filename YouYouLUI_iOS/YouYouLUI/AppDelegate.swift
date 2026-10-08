@@ -107,16 +107,23 @@ private final class LUIYoActivationGate: UIViewController {
         return c.url!
     }
 
-    private func request(action: String, payload: [String: String]?, token: String?, completion: @escaping (Int, [String: String]?) -> Void) {
+    private func request(action: String, payload: [String: String]?, token: String?, completion: @escaping (Int, [String: String]?, String) -> Void) {
         var request = URLRequest(url: url(action: action), cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         if let token { request.setValue("Bearer " + token, forHTTPHeaderField: "Authorization") }
         if let payload { request.httpBody = try? JSONSerialization.data(withJSONObject: payload) }
-        URLSession.shared.dataTask(with: request) { data, response, _ in
-            let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            let http = response as? HTTPURLResponse
+            let code = http?.statusCode ?? 0
             let obj = data.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: String] }
-            DispatchQueue.main.async { completion(code, obj) }
+            // Show only response type/shape; never expose an authorization token.
+            let contentType = http?.value(forHTTPHeaderField: "Content-Type") ?? "missing"
+            let diagnostic: String
+            if let error { diagnostic = "网络错误：\\(error.localizedDescription)" }
+            else if obj == nil { diagnostic = "HTTP \\(code)，服务器未返回 JSON（\\(contentType)）" }
+            else { diagnostic = "HTTP \\(code)，返回字段不符合激活协议" }
+            DispatchQueue.main.async { completion(code, obj, diagnostic) }
         }.resume()
     }
 
@@ -132,7 +139,7 @@ private final class LUIYoActivationGate: UIViewController {
         checkInFlight = true
         activateButton.isEnabled = false
         status.text = "正在验证激活码…"
-        request(action: "activate", payload: ["code": code, "device_id": identifier], token: nil) { [weak self] httpCode, data in
+        request(action: "activate", payload: ["code": code, "device_id": identifier], token: nil) { [weak self] httpCode, data, diagnostic in
             guard let self else { return }
             self.checkInFlight = false
             self.activateButton.isEnabled = true
@@ -151,7 +158,7 @@ private final class LUIYoActivationGate: UIViewController {
         // Fail closed on foreground: hide app content until the server answers.
         hideApp()
         status.text = "正在验证使用权限…"
-        request(action: "check", payload: nil, token: token) { [weak self] code, body in
+        request(action: "check", payload: nil, token: token) { [weak self] code, body, diagnostic in
             guard let self else { return }
             self.checkInFlight = false
             if code == 200, body?["status"] == "active" {
@@ -159,7 +166,7 @@ private final class LUIYoActivationGate: UIViewController {
             } else {
                 if code == 401 { SecretStore.delete("token") }
                 self.invalidateAccess(message: code == 403 ? "此账号已被封禁、停用或过期" :
-                    (code == 0 ? "暂时无法连接验证服务器，请稍后重试" : "验证失败，请检查激活状态"))
+                    (code == 0 ? "暂时无法连接验证服务器，请稍后重试" : "验证失败：\\(body?["error"] ?? diagnostic)"))
             }
         }
     }
