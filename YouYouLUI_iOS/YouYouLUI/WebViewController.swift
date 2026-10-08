@@ -312,7 +312,9 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     }
 
     private func setBottomSearchLayout(_ value: String) {
-        separateSearch = value == "separate"
+        let requestedSeparate = value == "separate"
+        guard separateSearch != requestedSeparate else { return }
+        separateSearch = requestedSeparate
         UserDefaults.standard.set(separateSearch ? "separate" : "merged", forKey: "youyou.bottomSearchLayout")
         refreshSearchTabItems()
     }
@@ -322,12 +324,20 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             // UIKit owns the complete bar geometry, including the detached
             // search surface. Never shrink the bar or position a glass button
             // using separate width, height or safe-area offsets.
-            var nativeTabs = pageControllers.enumerated().map { index, controller in
-                UITab(title: pageItems[index].title ?? "", image: pageItems[index].image,
-                      identifier: "page.\(index)") { _ in controller }
+            // A UITab owns its provider's UIViewController. The old implementation
+            // returned the SAME pageControllers every time tabs were rebuilt.
+            // UIKit 27 asserts inside -[UITab viewController] when an already-owned
+            // controller is handed to a newly created UITab (see device .ips).
+            // Give each newly-created tab its own, never-before-owned controller.
+            var nativeTabs = pageItems.enumerated().map { index, item -> UITab in
+                let controller = UIViewController()
+                controller.view.backgroundColor = .clear
+                return UITab(title: item.title ?? "", image: item.image,
+                             identifier: "page.\(index)") { _ in controller }
             }
             if bottomSearchEnabled {
-                let controller = searchController
+                let controller = UIViewController()
+                controller.view.backgroundColor = .clear
                 if separateSearch {
                     let search = UISearchTab { _ in controller }
                     if #available(iOS 26.0, *) { search.automaticallyActivatesSearch = false }
