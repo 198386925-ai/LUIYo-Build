@@ -95,7 +95,10 @@ final class NativeNavigationTests: XCTestCase {
         XCTAssertTrue(alert.waitForExistence(timeout: 120))
         XCTAssertTrue(alert.textFields["zipExportName"].exists)
         XCTAssertTrue(alert.buttons["分享"].exists)
-        alert.buttons["取消"].tap()
+        alert.textFields["zipExportName"].tap()
+        alert.textFields["zipExportName"].typeText(" Test")
+        alert.buttons["分享"].tap()
         XCTAssertTrue(alert.waitForNonExistence(timeout: 10))
+        XCTAssertTrue(app.descendants(matching: .any)["zipShareSheet"].waitForExistence(timeout: 15), "Renaming must continue to the native share sheet")
     }
 }

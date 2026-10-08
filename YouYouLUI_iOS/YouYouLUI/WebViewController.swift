@@ -699,7 +699,12 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         alert.addAction(UIAlertAction(title: "分享", style: .default) { [weak self, weak alert] _ in
             let value = alert?.textFields?.first?.text ?? "优优LUI图标包"
             guard let data = try? JSONSerialization.data(withJSONObject: [value]), let args = String(data: data, encoding: .utf8) else { return }
-            self?.webView.evaluateJavaScript("window.__shareZipWithName?.(..." + args + ")")
+            let share: () -> Void = { [weak self] in
+                self?.webView.evaluateJavaScript("window.__shareZipWithName?.(..." + args + ")")
+            }
+            // Finish the name alert before WebKit can request the share sheet.
+            if let alert, self?.presentedViewController === alert { alert.dismiss(animated: false, completion: share) }
+            else { share() }
         })
         present(alert, animated: true)
     }
@@ -1020,6 +1025,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
 
     private func presentShareSheet(fileURL: URL) {
         let activity = UIActivityViewController(activityItems: [fileURL], applicationActivities: nil)
+        activity.view.accessibilityIdentifier = "zipShareSheet"
         if let popover = activity.popoverPresentationController {
             popover.sourceView = view
             popover.sourceRect = CGRect(x: view.bounds.midX, y: view.bounds.maxY - 40, width: 1, height: 1)
