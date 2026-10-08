@@ -37,16 +37,15 @@ jobs:
       - name: Save compiled IPA
         uses: actions/upload-artifact@v4
         with:
-          name: LUIYo-Build15-${{ github.run_number }}-IPA
+          name: LUIYo-Build16-${{ github.run_number }}-IPA
           path: output/*.ipa
           if-no-files-found: error
           retention-days: 1
   simulator-check:
-    # Diagnostic checks are opt-in: they used to time out with exit code 70
-    # after IPA had already been successfully uploaded.
-    if: github.event_name == 'workflow_dispatch' && vars.LUIYO_RUN_SIMULATOR_CHECK == 'true'
+    # Verify real tab taps and keyboard focus on the public standard runner.
+    if: github.event.repository.private == false
     needs: build
-    runs-on: macos-15-intel
+    runs-on: macos-26
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
@@ -63,9 +62,11 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: LUIYo-Build15-${{ github.run_number }}-native-check
+          name: LUIYo-Build16-${{ github.run_number }}-native-check
           path: |
             native-check/*.png
             native-check/*.json
+            native-check/*.xcresult
+            native-check/*.log
           if-no-files-found: ignore
           retention-days: 1

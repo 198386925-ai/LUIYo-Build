@@ -5,7 +5,7 @@ import CoreText
 /// Native material shell.
 /// iOS 26+ uses UIKit Liquid Glass; older systems use UIKit systemMaterial blur.
 /// HTML is content-only and never draws blur/glass itself.
-final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler, UITabBarControllerDelegate, UITextFieldDelegate {
+final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler, UITabBarControllerDelegate {
     private var webView: WKWebView!
     private var pageItems: [UITabBarItem] = []
     private var pageControllers: [UIViewController] = []
@@ -13,7 +13,8 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     private var bottomSearchEnabled = false
     private var activePageTag = 0
     private var separateSearch = false
-    private weak var activeSearchAlert: UIAlertController?
+    private weak var activeSearchPageController: LUIYoSearchViewController?
+    private var openingSearch = false
     private var activeSearchPage = "home"
     private var themeFont: UIFont?
     private var themeFontData: Data?
@@ -217,7 +218,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
               const credits=document.getElementById('settingsCredits'), c=rect('settingsCredits');
               const folds=[...document.querySelectorAll('.settingsFold:not([hidden])')];
               const last=folds.at(-1).getBoundingClientRect();
-              return {neutralToolBorders:[...document.querySelectorAll('#homeTools .fillpick,#homeTools .colorfold')].map(el=>parseFloat(getComputedStyle(el).borderTopWidth)),bottomSearchEnabled:document.body.classList.contains('bottom-search-enabled'),homeSearchHidden:getComputedStyle(document.getElementById('searchInput')).display==='none',ruleSearchHidden:getComputedStyle(document.getElementById('ruleSearch')).display==='none',searchState:window.__bottomSearchState(),resultCount:document.querySelectorAll(document.body.classList.contains('nav-rules')?'.ruleCard':'.card').length,settingsSearchCount:folds.filter(f=>!f.classList.contains('search-hidden')).length,toolsFill:getComputedStyle(document.getElementById('homeTools')).backgroundColor,toolsShadow:getComputedStyle(document.getElementById('homeTools')).boxShadow,actionShadows:[...document.querySelectorAll('#homeTools .batch,#homeTools .fillpick,#homeTools .fill,#homeTools .colorfold,#homeTools .clear,#homeTools .zip')].map(el=>getComputedStyle(el).boxShadow),creditFontSize:parseFloat(getComputedStyle(credits).fontSize),actionHeights:[...document.querySelectorAll('#homeTools .batch,#homeTools .fillpick,#homeTools .fill,#homeTools .colorfold,#homeTools .clear,#homeTools .zip')].map(el=>el.getBoundingClientRect().height),actions:[...document.querySelectorAll('#homeTools .batch,#homeTools .fillpick,#homeTools .fill,#homeTools .colorfold,#homeTools .clear,#homeTools .zip')].map(el=>getComputedStyle(el).color),category:[...document.querySelectorAll('.categorytabs button')].map(el=>getComputedStyle(el).color),dark:document.documentElement.dataset.appearance==='dark',mode:localStorage.getItem('youyou.theme.appearance'),categoryHeight:document.querySelector('.categorytabs').getBoundingClientRect().height,materialHeight:rect('materialModePicker').height,appearanceHeight:rect('appearanceModePicker').height,creditVisible:c.width>0&&c.height>0,creditTop:c.top,creditBottom:c.bottom,logBottom:last.bottom,cardHeights:folds.filter(d=>!d.open).map(d=>d.getBoundingClientRect().height),cardBorders:folds.map(d=>getComputedStyle(d).borderTopWidth),surfaceBackgrounds:[...document.querySelectorAll(".inlineVersion,.card,.ruleCard,.settingsFold,.categorytabs,#materialModePicker,#appearanceModePicker")].map(el=>getComputedStyle(el).backgroundColor),searchBelowFeedback:(()=>{const q=rect('searchInput'),f=document.querySelector('.homeFeedback').getBoundingClientRect(),t=rect('homeTools');return q.top>=f.bottom&&q.bottom<t.top&&document.getElementById('searchInput').parentElement.id==='homeTarget'})(),actionFills:[...document.querySelectorAll('#homeTools .batch,#homeTools .fillpick,#homeTools .fill,#homeTools .colorfold,#homeTools .clear,#homeTools .zip')].map(el=>getComputedStyle(el).backgroundColor),motion:window.__foldMotionChecks||[]};
+              return {pageTitleSizes:[...document.querySelectorAll('.pageHead h1,.settingsHead h1')].map(el=>parseFloat(getComputedStyle(el).fontSize)),neutralToolBorders:[...document.querySelectorAll('#homeTools .fillpick,#homeTools .colorfold')].map(el=>parseFloat(getComputedStyle(el).borderTopWidth)),bottomSearchEnabled:document.body.classList.contains('bottom-search-enabled'),homeSearchHidden:getComputedStyle(document.getElementById('searchInput')).display==='none',ruleSearchHidden:getComputedStyle(document.getElementById('ruleSearch')).display==='none',searchState:window.__bottomSearchState(),resultCount:document.querySelectorAll(document.body.classList.contains('nav-rules')?'.ruleCard':'.card').length,settingsSearchCount:folds.filter(f=>!f.classList.contains('search-hidden')).length,toolsFill:getComputedStyle(document.getElementById('homeTools')).backgroundColor,toolsShadow:getComputedStyle(document.getElementById('homeTools')).boxShadow,actionShadows:[...document.querySelectorAll('#homeTools .batch,#homeTools .fillpick,#homeTools .fill,#homeTools .colorfold,#homeTools .clear,#homeTools .zip')].map(el=>getComputedStyle(el).boxShadow),creditFontSize:parseFloat(getComputedStyle(credits).fontSize),actionHeights:[...document.querySelectorAll('#homeTools .batch,#homeTools .fillpick,#homeTools .fill,#homeTools .colorfold,#homeTools .clear,#homeTools .zip')].map(el=>el.getBoundingClientRect().height),actions:[...document.querySelectorAll('#homeTools .batch,#homeTools .fillpick,#homeTools .fill,#homeTools .colorfold,#homeTools .clear,#homeTools .zip')].map(el=>getComputedStyle(el).color),category:[...document.querySelectorAll('.categorytabs button')].map(el=>getComputedStyle(el).color),dark:document.documentElement.dataset.appearance==='dark',mode:localStorage.getItem('youyou.theme.appearance'),categoryHeight:document.querySelector('.categorytabs').getBoundingClientRect().height,materialHeight:rect('materialModePicker').height,appearanceHeight:rect('appearanceModePicker').height,creditVisible:c.width>0&&c.height>0,creditTop:c.top,creditBottom:c.bottom,logBottom:last.bottom,cardHeights:folds.filter(d=>!d.open).map(d=>d.getBoundingClientRect().height),cardBorders:folds.map(d=>getComputedStyle(d).borderTopWidth),surfaceBackgrounds:[...document.querySelectorAll(".inlineVersion,.card,.ruleCard,.settingsFold,.categorytabs,#materialModePicker,#appearanceModePicker")].map(el=>getComputedStyle(el).backgroundColor),searchBelowFeedback:(()=>{const q=rect('searchInput'),f=document.querySelector('.homeFeedback').getBoundingClientRect(),t=rect('homeTools');return q.top>=f.bottom&&q.bottom<t.top&&document.getElementById('searchInput').parentElement.id==='homeTarget'})(),actionFills:[...document.querySelectorAll('#homeTools .batch,#homeTools .fillpick,#homeTools .fill,#homeTools .colorfold,#homeTools .clear,#homeTools .zip')].map(el=>getComputedStyle(el).backgroundColor),motion:window.__foldMotionChecks||[]};
             })()
             """
             self.webView.evaluateJavaScript(styleJS) { value, _ in
@@ -260,14 +261,18 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
                 let toolsExpected = rawScenario.contains("custom") ? (dark ? "rgb(80, 59, 72)" : "rgb(242, 201, 176)") : (dark ? "rgb(28, 28, 30)" : "rgb(255, 255, 255)")
                 let solidToolCard = self.cardSpecs["id:homeTools"] == nil && (styles["toolsFill"] as? String) == toolsExpected && (styles["toolsShadow"] as? String) == "none"
                 let bottomCorrect = self.bottomSearchEnabled == bottomEnabled && (self.tabBar.items?.count ?? 0) == (bottomEnabled ? 4 : 3) && (styles["bottomSearchEnabled"] as? Bool) == bottomEnabled
-                let searchDialogCorrect = !rawScenario.contains("bottom-dialog") || (self.activeSearchAlert?.presentingViewController != nil && self.tabBar.selectedItem?.tag == 0)
+                let searchDialogCorrect = !rawScenario.contains("bottom-dialog") || (self.activeSearchPageController?.presentingViewController != nil && self.tabBar.selectedItem?.tag == 0)
+                let titleSizes = styles["pageTitleSizes"] as? [Double] ?? []
+                let titlesMatch = titleSizes.count == 2 && titleSizes.allSatisfy { abs($0 - 25) < 0.1 }
                 let categorySegment = self.nativeSegments.first { self.cardSpecs[$0.key]?["segment"] as? String == "category" }?.value
                 let track = categorySegment?.superview?.backgroundColor?.resolvedColor(with: self.traitCollection).cgColor.components ?? []
                 let smooth = checks.allSatisfy { ($0["jump"] as? Double ?? 999) < 0.5 && ($0["monotonic"] as? Bool) == true }
                 let bg = self.view.backgroundColor?.resolvedColor(with: self.traitCollection).cgColor.components ?? []
                 var result = styles
                 result["scenario"] = rawScenario
-                result["passed"] = (!folded || !hasPicker) && readable && nativeTitlesOnly && compactCategory && compactMaterial && creditCorrect && smooth && nativeSurfacesVisible && solidActions && solidToolCard && bottomCorrect && searchDialogCorrect && noNativeActions && searchCorrect && dark == expectedDark && (styles["dark"] as? Bool) == dark
+                result["pageTitlesMatch"] = titlesMatch
+                result["webContentInSelectedPage"] = self.webView.superview === self.selectedViewController?.view
+                result["passed"] = (!folded || !hasPicker) && titlesMatch && readable && nativeTitlesOnly && compactCategory && compactMaterial && creditCorrect && smooth && nativeSurfacesVisible && solidActions && solidToolCard && bottomCorrect && searchDialogCorrect && noNativeActions && searchCorrect && dark == expectedDark && (styles["dark"] as? Bool) == dark
                 result["selectedCapsuleAlphas"] = self.nativeSelectedCapsules.values.map { Double($0.backgroundColor?.cgColor.alpha ?? 1) }
                 result["pickerStyles"] = self.nativeSegments.map { key, segment -> [String: Any] in
                     let attributes = segment.titleTextAttributes(for: .selected) ?? [:]
@@ -288,8 +293,8 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
                 }
                 result["categoryTrack"] = track.map { Double($0) }
                 result["nativeSearchEnabled"] = self.bottomSearchEnabled
-                result["nativeSearchDialogVisible"] = self.activeSearchAlert?.presentingViewController != nil
-                result["nativeSearchDialogQuery"] = self.activeSearchAlert?.textFields?.first?.text ?? ""
+                result["nativeSearchDialogVisible"] = self.activeSearchPageController?.presentingViewController != nil
+                result["nativeSearchDialogQuery"] = self.activeSearchPageController?.searchBar.text ?? ""
                 result["nativeSelectedTab"] = self.tabBar.selectedItem?.tag ?? -1
                 result["nativeToolsPresent"] = self.cardSpecs["id:homeTools"] != nil
                 result["searchLiquid"] = searchLiquid
@@ -340,7 +345,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
                 controller.view.backgroundColor = .clear
                 if separateSearch {
                     let search = UISearchTab { _ in controller }
-                    if #available(iOS 26.0, *) { search.automaticallyActivatesSearch = true }
+                    if #available(iOS 26.0, *) { search.automaticallyActivatesSearch = false }
                     nativeTabs.append(search)
                 } else {
                     nativeTabs.append(UITab(title: "搜索", image: UIImage(systemName: "magnifyingglass"),
@@ -407,12 +412,9 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
 
     @available(iOS 18.0, *)
     func tabBarController(_ tabBarController: UITabBarController, shouldSelectTab tab: UITab) -> Bool {
-        if tab is UISearchTab {
-            // Allow UIKit to activate the system-owned search tab rather
-            // than intercepting it with a custom modal search controller.
-            return true
-        }
-        if tab.identifier == "action.search" {
+        if tab is UISearchTab || tab.identifier == "action.search" {
+            // Both native entries open the same full-screen search page.
+            // Keep the content tab selected so closing search restores it.
             presentBottomSearch()
             return false
         }
@@ -426,60 +428,21 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     }
 
     private func presentBottomSearch() {
-        guard bottomSearchEnabled, presentedViewController == nil else { return }
+        guard bottomSearchEnabled, !openingSearch, presentedViewController == nil else { return }
+        openingSearch = true
         webView.evaluateJavaScript("window.__bottomSearchState?.()") { [weak self] value, _ in
-            guard let self, self.presentedViewController == nil else { return }
+            guard let self else { return }
+            self.openingSearch = false
+            guard self.presentedViewController == nil else { return }
             let state = value as? [String: Any] ?? [:]
             self.activeSearchPage = state["page"] as? String ?? "home"
-            let searchPage = UIViewController()
-            searchPage.view.backgroundColor = .systemBackground
-            searchPage.modalPresentationStyle = .fullScreen
-            let title = UILabel()
-            title.text = "搜索"
-            title.font = .systemFont(ofSize: 34, weight: .bold)
-            let field = UITextField()
-            field.placeholder = state["placeholder"] as? String ?? "搜索"
-            field.text = state["query"] as? String
-            field.returnKeyType = .search
-            field.borderStyle = .roundedRect
-            field.clearButtonMode = .whileEditing
-            let close = UIButton(type: .system)
-            close.setImage(UIImage(systemName: "xmark"), for: .normal)
-            close.addAction(UIAction { [weak searchPage] _ in searchPage?.dismiss(animated: true) }, for: .touchUpInside)
-            // Keep the input at the keyboard edge like the native search layout.
-            // Return submits the query; no extra button obscures the field.
-            field.addAction(UIAction { [weak self, weak searchPage, weak field] _ in
-                self?.applyBottomSearch(field?.text ?? "")
-                searchPage?.dismiss(animated: true)
-            }, for: .editingDidEndOnExit)
-            field.leftViewMode = .always
-            let symbol = UIImageView(image: UIImage(systemName: "magnifyingglass"))
-            symbol.tintColor = .secondaryLabel
-            symbol.contentMode = .center
-            symbol.frame = CGRect(x: 0, y: 0, width: 34, height: 44)
-            field.leftView = symbol
-            close.backgroundColor = .tertiarySystemFill
-            close.tintColor = .label
-            close.layer.cornerRadius = 24
-            for control in [title, field, close] {
-                control.translatesAutoresizingMaskIntoConstraints = false
-                searchPage.view.addSubview(control)
-            }
-            NSLayoutConstraint.activate([
-                title.topAnchor.constraint(equalTo: searchPage.view.safeAreaLayoutGuide.topAnchor, constant: 48),
-                title.leadingAnchor.constraint(equalTo: searchPage.view.leadingAnchor, constant: 24),
-                field.leadingAnchor.constraint(equalTo: searchPage.view.leadingAnchor, constant: 24),
-                field.bottomAnchor.constraint(equalTo: searchPage.view.keyboardLayoutGuide.topAnchor, constant: -16),
-                close.leadingAnchor.constraint(equalTo: field.trailingAnchor, constant: 12),
-                close.trailingAnchor.constraint(equalTo: searchPage.view.trailingAnchor, constant: -24),
-                close.centerYAnchor.constraint(equalTo: field.centerYAnchor),
-                close.widthAnchor.constraint(equalToConstant: 48),
-                close.heightAnchor.constraint(equalToConstant: 48),
-                field.heightAnchor.constraint(equalToConstant: 48)
-            ])
-            self.present(searchPage, animated: true) {
-                field.becomeFirstResponder()
-            }
+            let page = LUIYoSearchViewController()
+            page.query = state["query"] as? String ?? ""
+            page.placeholder = state["placeholder"] as? String ?? "搜索"
+            page.onSearch = { [weak self] query in self?.applyBottomSearch(query) }
+            page.modalPresentationStyle = .fullScreen
+            self.activeSearchPageController = page
+            self.present(page, animated: true)
         }
     }
 
@@ -487,13 +450,6 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         guard let data = try? JSONSerialization.data(withJSONObject: [query, activeSearchPage]),
               let arguments = String(data: data, encoding: .utf8) else { return }
         webView.evaluateJavaScript("window.__applyBottomSearch?.(..." + arguments + ")")
-    }
-
-    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        guard let alert = activeSearchAlert, alert.textFields?.first === textField else { return true }
-        applyBottomSearch(textField.text ?? "")
-        alert.dismiss(animated: true)
-        return false
     }
 
     func tabBarController(_ tabBarController: UITabBarController, didSelect viewController: UIViewController) {
@@ -554,7 +510,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
 
     private func updateLayoutMetrics(force: Bool = false) {
         guard let webView, tabBar.frame.minY > 0 else { return }
-        let top = tabBar.frame.minY
+        let top = tabBar.convert(tabBar.bounds, to: webView).minY
         guard force || abs(top - reportedTabTop) > 0.5 else { return }
         reportedTabTop = top
         webView.evaluateJavaScript("window.__setNativeTabTop?.(\(top))")
@@ -973,3 +929,83 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     }
 }
 
+
+
+/// Native full-screen search, with its controls following the keyboard edge.
+private final class LUIYoSearchViewController: UIViewController, UISearchBarDelegate {
+    var query = ""
+    var placeholder = "搜索"
+    var onSearch: ((String) -> Void)?
+    let searchBar = UISearchBar()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .systemBackground
+        let title = UILabel()
+        title.text = "搜索"
+        title.font = .systemFont(ofSize: 34, weight: .bold)
+        title.accessibilityTraits.insert(.header)
+        let effect: UIVisualEffect
+        if #available(iOS 26.0, *) { effect = UIGlassEffect() }
+        else { effect = UIBlurEffect(style: .systemMaterial) }
+        let inputSurface = UIVisualEffectView(effect: effect)
+        inputSurface.layer.cornerRadius = 28
+        inputSurface.clipsToBounds = true
+        searchBar.searchBarStyle = .minimal
+        searchBar.placeholder = placeholder
+        searchBar.text = query
+        searchBar.delegate = self
+        searchBar.returnKeyType = .search
+        searchBar.searchTextField.autocorrectionType = .no
+        searchBar.searchTextField.backgroundColor = .clear
+        searchBar.searchTextField.accessibilityIdentifier = "bottomSearchField"
+        searchBar.searchTextField.enablesReturnKeyAutomatically = false
+        let close = UIButton(type: .system)
+        if #available(iOS 26.0, *) {
+            var configuration = UIButton.Configuration.glass()
+            configuration.image = UIImage(systemName: "xmark")
+            configuration.cornerStyle = .capsule
+            close.configuration = configuration
+        } else {
+            close.setImage(UIImage(systemName: "xmark"), for: .normal)
+            close.backgroundColor = .tertiarySystemFill
+            close.layer.cornerRadius = 28
+        }
+        close.tintColor = .label
+        close.accessibilityIdentifier = "bottomSearchClose"
+        close.accessibilityLabel = "关闭搜索"
+        close.addAction(UIAction { [weak self] _ in self?.dismiss(animated: true) }, for: .touchUpInside)
+        for control in [title, inputSurface, close] {
+            control.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview(control)
+        }
+        searchBar.translatesAutoresizingMaskIntoConstraints = false
+        inputSurface.contentView.addSubview(searchBar)
+        NSLayoutConstraint.activate([
+            title.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 48),
+            title.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
+            inputSurface.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            inputSurface.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor, constant: -12),
+            inputSurface.heightAnchor.constraint(equalToConstant: 56),
+            close.leadingAnchor.constraint(equalTo: inputSurface.trailingAnchor, constant: 12),
+            close.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
+            close.centerYAnchor.constraint(equalTo: inputSurface.centerYAnchor),
+            close.widthAnchor.constraint(equalToConstant: 56),
+            close.heightAnchor.constraint(equalToConstant: 56),
+            searchBar.topAnchor.constraint(equalTo: inputSurface.contentView.topAnchor),
+            searchBar.bottomAnchor.constraint(equalTo: inputSurface.contentView.bottomAnchor),
+            searchBar.leadingAnchor.constraint(equalTo: inputSurface.contentView.leadingAnchor),
+            searchBar.trailingAnchor.constraint(equalTo: inputSurface.contentView.trailingAnchor)
+        ])
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        searchBar.becomeFirstResponder()
+    }
+
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        onSearch?(searchBar.text ?? "")
+        dismiss(animated: true)
+    }
+}

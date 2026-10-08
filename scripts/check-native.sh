@@ -7,10 +7,14 @@ xcrun simctl boot "$DEVICE"
 xcrun simctl bootstatus "$DEVICE" -b
 xcodebuild -project YouYouLUI_iOS/YouYouLUI.xcodeproj -scheme YouYouLUI \
   -configuration Release -sdk iphonesimulator -destination "id=$DEVICE" \
-  -derivedDataPath sim-build CODE_SIGNING_ALLOWED=NO ONLY_ACTIVE_ARCH=YES build
+  -derivedDataPath sim-build CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY="-" ONLY_ACTIVE_ARCH=YES build
 APP=sim-build/Build/Products/Release-iphonesimulator/YouYouLUI.app
 BUNDLE_ID=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Info.plist")
 mkdir -p native-check
+xcodebuild test -project YouYouLUI_iOS/YouYouLUI.xcodeproj -scheme YouYouLUI \
+  -configuration Release -sdk iphonesimulator -destination "id=$DEVICE" \
+  -derivedDataPath sim-build -resultBundlePath native-check/ui-tests.xcresult \
+  -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY="-" ONLY_ACTIVE_ARCH=YES
 for SCENE in home-liquid settings-liquid bottom-home-liquid bottom-separate-home-liquid dark-bottom-separate-home-liquid bottom-off-home-liquid; do
   case "$SCENE" in
     dark-*) APPEARANCE=dark ;;
@@ -38,7 +42,8 @@ import json, sys
 scene, path = sys.argv[1:]
 result = json.load(open(path))
 assert result['passed'], result
-assert result['appVersion'] == '1.0.4' and result['appBuild'] == '15', result
+assert result['appVersion'] == '1.0.4' and result['appBuild'] == '16', result
+assert result['webContentInSelectedPage'], result
 assert result.get('nativeSeparateSearch', False) == ('separate' in scene), result
 if scene == 'home-liquid':
     assert result['searchLiquid'] and not result['searchBlur'], result
