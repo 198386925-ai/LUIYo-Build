@@ -2,13 +2,13 @@
 
 公开打包用源码，来自 YouYouLUI 主分支提交 3762ef5cb8666017b8f55e9355ab740015e1546a。
 
-使用 GitHub 标准 macOS 15 runner、Xcode 26.3、iOS 26 SDK 编译。公开仓库可运行；私有仓库会跳过任务。没有签名证书、密钥或私有仓库访问凭据。
+使用 GitHub 标准 macOS 15 Intel runner、Xcode 26.3、iOS 26 SDK 编译。公开仓库可运行；私有仓库会跳过任务。没有签名证书、密钥或私有仓库访问凭据。
 
 ## 下载 IPA
 
-更新 main 中的源码会开始构建，也可以在 Actions → Build LUIYo IPA → Run workflow 手动打包。完成后，从成功任务底部的 Artifacts 下载 LUIYo-Build14-任务编号，解压得到 IPA。下载包只保留一天。
+更新 main 中的源码会开始构建，也可以在 Actions → Build LUIYo IPA → Run workflow 手动打包。完成后，从任务底部的 Artifacts 下载 LUIYo-Build14-任务编号-IPA，解压得到 IPA。下载包只保留一天。
 
-IPA 未签名，安装前使用自己的签名方式。构建会检查 SDK 版本，并在 iOS 26 模拟器检查原生材质和底栏搜索，附带截图。最终玻璃效果还需检查截图和实际设备；仅完成编译不代表视觉验证通过。
+IPA 未签名，安装前使用自己的签名方式。构建会检查 SDK 版本，先保存 IPA，再在 iOS 26 模拟器检查原生材质和底栏搜索。检查最多运行十分钟，截图和结果会单独保存到 native-check 下载包。最终玻璃效果还需检查截图和实际设备；仅完成编译不代表视觉验证通过。
 
 每次更新应同步当前版本源码；不再使用 iOS 16.5 SDK 的手机构建目录。源文件中的版本号也要同步更新。
 
