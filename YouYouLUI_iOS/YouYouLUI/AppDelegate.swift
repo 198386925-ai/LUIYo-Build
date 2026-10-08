@@ -19,7 +19,9 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
            url.scheme == "https", url.host != nil, url.path.hasSuffix("/api.php") {
             window.rootViewController = LUIYoActivationGate(endpoint: url)
         } else {
-            window.rootViewController = WebViewController()
+            let standalone = WebViewController()
+            standalone.setAuthorization(true)
+            window.rootViewController = standalone
         }
         window.makeKeyAndVisible()
         self.window = window
