@@ -7,6 +7,16 @@ import CoreText
 /// HTML is content-only and never draws blur/glass itself.
 final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler, UITabBarControllerDelegate {
     private var webView: WKWebView!
+    private var isAuthorized = false
+    var onActivationRequested: (() -> Void)?
+
+    func setAuthorization(_ allowed: Bool) {
+        isAuthorized = allowed
+        if isViewLoaded {
+            let flag = allowed ? "true" : "false"
+            webView?.evaluateJavaScript("window.__luiyoSetAuthorized?.(" + flag + ")")
+        }
+    }
     private var pageItems: [UITabBarItem] = []
     private var pageControllers: [UIViewController] = []
     private let searchController = UIViewController()
@@ -86,6 +96,9 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         configuration.userContentController.add(self, name: "minimizeBottomBar")
         configuration.userContentController.add(self, name: "pageState")
         configuration.userContentController.add(self, name: "bottomSearch")
+        configuration.userContentController.add(self, name: "activationOpen")
+        configuration.userContentController.addUserScript(WKUserScript(source: Self.activationPreviewScript,
+            injectionTime: .atDocumentEnd, forMainFrameOnly: true))
 
         let webView = WKWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = self
