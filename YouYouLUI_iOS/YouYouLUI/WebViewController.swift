@@ -610,6 +610,10 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
+        // Remove extra layer shadows without replacing native system glass.
+        tabBar.layer.shadowOpacity = 0
+        tabBar.layer.shadowRadius = 0
+        tabBar.layer.shadowColor = UIColor.clear.cgColor
         keepContentBelowNativeBar()
         updateLayoutMetrics()
         renderVisibleNativeMaterials()
