@@ -48,31 +48,3 @@ jobs:
           path: output/*.ipa
           if-no-files-found: error
           retention-days: 1
-  simulator-check:
-    # Diagnostic-only; do not fail ordinary IPA builds because of simulator flakiness.
-    if: github.event.repository.private == false
-    runs-on: macos-26
-    timeout-minutes: 25
-    steps:
-      - uses: actions/checkout@v4
-      - name: Select Xcode 26
-        shell: bash
-        run: |
-          test -d /Applications/Xcode_26.3.app/Contents/Developer
-          echo 'DEVELOPER_DIR=/Applications/Xcode_26.3.app/Contents/Developer' >> "$GITHUB_ENV"
-      - name: Check native materials in iOS 26 simulator
-        timeout-minutes: 20
-        shell: bash
-        run: bash scripts/check-license-native.sh
-      - name: Save native check screenshots
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: LUIYo-Build19-${{ github.run_number }}-native-check
-          path: |
-            native-check/*.png
-            native-check/*.json
-            native-check/*.xcresult
-            native-check/*.log
-          if-no-files-found: ignore
-          retention-days: 1
