@@ -62,7 +62,7 @@ final class NativeNavigationTests: XCTestCase {
         app.buttons["bottomSearchClose"].tap()
     }
 
-    func testThemePersistenceAndNativeZipName() {
+    func testAThemePersistenceAndNativeZipName() {
         continueAfterFailure = false
         let app = XCUIApplication()
         app.launchEnvironment["LUI_SNAPSHOT"] = "preview-settings"
@@ -75,8 +75,10 @@ final class NativeNavigationTests: XCTestCase {
         XCTAssertTrue(slider.waitForExistence(timeout: 10))
         for _ in 0..<4 { if slider.isHittable { break }; app.swipeUp() }
         XCTAssertTrue(slider.isHittable)
-        slider.adjust(toNormalizedSliderPosition: 0.5)
+        let original = slider.value as? String
+        slider.coordinate(withNormalizedOffset: CGVector(dx: 0.05, dy: 0.5)).press(forDuration: 0.1, thenDragTo: slider.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)))
         let saved = slider.value as? String
+        XCTAssertNotEqual(saved, original, "Dragging must change toolbar transparency")
         app.terminate()
         app.launch()
         XCTAssertTrue(theme.waitForExistence(timeout: 15), app.debugDescription)
@@ -85,7 +87,7 @@ final class NativeNavigationTests: XCTestCase {
         for _ in 0..<4 { if slider.isHittable { break }; app.swipeUp() }
         XCTAssertTrue(slider.isHittable)
         XCTAssertEqual(slider.value as? String, saved)
-        slider.adjust(toNormalizedSliderPosition: 0)
+        slider.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).press(forDuration: 0.1, thenDragTo: slider.coordinate(withNormalizedOffset: CGVector(dx: -0.1, dy: 0.5)))
         XCTAssertTrue(app.webViews.buttons["选择图片"].exists)
         XCTAssertTrue(app.webViews.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "滚动时缩小底栏")).firstMatch.exists)
         app.terminate()
@@ -96,6 +98,7 @@ final class NativeNavigationTests: XCTestCase {
         XCTAssertTrue(alert.textFields["zipExportName"].exists)
         XCTAssertTrue(alert.buttons["分享"].exists)
         alert.textFields["zipExportName"].tap()
+        if app.buttons["Continue"].exists { app.buttons["Continue"].tap() }
         alert.textFields["zipExportName"].typeText(" Test")
         alert.buttons["分享"].tap()
         XCTAssertTrue(alert.waitForNonExistence(timeout: 10))
