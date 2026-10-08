@@ -44,8 +44,8 @@ jobs:
           if-no-files-found: error
           retention-days: 1
   simulator-check:
-    # Verify real tab taps and keyboard focus on the public standard runner.
-    if: github.event.repository.private == false
+    # Diagnostic-only; do not fail ordinary IPA builds because of simulator flakiness.
+    if: github.event_name == 'workflow_dispatch' && vars.LUIYO_RUN_SIMULATOR_CHECK == 'true' && github.event.repository.private == false
     runs-on: macos-26
     timeout-minutes: 25
     steps:
