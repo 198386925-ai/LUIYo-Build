@@ -37,19 +37,19 @@ jobs:
       - name: Save compiled IPA
         uses: actions/upload-artifact@v4
         with:
-          name: LUIYo-Build14-${{ github.run_number }}-IPA
+          name: LUIYo-Build15-${{ github.run_number }}-IPA
           path: output/*.ipa
           if-no-files-found: error
           retention-days: 1
       - name: Check native materials in iOS 26 simulator
-        timeout-minutes: 10
+        timeout-minutes: 20
         shell: bash
         run: bash scripts/check-native.sh
       - name: Save native check screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: LUIYo-Build14-${{ github.run_number }}-native-check
+          name: LUIYo-Build15-${{ github.run_number }}-native-check
           path: |
             native-check/*.png
             native-check/*.json
