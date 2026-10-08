@@ -115,14 +115,15 @@ private final class LUIYoActivationGate: UIViewController {
         if let payload { request.httpBody = try? JSONSerialization.data(withJSONObject: payload) }
         URLSession.shared.dataTask(with: request) { data, response, error in
             let http = response as? HTTPURLResponse
-            let code = http?.statusCode ?? 0
+            let json = data.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }
+            let obj = json?.compactMapValues { $0 as? String }
             let obj = data.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: String] }
             // Show only response type/shape; never expose an authorization token.
             let contentType = http?.value(forHTTPHeaderField: "Content-Type") ?? "missing"
             let diagnostic: String
-            if let error { diagnostic = "网络错误：\\(error.localizedDescription)" }
-            else if obj == nil { diagnostic = "HTTP \\(code)，服务器未返回 JSON（\\(contentType)）" }
-            else { diagnostic = "HTTP \\(code)，返回字段不符合激活协议" }
+            if let error { diagnostic = "网络错误：" + error.localizedDescription }
+            else if obj == nil { diagnostic = "HTTP " + String(code) + "，服务器未返回 JSON（" + contentType + "）" }
+            else { diagnostic = "HTTP " + String(code) + "，返回字段：" + (json?.keys.sorted().joined(separator: ",") ?? "none") }
             DispatchQueue.main.async { completion(code, obj, diagnostic) }
         }.resume()
     }
@@ -148,7 +149,7 @@ private final class LUIYoActivationGate: UIViewController {
                 self.codeField.text = ""
                 self.allowAccess()
             } else {
-                self.invalidateAccess(message: httpCode == 0 ? "连接服务器失败，请检查网络后重试" : "激活失败：\(data?["error"] ?? "HTTP \(httpCode)")")
+                self.invalidateAccess(message: httpCode == 0 ? diagnostic : "激活失败：" + (data?["error"] ?? diagnostic))
             }
         }
     }
@@ -165,8 +166,8 @@ private final class LUIYoActivationGate: UIViewController {
                 self.allowAccess()
             } else {
                 if code == 401 { SecretStore.delete("token") }
-                self.invalidateAccess(message: code == 403 ? "此账号已被封禁、停用或过期" :
-                    (code == 0 ? "暂时无法连接验证服务器，请稍后重试" : "验证失败：\\(body?["error"] ?? diagnostic)"))
+                let detail = body?["error"] ?? diagnostic
+                self.invalidateAccess(message: code == 403 ? "此账号已被封禁、停用或过期" : (code == 0 ? "暂时无法连接验证服务器，请稍后重试" : "验证失败：" + detail))
             }
         }
     }
