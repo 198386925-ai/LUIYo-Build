@@ -117,7 +117,7 @@ private final class LUIYoActivationGate: UIViewController {
             let http = response as? HTTPURLResponse
             let json = data.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }
             let obj = json?.compactMapValues { $0 as? String }
-            let obj = data.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: String] }
+            let code = http?.statusCode ?? 0
             // Show only response type/shape; never expose an authorization token.
             let contentType = http?.value(forHTTPHeaderField: "Content-Type") ?? "missing"
             let diagnostic: String
