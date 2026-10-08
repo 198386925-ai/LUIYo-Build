@@ -18,6 +18,32 @@ final class NativeNavigationTests: XCTestCase {
         return field
     }
 
+    func testInlineActivationAndFullExport() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchEnvironment["LUI_SNAPSHOT"] = "preview-inline-auth"
+        app.launch()
+        XCTAssertTrue(app.webViews.staticTexts["点击左图上传"].firstMatch.waitForExistence(timeout: 120))
+        app.tabBars.buttons["设置"].tap()
+        let code = app.webViews.textFields["卡密"]
+        XCTAssertTrue(code.waitForExistence(timeout: 10))
+        code.tap()
+        if app.buttons["Continue"].exists { app.buttons["Continue"].tap() }
+        code.typeText("UI-TEST")
+        app.webViews.buttons["激活"].tap()
+        XCTAssertTrue(code.waitForNonExistence(timeout: 10))
+        app.tabBars.buttons["首页"].tap()
+        app.webViews.buttons["双分类补全"].tap()
+        XCTAssertTrue(app.alerts.firstMatch.waitForExistence(timeout: 10))
+        app.alerts.buttons["好"].tap()
+        app.webViews.buttons["导出 ZIP"].tap()
+        let rename = app.alerts["导出 ZIP"]
+        XCTAssertTrue(rename.waitForExistence(timeout: 60), app.debugDescription)
+        XCTAssertTrue(rename.textFields["zipExportName"].exists)
+        rename.buttons["分享"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["zipShareSheet"].waitForExistence(timeout: 15), app.debugDescription)
+    }
+
     func testDetachedSearchWorksOnEveryPage() {
         continueAfterFailure = false
         let app = XCUIApplication()

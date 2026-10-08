@@ -42,7 +42,7 @@ import json, sys
 scene, path = sys.argv[1:]
 result = json.load(open(path))
 assert result['passed'], result
-assert result['appVersion'] == '1.0.4' and result['appBuild'] == '18', result
+assert result['appVersion'] == '1.0.4' and result['appBuild'] == '19', result
 assert result['webContentInSelectedPage'], result
 assert result.get('nativeSeparateSearch', False) == ('separate' in scene), result
 if scene == 'settings-folded-liquid':

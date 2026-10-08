@@ -33,19 +33,24 @@ jobs:
         run: |
           node YouYouLUI_iOS/verify-material-bridge.js YouYouLUI_iOS/YouYouLUI/Web/index.html
           node scripts/check-theme-upload.js YouYouLUI_iOS/YouYouLUI/Web/index.html
+      - name: Check activation and completed ZIP export
+        shell: bash
+        run: |
+          npm install --prefix "$RUNNER_TEMP/luiyo-dom" jsdom@26 --no-audit --no-fund
+          NODE_PATH="$RUNNER_TEMP/luiyo-dom/node_modules" node scripts/check-activation-export.js
       - name: Build with iOS 26 SDK
         shell: bash
         run: bash scripts/build-ipa.sh
       - name: Save compiled IPA
         uses: actions/upload-artifact@v4
         with:
-          name: LUIYo-Build18-${{ github.run_number }}-IPA
+          name: LUIYo-Build19-${{ github.run_number }}-IPA
           path: output/*.ipa
           if-no-files-found: error
           retention-days: 1
   simulator-check:
     # Diagnostic-only; do not fail ordinary IPA builds because of simulator flakiness.
-    if: github.event_name == 'workflow_dispatch' && vars.LUIYO_RUN_SIMULATOR_CHECK == 'true' && github.event.repository.private == false
+    if: github.event.repository.private == false
     runs-on: macos-26
     timeout-minutes: 25
     steps:
@@ -58,12 +63,12 @@ jobs:
       - name: Check native materials in iOS 26 simulator
         timeout-minutes: 20
         shell: bash
-        run: bash scripts/check-native.sh
+        run: bash scripts/check-license-native.sh
       - name: Save native check screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: LUIYo-Build18-${{ github.run_number }}-native-check
+          name: LUIYo-Build19-${{ github.run_number }}-native-check
           path: |
             native-check/*.png
             native-check/*.json

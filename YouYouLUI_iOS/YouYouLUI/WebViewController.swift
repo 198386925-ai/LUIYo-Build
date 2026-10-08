@@ -9,13 +9,22 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     private var webView: WKWebView!
     private var isAuthorized = false
     var onActivationRequested: (() -> Void)?
+    var onLicenseSubmitted: ((String) -> Void)?
+    private var authorizationMessage = "未激活 · 仅可浏览"
+    private var authorizationBusy = false
 
-    func setAuthorization(_ allowed: Bool) {
+    func setAuthorization(_ allowed: Bool, message: String? = nil, busy: Bool = false) {
         isAuthorized = allowed
-        if isViewLoaded {
-            let flag = allowed ? "true" : "false"
-            webView?.evaluateJavaScript("window.__luiyoSetAuthorized?.(" + flag + ")")
-        }
+        authorizationMessage = message ?? (allowed ? "已激活 · 全部功能可用" : "未激活 · 仅可浏览")
+        authorizationBusy = busy
+        syncAuthorization()
+    }
+
+    private func syncAuthorization() {
+        guard isViewLoaded, let webView else { return }
+        guard let data = try? JSONSerialization.data(withJSONObject: [isAuthorized, authorizationMessage, authorizationBusy]),
+              let args = String(data: data, encoding: .utf8) else { return }
+        webView.evaluateJavaScript("window.__luiyoSetAuthorized?.(..." + args + ")")
     }
     private var pageItems: [UITabBarItem] = []
     private var pageControllers: [UIViewController] = []
@@ -58,34 +67,43 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     private static let activationPreviewScript = #"""
     (() => {
       let authorized = false;
-      window.__luiyoSetAuthorized = enabled => {
-        authorized = !!enabled;
-        document.documentElement.dataset.luiyoAuthorized = authorized ? 'yes' : 'no';
-        const state = document.getElementById('luiyoAuthState');
-        if (state) state.textContent = authorized ? '已激活 · 全部功能可用' : '未激活 · 仅可浏览';
-      };
       const css = document.createElement('style');
-      css.textContent = '.luiyoActivationEntry{margin:0 0 14px;padding:17px 18px;border:1px solid rgba(125,130,204,.22);border-radius:20px;background:rgba(145,141,232,.09);display:flex;align-items:center;justify-content:space-between;gap:10px}.luiyoActivationEntry strong{display:block;font-size:15px}.luiyoActivationEntry small{display:block;margin-top:5px;color:#8585a5;font-size:12px}.luiyoActivationEntry button{border:0;border-radius:12px;background:#6968e8;color:white;padding:12px 17px;font-weight:600;white-space:nowrap}';
+      css.textContent = `.luiyoActivationEntry{margin:0 0 14px;padding:17px 18px;border:0;border-radius:28px;background:var(--card-color,#fff)}
+        body.native-card-glass .luiyoActivationEntry{background:transparent!important;box-shadow:none!important}
+        .luiyoActivationEntry strong{display:block;font-size:15px}.luiyoActivationEntry small{display:block;margin-top:5px;color:var(--muted,#8b8f98);font-size:12px}
+        .luiyoActivationForm{display:flex;gap:8px;margin-top:14px;align-items:center}.luiyoActivationForm[hidden]{display:none!important}
+        #luiyoLicenseCode{flex:1;min-width:0;height:44px;box-sizing:border-box;padding:0 12px;border:1px solid rgba(130,130,140,.25);border-radius:14px;background:transparent;color:var(--text-color,#20242b);font-size:14px}
+        #luiyoLicenseSubmit{height:44px;border:0;border-radius:14px;padding:0 14px;background:#6968e8;color:white;font-weight:600;white-space:nowrap}`;
       document.head.appendChild(css);
       const settings = document.getElementById('settingsTarget');
       if (settings) {
-        const box = document.createElement('div');
-        box.className = 'luiyoActivationEntry';
-        box.innerHTML = '<div><strong>激活授权</strong><small id="luiyoAuthState">未激活 · 仅可浏览</small></div><button id="luiyoActivateOpen" type="button">输入卡密</button>';
+        const box = document.createElement('section');
+        box.className = 'luiyoActivationEntry';box.id='luiyoActivationCard';
+        box.innerHTML = '<strong>激活授权</strong><small id="luiyoAuthState">未激活 · 仅可浏览</small><form class="luiyoActivationForm" id="luiyoActivationForm"><input id="luiyoLicenseCode" aria-label="卡密" placeholder="输入卡密" autocomplete="one-time-code" autocapitalize="characters" spellcheck="false"><button id="luiyoLicenseSubmit" type="submit">激活</button></form>';
         settings.querySelector('.settingsHead')?.insertAdjacentElement('afterend', box);
-        box.querySelector('button')?.addEventListener('click', () => window.webkit?.messageHandlers?.activationOpen?.postMessage({open:true}));
+        box.querySelector('form').addEventListener('submit', e => {
+          e.preventDefault();const code=box.querySelector('input').value.trim();
+          if(code)window.webkit?.messageHandlers?.activationSubmit?.postMessage({code});
+        });
       }
+      window.__luiyoSetAuthorized = (enabled,message,busy=false) => {
+        authorized = !!enabled;
+        document.documentElement.dataset.luiyoAuthorized = authorized ? 'yes' : 'no';
+        const state=document.getElementById('luiyoAuthState'), form=document.getElementById('luiyoActivationForm');
+        if(state)state.textContent=message||(authorized?'已激活 · 全部功能可用':'未激活 · 仅可浏览');
+        if(form){form.hidden=authorized;const field=form.querySelector('input'),button=form.querySelector('button');field.disabled=busy;button.disabled=busy;button.textContent=busy?'验证中…':'激活';if(authorized){field.blur();field.value=''}}
+        window.__syncNativeCardGlass?.();
+      };
       function allowedTarget(t) {
         if (!(t instanceof Element)) return false;
-        return !!t.closest('#luiyoActivateOpen, .appBottomNav, summary, .categorytabs, .nativeInfoHeader');
+        return !!t.closest('#luiyoActivationCard, .appBottomNav, summary, .categorytabs, .nativeInfoHeader');
       }
       function protect(e) {
         if (authorized || allowedTarget(e.target)) return;
         const t = e.target;
         const interactive = t instanceof Element && t.closest('button,input,textarea,select,label,a,[contenteditable],[role="button"]');
         if (!interactive) return;
-        e.preventDefault();
-        e.stopImmediatePropagation();
+        e.preventDefault();e.stopImmediatePropagation();
       }
       ['click','change','input','submit','keydown','drop','paste'].forEach(t => document.addEventListener(t, protect, true));
       window.__luiyoSetAuthorized(false);
@@ -134,6 +152,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         configuration.userContentController.add(self, name: "pageState")
         configuration.userContentController.add(self, name: "bottomSearch")
         configuration.userContentController.add(self, name: "activationOpen")
+        configuration.userContentController.add(self, name: "activationSubmit")
         configuration.userContentController.addUserScript(WKUserScript(source: Self.activationPreviewScript,
             injectionTime: .atDocumentEnd, forMainFrameOnly: true))
 
@@ -224,9 +243,12 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "minimizeBottomBar")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "pageState")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "bottomSearch")
+        webView?.configuration.userContentController.removeScriptMessageHandler(forName: "activationOpen")
+        webView?.configuration.userContentController.removeScriptMessageHandler(forName: "activationSubmit")
     }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        syncAuthorization()
         updateLayoutMetrics(force: true)
         // CI exercises the same taps, native traits and saved appearance as users.
         guard let rawScenario = ProcessInfo.processInfo.environment["LUI_SNAPSHOT"] else { return }
@@ -238,6 +260,9 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { [weak self] in
                 guard let self else { return }
                 if rawScenario.contains("search") { self.presentBottomSearch() }
+                if rawScenario == "preview-inline-auth" {
+                    self.webView.evaluateJavaScript("fillFile=new File([Uint8Array.from(atob('iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAFklEQVR4nGNUqPj1nwEPYMInOXwUAACm9AKhD318TgAAAABJRU5ErkJggg=='),c=>c.charCodeAt(0))],'test.png',{type:'image/png'})")
+                }
                 if rawScenario.contains("zip-name") { self.webView.evaluateJavaScript("const zip=new JSZip();zip.file('check.txt','ok');zip.generateAsync({type:'blob'}).then(blob=>{preparedZipBlob=blob;openShareModal()})") }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                     let marker = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("preview-ready.txt")
@@ -984,6 +1009,11 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     }
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        if message.name == "activationSubmit" {
+            guard !isAuthorized, let payload = message.body as? [String: Any], let code = payload["code"] as? String else { return }
+            onLicenseSubmitted?(code)
+            return
+        }
         if message.name == "activationOpen" {
             onActivationRequested?()
             return
@@ -1090,6 +1120,13 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             alert.addAction(UIAlertAction(title: "好", style: .default))
             present(alert, animated: true)
         }
+    }
+
+    func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String,
+                 initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping () -> Void) {
+        let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "好", style: .default) { _ in completionHandler() })
+        present(alert, animated: true)
     }
 
     private func presentShareSheet(fileURL: URL) {
