@@ -7,22 +7,32 @@ xcrun simctl boot "$DEVICE"
 xcrun simctl bootstatus "$DEVICE" -b
 xcodebuild -project YouYouLUI_iOS/YouYouLUI.xcodeproj -scheme YouYouLUI \
   -configuration Release -sdk iphonesimulator -destination "id=$DEVICE" \
-  -derivedDataPath sim-build CODE_SIGNING_ALLOWED=NO build
+  -derivedDataPath sim-build CODE_SIGNING_ALLOWED=NO ONLY_ACTIVE_ARCH=YES build
 APP=sim-build/Build/Products/Release-iphonesimulator/YouYouLUI.app
 BUNDLE_ID=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Info.plist")
 mkdir -p native-check
 for SCENE in home-liquid settings-liquid bottom-home-liquid bottom-separate-home-liquid dark-bottom-separate-home-liquid bottom-off-home-liquid; do
+  case "$SCENE" in
+    dark-*) APPEARANCE=dark ;;
+    *) APPEARANCE=light ;;
+  esac
+  xcrun simctl ui "$DEVICE" appearance "$APPEARANCE"
   xcrun simctl install "$DEVICE" "$APP"
   DATA_DIR=$(xcrun simctl get_app_container "$DEVICE" "$BUNDLE_ID" data)
   rm -f "$DATA_DIR/Documents/ui-layout-verification.json"
   SIMCTL_CHILD_LUI_SNAPSHOT="$SCENE" xcrun simctl launch --terminate-running-process "$DEVICE" "$BUNDLE_ID"
-  for ATTEMPT in $(seq 1 60); do
+  for ATTEMPT in $(seq 1 180); do
     if [ -f "$DATA_DIR/Documents/ui-layout-verification.json" ]; then break; fi
     sleep 1
   done
-  test -f "$DATA_DIR/Documents/ui-layout-verification.json"
-  cp "$DATA_DIR/Documents/ui-layout-verification.json" "native-check/$SCENE.json"
   xcrun simctl io "$DEVICE" screenshot "native-check/$SCENE.png"
+  if [ ! -f "$DATA_DIR/Documents/ui-layout-verification.json" ]; then
+    echo "Native check did not finish: $SCENE"
+    xcrun simctl spawn "$DEVICE" log show --last 5m --style compact --predicate 'process == "YouYouLUI"' > "native-check/$SCENE-runtime.log" || true
+    cat "native-check/$SCENE-runtime.log"
+    exit 1
+  fi
+  cp "$DATA_DIR/Documents/ui-layout-verification.json" "native-check/$SCENE.json"
   python3 - "$SCENE" "native-check/$SCENE.json" <<'PY'
 import json, sys
 scene, path = sys.argv[1:]
