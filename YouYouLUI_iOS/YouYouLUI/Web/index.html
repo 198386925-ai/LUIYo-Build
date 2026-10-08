@@ -1192,6 +1192,7 @@ function itemMatchesQuery(it,q){
   return tokens.every(t=>hay.includes(t));
 }
 function renderList(){
+  list.querySelectorAll('.preview img[data-url]').forEach(img=>URL.revokeObjectURL(img.dataset.url));
   list.innerHTML='';
   const q=document.getElementById('searchInput')?.value||'';
   items.forEach((it,i)=>{
@@ -1459,11 +1460,13 @@ function resolveExistingRuleSource(rule){
         else if(common>=3)score=Math.max(score,common*100-Math.abs(a.length-b.length));
       }
     }
-    if(score)ranked.push({file:it.file,score});
+    if(score)ranked.push({file:it.file,score,key:syncTitleKey(it.title),category:it.category});
   });
   ranked.sort((a,b)=>b.score-a.score);
-  if(!ranked.length||ranked[1]?.score===ranked[0].score)return null;
-  return ranked[0].file;
+  if(!ranked.length)return null;
+  const best=ranked.filter(row=>row.score===ranked[0].score);
+  if(best.length>1&&!best.every(row=>row.key===best[0].key))return null;
+  return (best.find(row=>row.category==='wechat')||best[0]).file;
 }
 for(const rule of extraNamingRules)rule.targetFile=resolveExistingRuleSource(rule);
 function findChosenForExtraRule(rule){
@@ -1478,7 +1481,7 @@ function findChosenForExtraRule(rule){
 function addDarkVariantForExtra(zip,name,blob){
   if(!/@3x\.png$/i.test(name)) return;
   if(/_dark@3x\.png$/i.test(name) || /darkmode@3x\.png$/i.test(name) || /_light@3x\.png$/i.test(name)) return;
-  const darkName=name.replace(/@3x\.png$/i,'_dark@3x.png');
+  const darkName=name.replace(/@3x\.png$/i,'_Dark@3x.png');
   zip.file(darkName,blob);
 }
 
@@ -1496,14 +1499,14 @@ async function makeZip(btn){
       const names=it.files||[it.file];
       for(const name of names){
         zip.file(name,b);
-        const darkName=name.replace(/@3x\.png$/i,'_dark@3x.png');
+        const darkName=name.replace(/@3x\.png$/i,'_Dark@3x.png');
         if(darkName!==name)zip.file(darkName,db)
       }
       if(it.selectedFiles&&it.selectedFiles.length){
         const sb=await toSelectedPng(f),sdb=await toDarkPng(f,true);
         for(const name of it.selectedFiles){
           zip.file(name,sb);
-          const darkName=name.replace(/@3x\.png$/i,'_dark@3x.png');
+          const darkName=name.replace(/@3x\.png$/i,'_Dark@3x.png');
           if(darkName!==name)zip.file(darkName,sdb)
         }
       }
@@ -1521,7 +1524,7 @@ async function makeZip(btn){
       zip.file(rule.file,normalBlob);
       addDarkVariantForExtra(zip,rule.file,darkBlob);
     }
-    const required=['location_filled@3x.png','location_filled_dark@3x.png','transfer_filled@3x.png','transfer_filled_dark@3x.png'];
+    const required=['location_filled@3x.png','location_filled_Dark@3x.png','transfer_filled@3x.png','transfer_filled_Dark@3x.png'];
     const missing=required.filter(n=>!zip.file(n));
     if(missing.length)console.warn('未生成（对应项目未上传/补全）：',missing);
     preparedZipBlob=await zip.generateAsync({type:'blob'});
