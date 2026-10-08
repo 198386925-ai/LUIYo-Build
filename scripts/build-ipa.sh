@@ -9,6 +9,18 @@ case "$SDK_VERSION" in
   *) echo "ERROR: This workflow requires an iOS 26 SDK; found $SDK_VERSION"; exit 1 ;;
 esac
 node YouYouLUI_iOS/verify-material-bridge.js YouYouLUI_iOS/YouYouLUI/Web/index.html
+# Produce the marketing rendition from the existing app icon when absent.
+# The installed iPhone/iPad icon renditions keep their original bytes.
+ICON_SET=YouYouLUI_iOS/YouYouLUI/Assets.xcassets/AppIcon.appiconset
+if [ ! -f "$ICON_SET/Icon-1024.png" ]; then
+  sips --resampleHeightWidth 1024 1024 "$ICON_SET/Icon-60@3x.png" --out "$ICON_SET/Icon-1024.png"
+fi
+python3 - "$ICON_SET" <<'PY'
+import json, pathlib, sys
+root = pathlib.Path(sys.argv[1])
+for image in json.loads((root / 'Contents.json').read_text())['images']:
+    assert (root / image['filename']).is_file(), image['filename']
+PY
 mkdir -p output
 xcodebuild \
   -project YouYouLUI_iOS/YouYouLUI.xcodeproj \

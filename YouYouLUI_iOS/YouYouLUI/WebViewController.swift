@@ -327,7 +327,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
                 let controller = searchController
                 if separateSearch {
                     let search = UISearchTab { _ in controller }
-                    search.automaticallyActivatesSearch = false
+                    if #available(iOS 26.0, *) { search.automaticallyActivatesSearch = false }
                     nativeTabs.append(search)
                 } else {
                     nativeTabs.append(UITab(title: "搜索", image: UIImage(systemName: "magnifyingglass"),
