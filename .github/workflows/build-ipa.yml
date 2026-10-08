@@ -1,0 +1,49 @@
+name: Build LUIYo IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'YouYouLUI_iOS/**'
+      - 'scripts/**'
+      - '.github/workflows/build-ipa.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: luiyo-ipa-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    # Standard public runner: never consume private repository build minutes.
+    if: github.event.repository.private == false
+    runs-on: macos-15
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Xcode 26
+        shell: bash
+        run: |
+          test -d /Applications/Xcode_26.3.app/Contents/Developer
+          echo 'DEVELOPER_DIR=/Applications/Xcode_26.3.app/Contents/Developer' >> "$GITHUB_ENV"
+      - name: Validate native bridge
+        run: node YouYouLUI_iOS/verify-material-bridge.js YouYouLUI_iOS/YouYouLUI/Web/index.html
+      - name: Build with iOS 26 SDK
+        shell: bash
+        run: bash scripts/build-ipa.sh
+      - name: Check native materials in iOS 26 simulator
+        shell: bash
+        run: bash scripts/check-native.sh
+      - name: Download IPA and native screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: LUIYo-Build14-${{ github.run_number }}
+          path: |
+            output/*.ipa
+            native-check/*.png
+            native-check/*.json
+          if-no-files-found: error
+          retention-days: 1

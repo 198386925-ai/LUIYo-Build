@@ -1,0 +1,1925 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><script id="appearance-startup-v103">
+(function(){
+ let mode='system';try{mode=localStorage.getItem('youyou.theme.appearance')||mode}catch(e){}
+ const dark=mode==='dark'||(mode==='system'&&matchMedia('(prefers-color-scheme:dark)').matches);
+ document.documentElement.dataset.appearance=dark?'dark':'light';
+ document.documentElement.style.colorScheme=dark?'dark':'light';
+})();
+</script><title>LUIYo</title><style>
+*{box-sizing:border-box}html,body{touch-action:manipulation;-webkit-text-size-adjust:100%}body{margin:0;background:#F5F3EF;color:#18202a;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif}.app{max-width:820px;margin:auto;padding:0 14px 30px}.top{position:sticky;top:0;z-index:5;margin:0 -14px;padding:calc(12px + env(safe-area-inset-top)) 14px 12px;background:#F5F3EF;border-bottom:1px solid #e6e8ec}.topline{display:flex;align-items:center;justify-content:space-between}.brand{font-size:22px;font-weight:800}.badge{font-size:12px;background:#202a36;color:#fff;border-radius:999px;padding:6px 9px}.sub{font-size:13px;color:#7a8491;margin-top:4px}.dashboard{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}.stat{background:#fff;border:1px solid #e8ebef;border-radius:16px;padding:13px}.stat b{display:block;font-size:14px;line-height:1.35;font-weight:800}.stat span{font-size:12px;color:#8a939f}.feedback{display:block;text-decoration:none;color:inherit;-webkit-tap-highlight-color:transparent}.feedback:active{transform:scale(.995);background:#fafbfc}.tools{background:#fff;border:1px solid #e5e8ed;border-radius:18px;padding:12px;margin-bottom:12px}.actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.tools label,.tools button{height:43px;border:0;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}.batch{background:#202a36;color:#fff}.fillpick{background:#edf0f4;color:#25303c}.fill{background:#dff7e6;color:#16803b}.tools input[type=file]{display:none}.search{width:100%;height:42px;border:1px solid #e3e6ea;border-radius:11px;background:#f7f8fa;padding:0 13px;font-size:14px;outline:0;margin-top:9px}
+.colorfold{width:100%;height:46px;margin-top:9px;border:1px solid #e3e6ea;border-radius:11px;background:#f7f8fa;color:#1f2933;display:flex;align-items:center;justify-content:center;gap:11px;padding:0 13px;font-size:13px;font-weight:750;-webkit-tap-highlight-color:transparent}.colorfold>span:first-child{display:flex;align-items:center;justify-content:center;min-width:0}.colorfold small{font-size:10px;font-weight:500;color:#8b95a1;margin-left:8px}.colorfold .chev{position:relative;font-size:0;line-height:0;transition:transform .2s ease;display:block;width:18px;height:18px;flex:0 0 18px;margin:0;transform-origin:50% 50%}.colorfold .chev:before{content:'';position:absolute;left:50%;top:43%;width:9px;height:9px;border-right:2.5px solid #7f8994;border-bottom:2.5px solid #7f8994;border-radius:1px;transform:translate(-50%,-50%) rotate(45deg)}.colorfold.open .chev{transform:rotate(180deg)}.colorpanel{display:none}.colorpanel.open{display:block}
+.colorrow{margin-top:9px;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#f7f8fa;border:1px solid #e3e6ea;border-radius:11px;padding:8px 10px}.colorrow span{font-size:13px;font-weight:650}.colorrow small{display:block;color:#8b95a1;font-size:10px;margin-top:2px}.colorrow input[type=color]{width:46px;height:32px;border:0;background:transparent;padding:0;border-radius:8px;overflow:hidden}.colorcontrols{display:flex;align-items:center;gap:8px}.switchlabel{display:flex;align-items:center;gap:5px;font-size:11px;color:#68727e;white-space:nowrap}.switchlabel input{width:16px;height:16px;accent-color:#202a36}.colorrow.disabled input[type=color]{opacity:.38;pointer-events:none}.exportrow{display:flex;gap:9px;margin-top:9px}.exportrow button{height:43px;border:0;border-radius:11px;font-weight:750;font-size:13px}.exportrow .clear{width:92px;background:#eef0f3;color:#333}.exportrow .zip{flex:1;background:#202a36;color:#fff}.status{font-size:12px;color:#7d8792;margin-top:8px}.categorytabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0 10px}.categorytabs button{height:42px;border:1px solid #e2e6eb;border-radius:12px;background:#fff;color:#59636f;font-size:13px;font-weight:750}.categorytabs button.active{background:#202a36;color:#fff;border-color:#202a36}.sectiontitle{font-size:13px;font-weight:700;color:#68727e;margin:16px 2px 9px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.card{background:#fff;border:1px solid #e5e8ed;border-radius:15px;padding:10px;min-width:0;display:grid;grid-template-columns:54px 1fr;grid-template-rows:auto auto;column-gap:10px;align-items:center;position:relative}.title{grid-column:2;font-size:13px;font-weight:650;line-height:1.25;min-height:32px;display:flex;align-items:center;padding-right:24px}.pick{grid-column:1;grid-row:1/3;width:54px;height:54px;border-radius:13px;border:1px dashed #cbd1d8;background:#f7f8fa;display:flex;align-items:center;justify-content:center;font-size:0;position:relative;overflow:hidden}.pick:after{content:'+';font-size:26px;color:#8b95a1}.pick input{display:none}.preview{grid-column:1;grid-row:1/3;display:none;width:54px;height:54px;margin:0;position:relative;border-radius:13px;overflow:hidden;background:#f4f5f7;pointer-events:none}.preview img{width:100%;height:100%;object-fit:contain;padding:6px}.preview span{position:absolute;right:2px;bottom:2px;width:17px;height:17px;border-radius:50%;background:#22a652;color:#fff;font-size:0}.preview span:after{content:'✓';font-size:11px;display:flex;align-items:center;justify-content:center;height:17px}.removeIcon{position:absolute;right:8px;top:8px;width:25px;height:25px!important;min-width:25px;border:0!important;border-radius:50%!important;background:#eef0f3!important;color:#66717d!important;font-size:18px!important;font-weight:500!important;line-height:25px!important;padding:0!important;display:flex!important;align-items:center!important;justify-content:center!important;z-index:3;-webkit-tap-highlight-color:transparent}.removeIcon:active{transform:scale(.92);background:#e1e5e9!important}.card.excluded{opacity:.72}.card.excluded:after{content:'已排除 · 点击可重新上传';color:#a0a8b1}.card:after{content:'点击上传';grid-column:2;font-size:11px;color:#9aa2ac}@media(min-width:700px){.grid{grid-template-columns:repeat(3,1fr)}}
+
+.infofolds{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px}.infobox{background:#fff;border:1px solid #e5e8ed;border-radius:14px;overflow:hidden}.infobox summary{list-style:none;min-height:44px;padding:0 13px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;font-weight:750;color:#27313c;cursor:pointer;-webkit-tap-highlight-color:transparent}.infobox summary::-webkit-details-marker{display:none}.infobox summary:after{content:'';width:8px;height:8px;border-right:2px solid #8b95a1;border-bottom:2px solid #8b95a1;transform:rotate(45deg);transition:transform .18s ease;margin-right:3px;margin-top:-4px}.infobox[open] summary:after{transform:rotate(225deg);margin-top:5px}.infobody{border-top:1px solid #edf0f3;padding:12px 13px 13px;color:#66717d;font-size:12px;line-height:1.65}.infobody b{color:#27313c}.infobody p{margin:0 0 8px}.infobody p:last-child{margin-bottom:0}.infobody ul{margin:6px 0 0;padding-left:18px}.infobody li{margin:4px 0}.version{display:inline-block;margin-bottom:7px;padding:3px 7px;border-radius:999px;background:#eef1f4;color:#53606d;font-size:10px;font-weight:700}@media(max-width:430px){.infofolds{grid-template-columns:1fr}}
+
+/* 独立底栏页面：规则 / 设置 */
+#rulePage,#settingsTarget{display:none}
+body.nav-rules #rulePage{display:block}
+body.nav-settings #settingsTarget{display:block}
+body.nav-rules #homeTarget,body.nav-rules .dashboard,body.nav-rules #homeTools,body.nav-rules .categorytabs,body.nav-rules #sectionTitle,body.nav-rules #list,body.nav-rules #settingsTarget{display:none!important}
+body.nav-settings #homeTarget,body.nav-settings .dashboard,body.nav-settings #homeTools,body.nav-settings .categorytabs,body.nav-settings #sectionTitle,body.nav-settings #list,body.nav-settings #rulePage{display:none!important}
+.rulePage{padding:4px 0 110px}
+.pageHead{margin:8px 2px 16px}
+.pageHead h1{font-size:25px;line-height:1.2;margin:0 0 5px;font-weight:800;color:#18202a}
+.pageHead p{margin:0;color:#8a94a1;font-size:13px}
+.ruleSearch{width:100%;height:46px;border:1px solid rgba(205,212,220,.72);border-radius:16px;padding:0 15px;margin:0 0 14px;background:#fff;font-size:14px;outline:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.75)}
+.ruleList{display:grid;gap:10px}
+.ruleGroupTitle{font-size:13px;font-weight:750;color:#77818d;padding:10px 4px 1px}
+.ruleCard{display:grid;grid-template-columns:46px minmax(0,1fr) auto;gap:11px;align-items:center;padding:13px;background:#fff;border:1px solid rgba(213,219,226,.72);border-radius:20px;box-shadow:inset 0 1px 0 rgba(255,255,255,.82),0 7px 22px rgba(31,42,55,.06)}
+.ruleIcon{width:46px;height:46px;border-radius:14px;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:20px;color:#64707d;border:1px solid rgba(220,226,232,.7);overflow:hidden}
+.ruleIcon img{width:100%;height:100%;object-fit:cover;display:none}
+.ruleText{min-width:0}
+.ruleName{font-size:14px;font-weight:760;color:#202832;line-height:1.35;margin-bottom:4px;overflow-wrap:anywhere}
+.ruleFile{font-size:11px;color:#8a94a0;line-height:1.35;overflow-wrap:anywhere;margin-bottom:4px}
+.ruleDesc{font-size:12px;color:#687482;line-height:1.5;overflow-wrap:anywhere}
+.rulePick{min-width:72px;height:36px;padding:0 10px;border-radius:12px;background:#f3f4f6;border:1px solid rgba(215,221,227,.78);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:650;color:#5d6874;white-space:nowrap;cursor:pointer}
+.rulePick input{display:none}
+.rulePick.done{background:rgba(225,239,230,.86);color:#3b7250}
+@media(max-width:390px){.ruleCard{grid-template-columns:42px minmax(0,1fr);}.ruleIcon{width:42px;height:42px}.rulePick{grid-column:1/-1;width:100%;height:34px}}
+
+/* iOS 26+: Liquid Glass is rendered by UIKit, never by CSS. */
+.appBottomNav{display:none!important}
+.ruleSearch,.ruleCard,.ruleIcon,.rulePick{
+  
+  
+}
+.ruleSearch,.ruleCard{background:#fff!important;box-shadow:0 1px 3px rgba(0,0,0,.05)!important}
+.ruleIcon,.rulePick{background:#f3f4f6!important}
+:root[data-appearance="dark"] .ruleSearch,:root[data-appearance="dark"] .ruleCard{background:#1c1c1e!important;color:#f5f5f7!important;border-color:#343438!important}
+:root[data-appearance="dark"] .ruleIcon,:root[data-appearance="dark"] .rulePick{background:#2c2c2e!important;border-color:#3a3a3c!important}
+:root[data-appearance="dark"] .pageHead h1,:root[data-appearance="dark"] .ruleName{color:#f5f5f7!important}
+:root[data-appearance="dark"] .pageHead p,:root[data-appearance="dark"] .ruleFile,:root[data-appearance="dark"] .ruleDesc{color:#a9a9b0!important}
+
+/* Native-material policy: HTML never paints glass or blur. */
+html,body,.top,.card,.infobox,.ruleSearch,.ruleCard,.ruleIcon,.rulePick,.settingsTarget{
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+}
+html,body{background:transparent!important}
+.top{background:transparent!important}
+.card,.infobox,.ruleSearch,.ruleCard{background:rgba(255,255,255,.34)!important;box-shadow:none!important}
+.ruleIcon,.rulePick{background:rgba(255,255,255,.22)!important}
+.changelog{padding:18px 22px 22px!important}
+.changeVersion{padding:0 0 22px;margin:0 0 22px;border-bottom:1px solid rgba(120,120,128,.18)}
+.changeVersion:last-child{border-bottom:0;margin-bottom:0;padding-bottom:0}
+.changeTitle{font-size:16px;font-weight:600;color:#111;margin-bottom:15px}
+.currentVersion{font-size:14px;font-weight:500;color:#0a84ff;margin-left:12px}
+.changeVersion p{margin:8px 0;font-size:14px;line-height:1.65;color:#73777f}
+.changeAdd{color:#34c759;font-weight:650;margin-right:5px}
+.changeOptimize{color:#0a84ff;font-weight:650;margin-right:5px}
+.changeFix{color:#ff9f0a;font-weight:650;margin-right:5px}
+:root[data-appearance="dark"] .card,:root[data-appearance="dark"] .infobox,:root[data-appearance="dark"] .ruleSearch,:root[data-appearance="dark"] .ruleCard{background:rgba(28,28,30,.30)!important}
+:root[data-appearance="dark"] .ruleIcon,:root[data-appearance="dark"] .rulePick{background:rgba(44,44,46,.25)!important}
+:root[data-appearance="dark"] .changeTitle{color:#f5f5f7}
+:root[data-appearance="dark"] .changeVersion p{color:#b1b1b7}
+</style><style>
+.sharemodal{position:fixed;inset:0;z-index:99;background:rgba(0,0,0,.28);display:none;align-items:flex-end;justify-content:center;padding:14px}.sharemodal.show{display:flex}.sharesheet{width:min(100%,520px);background:#fff;border-radius:20px;padding:18px;box-shadow:0 18px 60px rgba(0,0,0,.18);margin-bottom:calc(10px + env(safe-area-inset-bottom))}.sharesheet h3{margin:0 0 4px;font-size:18px}.sharesheet p{margin:0 0 12px;color:#8a939f;font-size:12px}.sharesheet input{width:100%;height:46px;border:1px solid #dfe3e8;border-radius:12px;background:#f7f8fa;padding:0 12px;font-size:15px;outline:0}.shareactions{display:grid;grid-template-columns:1fr 2fr;gap:9px;margin-top:12px}.shareactions button{height:46px;border:0;border-radius:12px;font-size:14px;font-weight:750}.sharecancel{background:#eef0f3;color:#333}.sharego{background:#202a36;color:#fff}.zip[disabled]{opacity:.55}
+</style><style>
+/* App 悬浮底栏导航 */
+body{padding-bottom:calc(92px + env(safe-area-inset-bottom))}
+.appBottomNav{position:fixed;z-index:80;left:50%;bottom:calc(12px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(calc(100% - 28px),520px);height:66px;padding:7px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:rgba(255,255,255,.92);border:1px solid rgba(218,223,229,.92);border-radius:23px;box-shadow:0 10px 34px rgba(24,32,42,.14);}
+.appBottomNav button{border:0;background:transparent;border-radius:17px;color:#7a8491;font:600 11px/1.1 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;-webkit-tap-highlight-color:transparent}
+.appBottomNav button .navIcon{width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:20px;line-height:1;color:currentColor}
+.appBottomNav button.active{background:#202a36;color:#fff}
+.appBottomNav button:active{transform:scale(.97)}
+.navTargetFlash{animation:navTargetFlash .55s ease}
+@keyframes navTargetFlash{0%{box-shadow:0 0 0 0 rgba(32,42,54,.18)}100%{box-shadow:0 0 0 12px rgba(32,42,54,0)}}
+</style>
+<style id="approved-ui-v101">
+/* Approved 1.0.1 visual pass. Glass itself is never CSS-rendered:
+   iOS 26+ = UIKit UIGlassEffect; older iOS = UIKit systemMaterial. */
+:root{color-scheme:light dark}
+body{padding-bottom:calc(86px + env(safe-area-inset-bottom));}
+.app{max-width:820px;padding:0 14px 34px}
+.top{padding-top:calc(18px + env(safe-area-inset-top));padding-bottom:16px;border-bottom:1px solid rgba(120,120,128,.16)}
+.brand{font-size:24px;letter-spacing:-.5px}.sub{font-size:13px}
+.badge{padding:7px 12px;border-radius:999px}
+.dashboard{gap:12px;margin:16px 0 14px}
+.stat,.tools,.card,.settingsEntry,.ruleCard,.ruleSearch,.guideCard,.logCard{
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+  box-shadow:none!important;border:1px solid rgba(120,120,128,.18)!important;
+  background:rgba(255,255,255,.50)!important;
+}
+.stat{border-radius:22px;padding:16px}.tools{border-radius:24px;padding:14px}
+.tools label,.tools button,.search,.colorfold,.exportrow button{border-radius:16px}
+.actions{gap:9px}.search{height:46px;background:rgba(255,255,255,.34)}
+.colorfold{height:50px;background:rgba(255,255,255,.34)}
+.exportrow button{height:48px}.categorytabs button{border-radius:18px;height:46px}
+.card{border-radius:22px;padding:12px}.pick,.preview{border-radius:16px}
+.sectiontitle{font-size:15px;margin-top:18px}
+.settingsTarget{display:none;padding:8px 0 110px}
+body.nav-settings .settingsTarget{display:block}
+.settingsHead{padding:10px 4px 18px}.settingsHead h1{margin:0 0 5px;font-size:28px;letter-spacing:-.5px}.settingsHead p{margin:0;color:#8e8e93;font-size:14px}
+.settingsEntry{width:100%;min-height:84px;border-radius:24px;margin:0 0 12px;padding:14px 16px;display:grid;grid-template-columns:48px 1fr 20px;gap:12px;align-items:center;text-align:left;color:inherit}
+.settingsEntryIcon{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;background:rgba(255,255,255,.38)}
+.settingsEntry b{display:block;font-size:16px;margin-bottom:4px}.settingsEntry small{display:block;color:#8e8e93;font-size:12px}.settingsChevron{font-size:30px;color:#a3a3a8}
+.nativeInfoPage{position:fixed;inset:0;z-index:200;display:none;overflow:auto;padding:calc(18px + env(safe-area-inset-top)) 14px calc(34px + env(safe-area-inset-bottom));background:transparent}
+.nativeInfoPage.show{display:block}
+.nativeInfoHeader{position:sticky;top:0;z-index:2;min-height:78px;display:flex;align-items:center;justify-content:center;margin:0 -2px 14px;padding:8px 0;background:transparent}
+.nativeInfoHeader h2{font-size:24px;margin:0;font-weight:800}.nativeInfoHeader button{position:absolute;right:2px;width:54px;height:54px;border-radius:50%;border:1px solid rgba(120,120,128,.22);background:rgba(255,255,255,.52);font-size:38px;font-weight:300;line-height:1;color:inherit}
+.guideCards,.logCards{display:grid;gap:12px;max-width:760px;margin:0 auto}
+.guideCard{border-radius:28px;padding:16px;display:grid;grid-template-columns:48px 1fr;gap:13px;align-items:start}
+.guideIcon{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:23px;background:rgba(255,255,255,.40)}
+.guideCard h3{margin:2px 0 7px;font-size:16px}.guideCard p{margin:0;color:#73777f;font-size:13px;line-height:1.65}
+.logCard{border-radius:30px;padding:20px}.logTitle{font-size:17px;font-weight:700;margin-bottom:14px}.logTitle span{color:#0a84ff;font-size:14px;font-weight:600;margin-left:10px}
+.logCard p{margin:8px 0;color:#73777f;font-size:14px;line-height:1.62}.logCard b{margin-right:5px}.logCard .add{color:#34c759}.logCard .opt{color:#0a84ff}.logCard .fix{color:#ff9f0a}
+body.info-open{overflow:hidden}
+:root[data-appearance="dark"] .stat,:root[data-appearance="dark"] .tools,:root[data-appearance="dark"] .card,:root[data-appearance="dark"] .settingsEntry,:root[data-appearance="dark"] .ruleCard,:root[data-appearance="dark"] .ruleSearch,:root[data-appearance="dark"] .guideCard,:root[data-appearance="dark"] .logCard{background:rgba(28,28,30,.48)!important;border-color:rgba(255,255,255,.13)!important}
+:root[data-appearance="dark"] .settingsEntryIcon,:root[data-appearance="dark"] .guideIcon,:root[data-appearance="dark"] .nativeInfoHeader button{background:rgba(44,44,46,.46)}
+:root[data-appearance="dark"] .guideCard p,:root[data-appearance="dark"] .logCard p{color:#b1b1b7}
+</style>
+<style id="settings-modal-bugfix-v101">
+/* 1.0.1 hotfix: settings must never sit under the status bar. */
+.settingsTarget{padding-top:calc(10px + env(safe-area-inset-top))!important}
+.settingsHead{padding-top:8px!important}
+.settingsHead h1{font-size:26px!important;line-height:1.18!important}
+
+/* Info pages are independent full-screen pages, not transparent overlays
+   on top of Settings. The only blur/glass remains the native UIKit layer. */
+body.info-open .app{visibility:hidden!important;pointer-events:none!important}
+body.info-open .nativeInfoPage.show{visibility:visible!important;pointer-events:auto!important}
+.nativeInfoPage{
+  background:transparent!important;
+  padding:calc(10px + env(safe-area-inset-top)) 14px calc(28px + env(safe-area-inset-bottom))!important;
+}
+.nativeInfoHeader{
+  min-height:76px!important;
+  margin:0 0 12px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+.nativeInfoHeader h2{font-size:19px!important;font-weight:750!important;letter-spacing:-.2px!important}
+.nativeInfoHeader button{
+  right:0!important;width:48px!important;height:48px!important;font-size:34px!important;
+  background:rgba(255,255,255,.56)!important;box-shadow:none!important;
+}
+.guideCards,.logCards{gap:12px!important}
+.guideCard{grid-template-columns:50px 1fr!important;gap:14px!important;border-radius:26px!important;padding:15px!important}
+.guideIcon{width:50px!important;height:50px!important;font-size:22px!important}
+.guideCard h3{font-size:15px!important;margin:1px 0 6px!important}
+.guideCard p{font-size:12.5px!important;line-height:1.55!important}
+.logCard{border-radius:28px!important;padding:18px 17px!important}
+.logTitle{font-size:16px!important;margin-bottom:12px!important}
+.logTitle span{font-size:12px!important}
+.logCard p{font-size:13px!important;line-height:1.55!important;margin:7px 0!important}
+@media (max-width:390px){
+  .nativeInfoPage{padding-left:10px!important;padding-right:10px!important}
+  .logCard{padding:16px 14px!important}
+}
+</style>
+<style id="compact-settings-info-v101">
+/* Compact sizing approved after 1.0.1 UI review. */
+.settingsHead{padding-bottom:12px!important}
+.settingsHead h1{font-size:22px!important}
+.settingsHead p{font-size:12px!important}
+.settingsEntry{
+  min-height:66px!important;border-radius:20px!important;margin-bottom:9px!important;
+  padding:10px 12px!important;grid-template-columns:38px 1fr 16px!important;gap:10px!important;
+}
+.settingsEntryIcon{width:38px!important;height:38px!important;font-size:19px!important}
+.settingsEntry b{font-size:14px!important;margin-bottom:2px!important}
+.settingsEntry small{font-size:11px!important}
+.settingsChevron{font-size:24px!important}
+
+.nativeInfoHeader{min-height:64px!important;margin-bottom:9px!important}
+.nativeInfoHeader h2{font-size:17px!important}
+.nativeInfoHeader button{width:42px!important;height:42px!important;font-size:29px!important}
+.guideCards,.logCards{gap:9px!important}
+.guideCard{
+  grid-template-columns:42px 1fr!important;gap:11px!important;
+  border-radius:22px!important;padding:11px 12px!important;
+}
+.guideIcon{width:42px!important;height:42px!important;font-size:19px!important}
+.guideCard h3{font-size:13.5px!important;margin:0 0 4px!important}
+.guideCard p{font-size:11.5px!important;line-height:1.48!important}
+.logCard{border-radius:22px!important;padding:13px 14px!important}
+.logTitle{font-size:14px!important;margin-bottom:8px!important}
+.logTitle span{font-size:11px!important}
+.logCard p{font-size:11.5px!important;line-height:1.48!important;margin:5px 0!important}
+.logCard p b{font-size:11.5px!important}
+@media (max-width:390px){
+  .logCard{padding:12px!important}
+  .logCard p{font-size:11px!important}
+  .guideCard p{font-size:11px!important}
+}
+</style><style id="inline-settings-rules-v101">
+/* Settings cards expand in place. No modal/popup page. */
+.settingsTarget{padding-top:calc(10px + env(safe-area-inset-top))!important}
+.settingsFold{margin:0 0 12px;border:1px solid rgba(120,120,128,.18);border-radius:22px;overflow:hidden;background:rgba(255,255,255,.50);-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+.settingsFold summary{list-style:none;min-height:76px;padding:12px 15px;display:grid;grid-template-columns:42px 1fr 18px;gap:11px;align-items:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.settingsFold summary::-webkit-details-marker{display:none}
+.settingsFoldIcon{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:21px;background:rgba(255,255,255,.38)}
+.settingsFoldText b{display:block;font-size:15px;line-height:1.25}.settingsFoldText small{display:block;margin-top:3px;color:#8e8e93;font-size:11.5px;line-height:1.35}
+.settingsFoldChevron{width:10px;height:10px;border-right:2px solid #9a9aa0;border-bottom:2px solid #9a9aa0;transform:rotate(45deg);transition:transform .2s ease;margin-top:-5px}
+.settingsFold[open] .settingsFoldChevron{transform:rotate(225deg);margin-top:5px}
+.settingsFoldBody{border-top:1px solid rgba(120,120,128,.14);padding:14px 16px 17px;color:#73777f;font-size:12.5px;line-height:1.62}
+.settingsFoldBody h3{margin:0 0 8px;color:#202832;font-size:14px}.settingsFoldBody p{margin:0 0 9px}.settingsFoldBody ul{margin:7px 0 0;padding-left:20px}.settingsFoldBody li{margin:7px 0}.settingsFoldBody li b{color:#27313c}
+.inlineVersion{padding:0 0 15px;margin:0 0 15px;border-bottom:1px solid rgba(120,120,128,.14)}.inlineVersion:last-child{border-bottom:0;margin:0;padding:0}
+.inlineVersionTitle{font-size:15px;font-weight:700;color:#202832;margin-bottom:10px}.inlineVersionTitle span{font-size:12px;color:#0a84ff;margin-left:8px}
+.inlineVersion p{margin:7px 0}.inlineVersion .add{color:#34c759}.inlineVersion .opt{color:#0a84ff}.inlineVersion .fix{color:#ff9f0a}
+.nativeInfoPage{display:none!important}
+
+/* Rules page respects the iPhone safe area and is reference-only. */
+.rulePage{padding:calc(10px + env(safe-area-inset-top)) 0 110px!important}
+.ruleList{gap:9px!important}.ruleGroupTitle{display:none!important}
+.ruleCard{grid-template-columns:42px minmax(0,1fr)!important;gap:11px!important;padding:11px 13px!important;border-radius:18px!important}
+.ruleIcon{width:42px!important;height:42px!important;border-radius:13px!important}
+.ruleName{font-size:13.5px!important;margin-bottom:3px!important}.ruleFile{font-size:11.5px!important;margin:0!important;line-height:1.4!important}
+.ruleDesc,.rulePick{display:none!important}
+:root[data-appearance="dark"] .settingsFold{background:rgba(28,28,30,.48);border-color:rgba(255,255,255,.13)}
+:root[data-appearance="dark"] .settingsFoldIcon{background:rgba(44,44,46,.46)}
+:root[data-appearance="dark"] .settingsFoldBody h3,:root[data-appearance="dark"] .settingsFoldBody li b,:root[data-appearance="dark"] .inlineVersionTitle{color:#f5f5f7}
+:root[data-appearance="dark"] .settingsFoldBody{color:#b1b1b7}
+</style><style id="home-reference-ui-v102">
+/* Homepage layout adapted from the user's index 2.html reference.
+   No CSS blur/backdrop-filter: native material remains UIKit-only. */
+.homeHero{padding:calc(16px + env(safe-area-inset-top)) 6px 13px}
+.homeEyebrow{font-size:11px;color:#0a84ff;font-weight:750;letter-spacing:.45px}
+.homeHero h1{font-size:29px;letter-spacing:-.75px;margin:4px 0 5px;line-height:1.12}
+.homeSub{color:#6e6e73;font-size:13px;line-height:1.42}
+.homeSummary{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}
+.homePill{padding:6px 10px;border-radius:999px;border:1px solid rgba(120,120,128,.18);background:rgba(255,255,255,.54);font-size:11.5px;color:#5f6368;white-space:nowrap}
+.homeFeedback{display:inline-block;margin-top:8px;font-size:11.5px;color:#0a84ff;text-decoration:none}
+
+#homeTools{border-radius:22px!important;padding:12px!important;margin-bottom:13px!important}
+#homeTools .actions{grid-template-columns:1fr 1fr!important;gap:9px!important}
+#homeTools .actions .fill{grid-column:1/-1!important}
+#homeTools label,#homeTools button{height:44px!important;border-radius:13px!important;font-size:13px!important}
+#homeTools .batch{background:#0a84ff!important;color:white!important}
+#homeTools .fillpick{background:#eef1f5!important;color:#202832!important}
+#homeTools .fill{background:#34c759!important;color:white!important}
+#searchInput{height:42px!important;border-radius:13px!important;margin-top:9px!important;background:#eef1f5!important;border:0!important;font-size:13px!important}
+#homeTools .colorfold{height:42px!important;border-radius:13px!important;margin-top:9px!important}
+#homeTools .exportrow{margin-top:9px!important}
+#homeTools .exportrow button{height:43px!important;border-radius:13px!important}
+#homeTools .status{text-align:center!important;font-size:11px!important;margin-top:8px!important}
+
+.categorytabs{margin:12px 0 9px!important}
+.categorytabs button{height:40px!important;border-radius:13px!important}
+.sectiontitle{margin:13px 2px 8px!important;font-size:12.5px!important}
+
+.grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+.card{
+  display:block!important;
+  border-radius:20px!important;
+  padding:11px!important;
+  min-width:0!important;
+  position:relative!important;
+}
+.title{
+  display:block!important;
+  min-height:34px!important;
+  padding:0 24px 0 0!important;
+  margin:0 0 8px!important;
+  font-size:12.5px!important;
+  line-height:1.34!important;
+  font-weight:650!important;
+}
+.pick{
+  width:100%!important;
+  height:102px!important;
+  border-radius:16px!important;
+  display:flex!important;
+  margin:0!important;
+}
+.pick:after{font-size:31px!important}
+.preview{
+  width:100%!important;
+  height:102px!important;
+  margin:-102px 0 0!important;
+  border-radius:16px!important;
+}
+.preview img{padding:12px!important}
+.card:after{display:none!important}
+.removeIcon{right:8px!important;top:8px!important;width:23px!important;height:23px!important;min-width:23px!important;font-size:16px!important}
+
+/* Settings entry cards: noticeably shorter than the previous build. */
+.settingsHead{padding-bottom:8px!important}
+.settingsHead h1{font-size:20px!important}
+.settingsHead p{font-size:11px!important}
+.settingsFold{border-radius:17px!important;margin-bottom:8px!important}
+.settingsFold summary{
+  min-height:50px!important;
+  padding:7px 10px!important;
+  grid-template-columns:30px 1fr 12px!important;
+  gap:8px!important;
+}
+.settingsFoldIcon{width:30px!important;height:30px!important;font-size:16px!important}
+.settingsFoldText b{font-size:13px!important}
+.settingsFoldText small{font-size:9.5px!important;margin-top:1px!important}
+.settingsFoldChevron{width:8px!important;height:8px!important}
+.settingsFoldBody{padding:11px 12px 13px!important;font-size:11.5px!important;line-height:1.52!important}
+.inlineVersionTitle{font-size:13px!important}
+.inlineVersion p{font-size:11.2px!important;line-height:1.5!important;margin:5px 0!important}
+
+@media(min-width:700px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+:root[data-appearance="dark"] .homePill{background:rgba(44,44,46,.50);border-color:rgba(255,255,255,.12);color:#d1d1d6}
+:root[data-appearance="dark"] #homeTools .fillpick,:root[data-appearance="dark"] #searchInput{background:#2c2c2e!important;color:#f2f2f7!important}
+</style><style id="home-native-glass-surfaces-v102">
+/* HTML only exposes translucent surfaces.
+   The actual glass/material is supplied by UIKit in WebViewController. */
+html,body{background:transparent!important}
+.homeHero{background:transparent!important}
+.homePill,
+#homeTools,
+.categorytabs button,
+.card{
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+  box-shadow:none!important;
+  background:rgba(255,255,255,.30)!important;
+  border:1px solid rgba(255,255,255,.58)!important;
+}
+#homeTools .fillpick,
+#searchInput,
+#homeTools .colorfold,
+#homeTools .colorrow,
+#homeTools .clear,
+.pick{
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+  background:rgba(255,255,255,.24)!important;
+  border:1px solid rgba(120,120,128,.16)!important;
+}
+.categorytabs button.active{
+  background:rgba(32,42,54,.90)!important;
+  border-color:transparent!important;
+  color:#fff!important;
+}
+#homeTools .batch{background:#0a84ff!important;border-color:transparent!important}
+#homeTools .fill{background:#34c759!important;border-color:transparent!important}
+#homeTools .zip{background:rgba(32,42,54,.94)!important;border-color:transparent!important}
+.preview{background:rgba(255,255,255,.18)!important}
+:root[data-appearance="dark"] .homePill,:root[data-appearance="dark"] #homeTools,:root[data-appearance="dark"] .categorytabs button,:root[data-appearance="dark"] .card{
+    background:rgba(44,44,46,.28)!important;
+    border-color:rgba(255,255,255,.13)!important;
+  }
+:root[data-appearance="dark"] #homeTools .fillpick,:root[data-appearance="dark"] #searchInput,:root[data-appearance="dark"] #homeTools .colorfold,:root[data-appearance="dark"] #homeTools .colorrow,:root[data-appearance="dark"] #homeTools .clear,:root[data-appearance="dark"] .pick{
+    background:rgba(58,58,60,.28)!important;
+    border-color:rgba(255,255,255,.12)!important;
+    color:#f2f2f7!important;
+  }
+</style><style id="adaptive-native-card-v102">
+/* Unified adaptive card geometry based on the user's reference.
+   Geometry only: no CSS blur/glass. UIKit remains responsible for native material. */
+.card,.ruleCard,.settingsFold{
+  height:auto!important;
+  min-height:0!important;
+  border-radius:26px!important;
+  overflow:hidden!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+  box-shadow:none!important;
+  background:rgba(255,255,255,.48)!important;
+  border:1px solid rgba(255,255,255,.70)!important;
+}
+.card{padding:12px!important}
+.ruleCard{padding:10px 13px!important;align-items:center!important}
+.settingsFold{margin-bottom:9px!important}
+.settingsFold summary{
+  min-height:52px!important;
+  height:auto!important;
+  padding:8px 13px!important;
+}
+.settingsFoldBody{
+  padding:12px 14px 15px!important;
+  border-top:1px solid rgba(120,120,128,.12)!important;
+}
+.settingsFold.is-animating{will-change:height}
+.settingsFold .settingsFoldChevron{transition:transform .32s cubic-bezier(.22,1,.36,1),margin .32s cubic-bezier(.22,1,.36,1)!important}
+.settingsFold.is-expanded .settingsFoldChevron{transform:rotate(225deg)!important;margin-top:5px!important}
+.settingsFold[open]:not(.is-expanded) .settingsFoldChevron{transform:rotate(45deg)!important;margin-top:-5px!important}
+:root[data-appearance="dark"] .card,:root[data-appearance="dark"] .ruleCard,:root[data-appearance="dark"] .settingsFold{
+    background:rgba(44,44,46,.34)!important;
+    border-color:rgba(255,255,255,.14)!important;
+  }
+</style><style id="corrected-background-material-toggle-v102">
+:root{--app-bg:#F4F2EE!important;--card-bg:#FFFFFF!important}
+html,body{background:transparent!important}
+.card,.infobox,.ruleSearch,.ruleCard,.settingsFold,.settingsToggleCard{
+  background:#FFFFFF!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+}
+.settingsToggleCard{
+  min-height:52px;
+  margin:0 0 9px;
+  padding:8px 13px;
+  border-radius:26px;
+  border:1px solid rgba(120,120,128,.16);
+  display:grid;
+  grid-template-columns:42px minmax(0,1fr) auto;
+  gap:11px;
+  align-items:center;
+  box-sizing:border-box;
+}
+.settingsToggleIcon{
+  width:42px;height:42px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;background:#F4F2EE;
+}
+.settingsToggleText b{display:block;font-size:15px;line-height:1.25;color:#202832}
+.settingsToggleText small{display:block;margin-top:3px;color:#8e8e93;font-size:11.5px;line-height:1.35}
+.settingsToggleCard input[type="checkbox"]{width:51px;height:31px;margin:0}
+:root[data-appearance="dark"] .card,:root[data-appearance="dark"] .infobox,:root[data-appearance="dark"] .ruleSearch,:root[data-appearance="dark"] .ruleCard,:root[data-appearance="dark"] .settingsFold,:root[data-appearance="dark"] .settingsToggleCard{background:#FFFFFF!important}
+:root[data-appearance="dark"] .settingsToggleIcon{background:#F4F2EE!important}
+:root[data-appearance="dark"] .settingsToggleText b,:root[data-appearance="dark"] .settingsFoldText b,:root[data-appearance="dark"] .ruleName,:root[data-appearance="dark"] .pageHead h1,:root[data-appearance="dark"] .inlineVersionTitle{color:#202832!important}
+:root[data-appearance="dark"] .settingsToggleText small,:root[data-appearance="dark"] .settingsFoldText small,:root[data-appearance="dark"] .settingsFoldBody,:root[data-appearance="dark"] .ruleFile,:root[data-appearance="dark"] .pageHead p{color:#73777f!important}
+</style><style id="unified-card-system-v102">
+/* One visual system for Home / Rules / Settings.
+   Background remains #F4F2EE in UIKit; every content card uses the same white surface. */
+:root{
+  --yy-page:#F4F2EE;
+  --yy-card:#FFFFFF;
+  --yy-card-border:transparent;
+  --yy-card-radius:26px;
+}
+#homeTools,
+.homePill,
+.card,
+.ruleSearch,
+.ruleCard,
+.settingsToggleCard,
+.settingsFold,
+.infobox,
+.categorytabs button:not(.active){
+  background:var(--yy-card)!important;
+  border:1px solid var(--yy-card-border)!important;
+  box-shadow:none!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+}
+#homeTools,.ruleSearch,.ruleCard,.settingsToggleCard,.settingsFold,.infobox{
+  border-radius:var(--yy-card-radius)!important;
+}
+.card{border-radius:var(--yy-card-radius)!important}
+.homePill{border-radius:999px!important}
+.categorytabs button{border-radius:22px!important}
+
+/* Keep inner controls quieter so the outer Home card reads exactly like Settings cards. */
+#homeTools .fillpick,
+#searchInput,
+#homeTools .colorfold,
+#homeTools .colorrow,
+#homeTools .clear,
+.pick{
+  background:#FFFFFF!important;
+  border:1px solid var(--yy-card-border)!important;
+  box-shadow:none!important;
+}
+
+/* Same spacing rhythm across the three tabs. */
+#homeTools{padding:12px!important;margin-bottom:12px!important}
+.card,.ruleCard{overflow:hidden!important}
+.settingsFold,.settingsToggleCard{margin-bottom:9px!important}
+
+/* Native iOS switch: don't impose the previous square checkbox dimensions. */
+#liquidGlassToggle{
+  width:auto!important;
+  height:auto!important;
+  margin:0!important;
+  accent-color:#34c759;
+}
+
+:root[data-appearance="dark"] #homeTools,:root[data-appearance="dark"] .homePill,:root[data-appearance="dark"] .card,:root[data-appearance="dark"] .ruleSearch,:root[data-appearance="dark"] .ruleCard,:root[data-appearance="dark"] .settingsToggleCard,:root[data-appearance="dark"] .settingsFold,:root[data-appearance="dark"] .infobox,:root[data-appearance="dark"] .categorytabs button:not(.active),:root[data-appearance="dark"] #homeTools .fillpick,:root[data-appearance="dark"] #searchInput,:root[data-appearance="dark"] #homeTools .colorfold,:root[data-appearance="dark"] #homeTools .colorrow,:root[data-appearance="dark"] #homeTools .clear,:root[data-appearance="dark"] .pick{
+    background:#FFFFFF!important;
+    border-color:var(--yy-card-border)!important;
+  }
+</style><style id="unified-card-surface-v102">
+/* One visual system across Home / Rules / Settings. */
+:root{--app-bg:#F4F2EE!important;--surface:#FFFFFF!important;--surface-border:transparent}
+html,body{background:transparent!important}
+
+/* All content cards use the same white surface, border and curvature as Settings. */
+.uploadbox,.card,.infobox,.ruleSearch,.ruleCard,.settingsFold,.settingsToggleCard,.categorytabs,.modeTabs{
+  background:var(--surface)!important;
+  border-color:var(--surface-border)!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+  box-shadow:none!important;
+}
+.uploadbox,.categorytabs,.modeTabs{border-radius:28px!important}
+.card,.ruleCard{border-radius:24px!important}
+.infobox,.settingsFold{border-radius:26px!important}
+.ruleSearch{border-radius:22px!important}
+
+/* Settings compact cards keep exactly the same shell. */
+.settingsFold{margin-bottom:10px!important}
+.settingsFold summary{min-height:64px!important;padding:9px 13px!important}
+.settingsFoldIcon{background:#F4F2EE!important}
+
+/* Home icon cards: same compact visual language, not a separate oversized style. */
+.card{padding:12px!important}
+
+/* Do not fake glass inside HTML. Native UIKit shell owns Liquid Glass/material. */
+</style><style id="theme-settings-v102">
+.themeBody{padding:4px 14px 8px!important}
+.themeRow{min-height:58px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid rgba(120,120,128,.12)}
+.themeRow:last-child{border-bottom:0}
+.themeRow>div:first-child{min-width:0}.themeRow b{display:block;color:#202832;font-size:13.5px;line-height:1.3}.themeRow small{display:block;color:#8e8e93;font-size:10.5px;line-height:1.35;margin-top:2px}
+.themeColor,.themeBorderControls{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.themeColor input,.themeBorderControls input[type=color]{width:34px;height:34px;border:0;padding:0;background:transparent}
+.themeColor button{border:0;background:#F4F2EE;border-radius:12px;padding:7px 9px;font-size:11px;color:#555}
+#liquidGlassToggle,#cardBorderEnabled{width:auto!important;height:auto!important;margin:0!important}
+</style><style id="native-fold-motion-v102">
+.settingsFold summary{transition:padding .45s cubic-bezier(.16,1,.3,1)!important}
+.settingsFoldBody{opacity:1;transform:none}
+.settingsFold.is-animating .settingsFoldBody{will-change:opacity,transform}
+.settingsFold:not(.is-expanded) .settingsFoldBody{opacity:0;transform:translateY(-6px)}
+.settingsFold.is-expanded .settingsFoldBody{animation:yyFoldContentIn .42s .06s cubic-bezier(.16,1,.3,1) both}
+.settingsFoldChevron{transition:transform .45s cubic-bezier(.16,1,.3,1),margin .45s cubic-bezier(.16,1,.3,1)!important}
+@keyframes yyFoldContentIn{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){.settingsFold,.settingsFold *{animation:none!important;transition:none!important}}
+</style><style id="true-native-card-glass-v102">
+body.native-card-glass .card,body.native-card-glass .ruleCard,body.native-card-glass .settingsFold,body.native-card-glass #homeTools,body.native-card-glass .infobox,body.native-card-glass .ruleSearch{background:transparent!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:none!important}
+</style><style id="custom-font-theme-v102">
+.themeFontControls{display:flex;align-items:center;gap:6px;flex:0 0 auto}
+.themeFontControls button{border:0;background:#F4F2EE;border-radius:12px;padding:7px 9px;font-size:11px;color:#555;white-space:nowrap}
+body.custom-font-active,body.custom-font-active button,body.custom-font-active input,body.custom-font-active summary{font-family:"YouYouCustomFont",-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif!important}
+</style><style id="fast-fold-close-v102">
+.settingsFoldBody{transition:opacity 140ms ease,transform 180ms cubic-bezier(.4,0,.6,1)!important}
+.settingsFold:not(.is-expanded) .settingsFoldBody{opacity:0!important;transform:translateY(-4px)!important}
+.settingsFold.is-expanded .settingsFoldBody{animation:yyFoldContentIn 220ms 35ms cubic-bezier(.2,.8,.2,1) both!important}
+</style><style id="three-card-material-modes-v102">
+.materialThemeRow{align-items:flex-start!important;flex-direction:column!important;padding:9px 0 10px!important;gap:8px!important}
+.materialModePicker{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;width:100%;padding:3px;background:#F4F2EE;border-radius:13px}
+.materialModePicker button{appearance:none;border:0!important;border-radius:10px!important;min-height:34px;padding:5px 4px!important;background:transparent!important;color:#666!important;font-size:11.5px!important;font-weight:650!important;white-space:nowrap}
+.materialModePicker button.active{background:#FFFFFF!important;color:#202832!important;box-shadow:0 1px 3px rgba(0,0,0,.08)!important}
+body.solid-card-mode .card,body.solid-card-mode .ruleCard,body.solid-card-mode .settingsFold,body.solid-card-mode #homeTools,body.solid-card-mode .infobox,body.solid-card-mode .ruleSearch,body.solid-card-mode .uploadbox,body.solid-card-mode .categorytabs,body.solid-card-mode .modeTabs,body.solid-card-mode .settingsToggleCard{background:#FFFFFF!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:none!important}
+body.native-card-glass .card,body.native-card-glass .ruleCard,body.native-card-glass .settingsFold,body.native-card-glass #homeTools,body.native-card-glass .infobox,body.native-card-glass .ruleSearch,body.native-card-glass .uploadbox,body.native-card-glass .categorytabs,body.native-card-glass .modeTabs,body.native-card-glass .settingsToggleCard{background:transparent!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:none!important}
+</style><style id="theme-color-native-home-v102">
+:root{--card-color:#FFFFFF}
+body.solid-card-mode .card,body.solid-card-mode .ruleCard,body.solid-card-mode .settingsFold,body.solid-card-mode #homeTools,body.solid-card-mode .infobox,body.solid-card-mode .ruleSearch,body.solid-card-mode .uploadbox,body.solid-card-mode .categorytabs,body.solid-card-mode .modeTabs,body.solid-card-mode .settingsToggleCard,
+body.solid-card-mode .homePill,body.solid-card-mode #homeTools .fillpick,body.solid-card-mode #searchInput,body.solid-card-mode #homeTools .colorfold,body.solid-card-mode #homeTools .colorrow,body.solid-card-mode #homeTools .clear,body.solid-card-mode .categorytabs button:not(.active),body.solid-card-mode .pick{background:var(--card-color)!important}
+body.native-card-glass .homePill,body.native-card-glass #homeTools .fillpick,body.native-card-glass #searchInput,body.native-card-glass #homeTools .colorfold,body.native-card-glass #homeTools .colorrow,body.native-card-glass #homeTools .clear,body.native-card-glass .categorytabs button:not(.active),body.native-card-glass .pick{background:transparent!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:none!important}
+body.native-card-glass .categorytabs{background:transparent!important}
+</style><style id="reference-segmented-and-pill-ui-v103">
+/* Pure mode = exact white cards on #F4F2EE, with no unintended border/shadow. */
+body.solid-card-mode .card,
+body.solid-card-mode .ruleCard,
+body.solid-card-mode .settingsFold,
+body.solid-card-mode #homeTools,
+body.solid-card-mode .infobox,
+body.solid-card-mode .ruleSearch,
+body.solid-card-mode .uploadbox,
+body.solid-card-mode .settingsToggleCard{
+  background:var(--card-color,#FFFFFF)!important;
+  box-shadow:none!important;
+}
+
+/* Reference segmented control: one soft capsule + inset white selected pill. */
+.materialModePicker,
+.categorytabs{
+  padding:4px!important;
+  gap:0!important;
+  border:0!important;
+  border-radius:999px!important;
+  background:#F1EFEC!important;
+  overflow:hidden!important;
+  box-shadow:none!important;
+}
+.materialModePicker button,
+.categorytabs button{
+  border:0!important;
+  border-radius:999px!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  color:#202832!important;
+  transition:background-color .16s ease,color .16s ease,transform .12s ease!important;
+}
+.materialModePicker button.active,
+.categorytabs button.active{
+  background:#FFFFFF!important;
+  color:#111820!important;
+  box-shadow:0 1px 2px rgba(0,0,0,.035)!important;
+}
+.materialModePicker button:active,
+.categorytabs button:active{transform:scale(.985)!important}
+
+/* Home controls use the same fully rounded language as the category control. */
+#homeTools .batch,
+#homeTools .fillpick,
+#homeTools .fill,
+#searchInput,
+#homeTools .colorfold,
+#homeTools .clear,
+#homeTools .zip{
+  border-radius:999px!important;
+}
+#homeTools .colorrow{border-radius:22px!important}
+#homeTools{border-radius:28px!important}
+.card{border-radius:24px!important}
+
+/* Native material mode: HTML never paints fake glass. Keep selected segmented pill white. */
+body.native-card-glass .categorytabs{
+  background:#F1EFEC!important;
+}
+body.native-card-glass .categorytabs button:not(.active){
+  background:transparent!important;
+}
+body.native-card-glass .categorytabs button.active{
+  background:#FFFFFF!important;
+}
+body.native-card-glass .materialModePicker{
+  background:#F1EFEC!important;
+}
+</style><style id="home-controls-unified-material-v104">
+/* Home action controls follow one material system.
+   Solid: one visible neutral fill. Liquid/blur: UIKit draws the material. */
+body.solid-card-mode #homeTools .batch,
+body.solid-card-mode #homeTools .fillpick,
+body.solid-card-mode #homeTools .fill,
+body.solid-card-mode #homeTools .colorfold,
+body.solid-card-mode #homeTools .clear,
+body.solid-card-mode #homeTools .zip{
+  background:#F1EFEC!important;
+  color:#202832!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+/* Search is intentionally native Liquid Glass even while the rest of the app is Solid. */
+body.solid-card-mode #searchInput{
+  background:transparent!important;
+  color:#202832!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+body.native-card-glass #homeTools .batch,
+body.native-card-glass #homeTools .fillpick,
+body.native-card-glass #homeTools .fill,
+body.native-card-glass #searchInput,
+body.native-card-glass #homeTools .colorfold,
+body.native-card-glass #homeTools .clear,
+body.native-card-glass #homeTools .zip{
+  background:transparent!important;
+  color:#202832!important;
+  border:0!important;
+  box-shadow:none!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+}
+</style><style id="home-solid-only-correction-v105">
+/* The latest neutral-color adjustment applies ONLY to Solid mode. */
+body.solid-card-mode #homeTools .batch,
+body.solid-card-mode #homeTools .fillpick,
+body.solid-card-mode #homeTools .fill,
+body.solid-card-mode #homeTools .colorfold,
+body.solid-card-mode #homeTools .clear,
+body.solid-card-mode #homeTools .zip{
+  background:#F1EFEC!important;
+  color:#202832!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+
+/* Restore a clearly visible search/input field in Solid mode. */
+body.solid-card-mode #searchInput{
+  background:#F1EFEC!important;
+  color:#202832!important;
+  border:1px solid rgba(120,120,128,.12)!important;
+  box-shadow:none!important;
+}
+body.solid-card-mode #searchInput::placeholder{color:#A5A3A1!important}
+
+/* Restore every image-import target in Solid mode. */
+body.solid-card-mode .pick{
+  background:#F7F6F3!important;
+  border:1.5px dashed #D2D0CC!important;
+  box-shadow:none!important;
+}
+body.solid-card-mode .pick:after{color:#8B95A1!important}
+
+/* Liquid Glass / native blur must remain UIKit material, not the Solid neutral fill. */
+body.native-card-glass #homeTools .batch,
+body.native-card-glass #homeTools .fillpick,
+body.native-card-glass #homeTools .fill,
+body.native-card-glass #searchInput,
+body.native-card-glass #homeTools .colorfold,
+body.native-card-glass #homeTools .clear,
+body.native-card-glass #homeTools .zip,
+body.native-card-glass .pick,
+body.native-card-glass .categorytabs button{
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+}
+
+/* LiquidUI / 原版微信 are TWO independent pills, never one shared capsule. */
+.categorytabs{
+  display:grid!important;
+  grid-template-columns:1fr 1fr!important;
+  gap:10px!important;
+  padding:0!important;
+  background:transparent!important;
+  border:0!important;
+  border-radius:0!important;
+  overflow:visible!important;
+  box-shadow:none!important;
+}
+.categorytabs button{
+  height:44px!important;
+  border-radius:999px!important;
+  overflow:hidden!important;
+}
+body.solid-card-mode .categorytabs button{
+  background:var(--card-color,#FFFFFF)!important;
+  color:#202832!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+body.solid-card-mode .categorytabs button.active{
+  background:#F1EFEC!important;
+  color:#111820!important;
+}
+body.native-card-glass .categorytabs button.active,
+body.native-card-glass .categorytabs button:not(.active){
+  color:#202832!important;
+}
+
+/* Keep upload cards and their import targets visually distinct. */
+body.solid-card-mode .card{
+  background:var(--card-color,#FFFFFF)!important;
+}
+</style><style id="native-material-only-v103">
+body.native-card-glass .card,
+body.native-card-glass .ruleCard,
+body.native-card-glass .settingsFold,
+body.native-card-glass #homeTools,
+body.native-card-glass .infobox,
+body.native-card-glass .ruleSearch,
+body.native-card-glass .uploadbox,
+body.native-card-glass .settingsToggleCard,
+body.native-card-glass .homePill,
+body.native-card-glass #homeTools .batch,
+body.native-card-glass #homeTools .fillpick,
+body.native-card-glass #homeTools .fill,
+body.native-card-glass #searchInput,
+body.native-card-glass #homeTools .colorfold,
+body.native-card-glass #homeTools .colorrow,
+body.native-card-glass #homeTools .clear,
+body.native-card-glass #homeTools .zip,
+body.native-card-glass .pick{
+  background:transparent!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+  box-shadow:none!important;
+}
+</style><style id="native-only-material-v103">
+.materialModePicker{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+body.native-card-glass .card,
+body.native-card-glass .ruleCard,
+body.native-card-glass .settingsFold,
+body.native-card-glass #homeTools,
+body.native-card-glass .infobox,
+body.native-card-glass .ruleSearch,
+body.native-card-glass .uploadbox,
+body.native-card-glass .modeTabs,
+body.native-card-glass .settingsToggleCard,
+body.native-card-glass .homePill,
+body.native-card-glass #homeTools .batch,
+body.native-card-glass #homeTools .fillpick,
+body.native-card-glass #homeTools .fill,
+body.native-card-glass #searchInput,
+body.native-card-glass #homeTools .colorfold,
+body.native-card-glass #homeTools .colorrow,
+body.native-card-glass #homeTools .clear,
+body.native-card-glass #homeTools .zip,
+body.native-card-glass .pick{
+ background:transparent!important;
+ -webkit-backdrop-filter:none!important;
+ backdrop-filter:none!important;
+ box-shadow:none!important;
+}
+</style><style id="category-segment-native-v103">
+/* Home category selector mirrors Settings' Liquid Glass / native blur segmented control.
+   UIKit draws one native material capsule; HTML only draws the selected white pill. */
+body.native-card-glass .categorytabs{
+  padding:4px!important;
+  gap:0!important;
+  border:0!important;
+  border-radius:999px!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  overflow:hidden!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+}
+body.native-card-glass .categorytabs button{
+  height:40px!important;
+  margin:0!important;
+  border:0!important;
+  border-radius:999px!important;
+  background:transparent!important;
+  color:#202832!important;
+  box-shadow:none!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+}
+body.native-card-glass .categorytabs button.active{
+  background:#FFFFFF!important;
+  color:#111820!important;
+  box-shadow:0 1px 3px rgba(0,0,0,.08)!important;
+}
+</style><style id="home-native-pill-controls-v103">
+/* Requested home actions: same full-capsule geometry as the Settings material selector.
+   No CSS blur/glass: UIKit supplies Liquid Glass / systemMaterial. */
+body.native-card-glass #homeTools .batch,
+body.native-card-glass #homeTools .fillpick,
+body.native-card-glass #homeTools .fill,
+body.native-card-glass #homeTools .colorfold,
+body.native-card-glass #homeTools .clear,
+body.native-card-glass #homeTools .zip{
+  border-radius:999px!important;
+  overflow:hidden!important;
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+}
+</style><style id="native-segments-and-radius-fix-v103">
+/* Native UISegmentedControl paints both tracks and selected pills.
+   HTML retains layout, hit targets and the existing category/theme actions. */
+body.native-segment-controls .categorytabs,
+body.native-segment-controls #materialModePicker{
+ padding:0!important;gap:0!important;height:48px!important;
+ border-radius:999px!important;overflow:hidden!important;
+ background:transparent!important;border:0!important;box-shadow:none!important;
+}
+body.native-segment-controls .categorytabs button,
+body.native-segment-controls .categorytabs button.active,
+body.native-segment-controls #materialModePicker button,
+body.native-segment-controls #materialModePicker button.active{
+ height:48px!important;min-height:48px!important;background:transparent!important;
+ color:transparent!important;text-shadow:none!important;
+ border:0!important;box-shadow:none!important;transform:none!important;
+}
+</style><style id="compact-category-and-system-dark-v103">
+#specialThanks{display:none!important}
+body{padding-bottom:calc(145px + env(safe-area-inset-bottom))!important}
+body.native-segment-controls .categorytabs{
+ width:min(78%,330px)!important;margin:10px auto 9px!important;
+ height:34px!important;min-height:34px!important;
+}
+body.native-card-glass.native-segment-controls .categorytabs button:not(.active),
+body.native-card-glass.native-segment-controls .categorytabs button.active{
+ height:34px!important;min-height:34px!important;font-size:12px!important;
+}
+:root[data-appearance="dark"]{color-scheme:dark;--yy-page:#121214;--yy-card:#1c1c1e;--card-bg:#1c1c1e!important}
+:root[data-appearance="dark"] body,:root[data-appearance="dark"] .homeHero h1,:root[data-appearance="dark"] .settingsHead h1,:root[data-appearance="dark"] .pageHead h1,:root[data-appearance="dark"] .settingsFoldText b,:root[data-appearance="dark"] .themeRow b,:root[data-appearance="dark"] .settingsToggleText b,:root[data-appearance="dark"] .title,:root[data-appearance="dark"] .ruleName,:root[data-appearance="dark"] .settingsFoldBody h3,:root[data-appearance="dark"] .settingsFoldBody li b,:root[data-appearance="dark"] .inlineVersionTitle,:root[data-appearance="dark"] body.native-card-glass #homeTools .batch,:root[data-appearance="dark"] body.native-card-glass #homeTools .fillpick,:root[data-appearance="dark"] body.native-card-glass #homeTools .fill,:root[data-appearance="dark"] body.native-card-glass #homeTools .colorfold,:root[data-appearance="dark"] body.native-card-glass #homeTools .clear,:root[data-appearance="dark"] body.native-card-glass #homeTools .zip,:root[data-appearance="dark"] .colorrow span,:root[data-appearance="dark"] .switchlabel,:root[data-appearance="dark"] .ruleSearch,:root[data-appearance="dark"] body.native-card-glass #searchInput{
+   color:#f2f2f7!important;
+ }
+:root[data-appearance="dark"] .homeSub,:root[data-appearance="dark"] .homePill,:root[data-appearance="dark"] .sectiontitle,:root[data-appearance="dark"] .settingsHead p,:root[data-appearance="dark"] .pageHead p,:root[data-appearance="dark"] .settingsFoldText small,:root[data-appearance="dark"] .settingsToggleText small,:root[data-appearance="dark"] .themeRow small,:root[data-appearance="dark"] .settingsFoldBody,:root[data-appearance="dark"] .ruleFile,:root[data-appearance="dark"] .ruleMeta,:root[data-appearance="dark"] .infobody,:root[data-appearance="dark"] .status,:root[data-appearance="dark"] .guideCard p,:root[data-appearance="dark"] .logCard p,:root[data-appearance="dark"] .inlineVersion p{
+   color:#aeaeb2!important;
+ }
+:root[data-appearance="dark"] .homeEyebrow,:root[data-appearance="dark"] .homeFeedback{color:#0a84ff!important}
+:root[data-appearance="dark"] body.native-card-glass #searchInput::placeholder,:root[data-appearance="dark"] .ruleSearch::placeholder{color:#8e8e93!important}
+:root[data-appearance="dark"] .settingsFoldIcon,:root[data-appearance="dark"] .settingsToggleIcon,:root[data-appearance="dark"] .settingsEntryIcon,:root[data-appearance="dark"] .guideIcon,:root[data-appearance="dark"] .ruleIcon,:root[data-appearance="dark"] .themeColor button,:root[data-appearance="dark"] .themeFontControls button,:root[data-appearance="dark"] .nativeInfoHeader button,:root[data-appearance="dark"] .removeIcon{
+   background:#2c2c2e!important;color:#f2f2f7!important;
+ }
+:root[data-appearance="dark"] .preview{background:#2c2c2e!important}
+:root[data-appearance="dark"] .themeRow,:root[data-appearance="dark"] .settingsFoldBody,:root[data-appearance="dark"] .infobody,:root[data-appearance="dark"] .changeVersion,:root[data-appearance="dark"] .inlineVersion{
+   border-color:rgba(255,255,255,.12)!important;
+ }
+:root[data-appearance="dark"] .sharesheet{background:#1c1c1e!important;color:#f2f2f7!important}
+:root[data-appearance="dark"] .sharesheet p{color:#aeaeb2!important}
+:root[data-appearance="dark"] .sharesheet input{background:#2c2c2e!important;border-color:#48484a!important;color:#f2f2f7!important}
+:root[data-appearance="dark"] .sharecancel{background:#3a3a3c!important;color:#f2f2f7!important}
+:root[data-appearance="dark"] .sharego{background:#0a84ff!important;color:#fff!important}
+body.native-card-glass.native-segment-controls .categorytabs button:not(.active),
+body.native-card-glass.native-segment-controls .categorytabs button.active,
+body.native-segment-controls #materialModePicker button,
+body.native-segment-controls #materialModePicker button.active{color:transparent!important}
+</style><style id="compact-theme-and-settings-v103-build7">
+body{padding-bottom:calc(90px + env(safe-area-inset-bottom))!important}
+body.nav-settings #settingsTarget{display:flex!important;flex-direction:column;min-height:calc(var(--native-tab-top,100svh - 83px) - 8px)!important;padding-bottom:0!important}
+#settingsTarget>.settingsFold,#settingsTarget>.settingsHead{flex:0 0 auto}
+#settingsCredits{margin-top:auto;padding:16px 8px 0;text-align:center;font-size:10px;line-height:1.35;color:#8e8e93;flex:0 0 auto}
+.settingsFold{border-radius:22px!important;margin-bottom:8px!important}
+.settingsFold summary{min-height:48px!important;padding:7px 12px!important;grid-template-columns:28px minmax(0,1fr) 14px!important;gap:9px!important}
+.settingsFoldIcon{width:28px!important;height:28px!important;font-size:15px!important}
+.settingsFoldBody{transform:none!important;animation:none!important;transition:opacity 140ms ease!important}
+.settingsFold.is-expanded .settingsFoldBody{transform:none!important;animation:none!important}
+body.native-card-glass :is(.card,.ruleCard,.settingsFold,#homeTools,.infobox,.ruleSearch,.uploadbox,.settingsToggleCard,.homePill,.pick){border-width:0!important;border-color:transparent!important}
+.appearanceThemeRow{align-items:flex-start!important;flex-direction:column!important;padding:9px 0 10px!important;gap:8px!important}
+body.native-card-glass.native-segment-controls :is(.categorytabs,#materialModePicker,#appearanceModePicker,#bottomSearchModePicker){width:100%!important;height:32px!important;min-height:32px!important;max-width:none!important;padding:0!important;gap:0!important;border:0!important;overflow:hidden!important;border-radius:999px!important;background:transparent!important;box-shadow:none!important}
+body.native-card-glass.native-segment-controls .categorytabs{margin:10px 0 9px!important}
+body.native-card-glass.native-segment-controls :is(#appearanceModePicker,#bottomSearchModePicker){display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important}
+body.native-card-glass.native-segment-controls :is(.categorytabs,#materialModePicker,#appearanceModePicker,#bottomSearchModePicker) button,
+body.native-card-glass.native-segment-controls :is(.categorytabs,#materialModePicker,#appearanceModePicker,#bottomSearchModePicker) button.active,
+body.native-card-glass.native-segment-controls .categorytabs button:not(.active){height:32px!important;min-height:32px!important;min-width:0!important;margin:0!important;padding:0!important;font-size:12px!important;font-weight:600!important;color:transparent!important;background:transparent!important;border:0!important;box-shadow:none!important;text-shadow:none!important;transform:none!important}
+:root[data-appearance="dark"] #settingsCredits{color:#aeaeb2}
+</style><style id="native-material-appearance-enforcement-build7">:root[data-appearance] body.native-card-glass .card,
+:root[data-appearance] body.native-card-glass .ruleCard,
+:root[data-appearance] body.native-card-glass .settingsFold,
+:root[data-appearance] body.native-card-glass #homeTools,
+:root[data-appearance] body.native-card-glass .infobox,
+:root[data-appearance] body.native-card-glass .ruleSearch,
+:root[data-appearance] body.native-card-glass .uploadbox,
+:root[data-appearance] body.native-card-glass .modeTabs,
+:root[data-appearance] body.native-card-glass .settingsToggleCard,
+:root[data-appearance] body.native-card-glass .homePill,
+:root[data-appearance] body.native-card-glass .categorytabs,
+:root[data-appearance] body.native-card-glass #materialModePicker,
+:root[data-appearance] body.native-card-glass #appearanceModePicker,
+:root[data-appearance] body.native-card-glass #homeTools .batch,
+:root[data-appearance] body.native-card-glass #homeTools .fillpick,
+:root[data-appearance] body.native-card-glass #homeTools .fill,
+:root[data-appearance] body.native-card-glass #searchInput,
+:root[data-appearance] body.native-card-glass #homeTools .colorfold,
+:root[data-appearance] body.native-card-glass #homeTools .colorrow,
+:root[data-appearance] body.native-card-glass #homeTools .clear,
+:root[data-appearance] body.native-card-glass #homeTools .zip,
+:root[data-appearance] body.native-card-glass .pick{background:transparent!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:none!important}</style><style id="home-search-and-solid-actions-build8">
+#homeTarget #searchInput{display:block;width:100%;height:42px!important;margin:13px 0 0!important;border-radius:999px!important;border:0!important;padding:0 13px!important;font-size:13px!important;outline:0}
+:root[data-appearance] body.native-card-glass #searchInput{background:transparent!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+:root[data-appearance="light"] body.native-card-glass #searchInput{color:#202832!important}
+:root[data-appearance="dark"] body.native-card-glass #searchInput{color:#f2f2f7!important}
+:root[data-appearance] body.native-card-glass #homeTools .batch,
+:root[data-appearance] body.native-card-glass #homeTools .fillpick,
+:root[data-appearance] body.native-card-glass #homeTools .fill,
+:root[data-appearance] body.native-card-glass #homeTools .colorfold,
+:root[data-appearance] body.native-card-glass #homeTools .clear,
+:root[data-appearance] body.native-card-glass #homeTools .zip{background:var(--home-action-fill,#FFFFFF)!important;border:0!important;box-shadow:0 1px 2px rgba(0,0,0,.035)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+:root[data-appearance="dark"]{--home-action-fill:#FFFFFF}
+.changelogGroupTitle{font-size:12px;line-height:1.5;margin:14px 0 6px;font-weight:700}
+.changelogGroupTitle.add{color:#34a853}.changelogGroupTitle.opt{color:#0a84ff}.changelogGroupTitle.fix{color:#ed951e}
+.changelogInline .inlineVersion p{margin:5px 0;line-height:1.65}
+</style><style id="button-color-and-inline-release-notes-build9">
+:root[data-appearance] body.native-card-glass #homeTools .batch,
+:root[data-appearance] body.native-card-glass #homeTools .fillpick,
+:root[data-appearance] body.native-card-glass #homeTools .fill,
+:root[data-appearance] body.native-card-glass #homeTools .colorfold,
+:root[data-appearance] body.native-card-glass #homeTools .clear,
+:root[data-appearance] body.native-card-glass #homeTools .zip{color:var(--home-action-text,#202832)!important}
+.changelogInline .inlineVersion{margin:0 0 12px!important;padding:14px!important;border:0!important;border-radius:24px!important}
+.changelogInline .inlineVersion:last-child{margin-bottom:0!important}
+.changelogInline .inlineVersionTitle{font-size:13px!important;font-weight:500!important;margin:0 0 10px!important;line-height:1.5}
+.changelogInline .inlineVersionTitle span{font-size:11px!important;font-weight:500!important;margin-left:6px}
+.changelogInline .inlineVersion p{font-size:11.5px!important;line-height:1.65!important;margin:7px 0!important}
+.changelogInline .inlineVersion p b{font-weight:500!important}
+:root[data-appearance] body.native-card-glass .inlineVersion{background:transparent!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+</style><style id="compact-actions-and-readable-credits-v104">
+:root[data-appearance] #homeTools :is(.batch,.fillpick,.fill,.colorfold,.clear,.zip){height:36px!important;min-height:36px!important;padding:0 10px!important;font-size:12px!important}
+#homeTools .actions{gap:7px!important}
+#homeTools .colorfold{margin-top:7px!important;gap:8px!important}
+#homeTools .colorfold small{font-size:9px!important;margin-left:6px!important}
+#homeTools .exportrow{gap:7px!important;margin-top:7px!important}
+#settingsCredits{font-size:13px!important;line-height:1.45!important}
+</style><style id="semantic-action-colors-build12">
+:root[data-appearance] body.native-card-glass #homeTools .batch,
+:root[data-appearance] body.native-card-glass #homeTools .clear{background:var(--home-blue-fill,#007AFE)!important;color:var(--home-blue-text,#F2F2F7)!important}
+:root[data-appearance] body.native-card-glass #homeTools .fill{background:var(--home-green-fill,#46D86A)!important;color:var(--home-green-text,#202832)!important}
+:root[data-appearance] body.native-card-glass #homeTools .zip{background:#46D86A!important;color:#FFFFFF!important}
+</style><style id="solid-tool-card-and-bottom-search-build13">
+:root[data-appearance] body.native-card-glass #homeTools{background:var(--card-color,#FFFFFF)!important;border:0!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+:root[data-appearance] body.native-card-glass #homeTools .clear{background:#007AFE!important;color:#FFFFFF!important}
+body.bottom-search-enabled #homeTarget #searchInput,body.bottom-search-enabled #ruleSearch{display:none!important}
+.settingsFold.search-hidden{display:none!important}
+.bottomSearchThemeRow input{flex-shrink:0;accent-color:#007AFE}
+.bottomSearchLayoutRow select{font:inherit;font-size:12px;padding:7px 12px;border-radius:12px;background:var(--card-color,#fff);color:inherit;border:1px solid rgba(125,125,125,.24)}
+.appBottomNav:has([data-nav="search"]:not([hidden])){grid-template-columns:repeat(4,1fr)}
+#appBottomNav [hidden]{display:none!important}
+#homeTools .fillpick,#homeTools .colorfold{border:1px solid rgba(100,110,125,.24)!important;box-shadow:0 1px 2px rgba(0,0,0,.035)!important}
+:root[data-appearance="dark"] #homeTools .fillpick,:root[data-appearance="dark"] #homeTools .colorfold{border-color:rgba(210,215,225,.32)!important}
+/* Subtle tool borders, light and precise. */
+:root[data-appearance] body.native-card-glass #homeTools .fillpick,
+:root[data-appearance] body.native-card-glass #homeTools .colorfold,
+#homeTools .fillpick,#homeTools .colorfold{
+ border:0.65px solid rgba(104,112,126,.24)!important;
+ box-shadow:0 1px 2px rgba(0,0,0,.025)!important;
+}
+:root[data-appearance="dark"] body.native-card-glass #homeTools .fillpick,
+:root[data-appearance="dark"] body.native-card-glass #homeTools .colorfold{border-color:rgba(225,230,238,.26)!important}
+</style></head><body><div class="app"><section class="homeHero" id="homeTarget">
+  <div class="homeEyebrow">LIQUIDUI ICON STUDIO</div>
+  <h1>微信图标生成器</h1>
+  <div class="homeSub">上传一次，自动处理 LiquidUI / 微信图标补全与打包。</div>
+  <div class="homeSummary">
+    <div class="homePill" id="count"></div>
+    <div class="homePill" id="liveImported">当前上传项目：0 项</div>
+  </div>
+  <a class="homeFeedback" href="https://qm.qq.com/q/th1QshgzHW" target="_blank" rel="noopener noreferrer">反馈问题 · 联系客服</a>
+  <input class="search" id="searchInput" type="search" placeholder="搜索：转账、位置、底栏微信…">
+</section><section class="tools" id="homeTools"><div class="actions"><label class="batch">关键词批量导入<input id="batchInput" type="file" accept="image/*" multiple></label><label class="fillpick">补全图片<input id="fillInput" type="file" accept="image/*"></label><button class="fill" id="fillBtn">双分类补全</button></div><button type="button" class="colorfold" id="colorFoldBtn" aria-expanded="false"><span>自定义修改颜色 <small>浅色 / 深色 / 全部图标</small></span><span class="chev">⌄</span></button><div class="colorpanel" id="colorPanel"><div class="colorrow disabled" id="selectedLightRow"><div><span>自定义选中浅色模式</span><small>默认自动加深；启用后使用这个颜色</small></div><div class="colorcontrols"><label class="switchlabel"><input id="selectedLightEnabled" type="checkbox">启用</label><input id="selectedColor" type="color" value="#1677ff"></div></div><div class="colorrow disabled" id="selectedDarkRow"><div><span>自定义选中深色模式</span><small>默认自动反转；启用后使用这个颜色</small></div><div class="colorcontrols"><label class="switchlabel"><input id="selectedDarkEnabled" type="checkbox">启用</label><input id="selectedDarkColor" type="color" value="#ffffff"></div></div><div class="colorrow disabled" id="allColorRow"><div><span>自定义全部图标颜色</span><small>默认保持上传图片原本颜色</small></div><div class="colorcontrols"><label class="switchlabel"><input id="allColorEnabled" type="checkbox">启用</label><input id="allColor" type="color" value="#222222"></div></div></div><div class="exportrow"><button class="clear" onclick="clearAll()">清空</button><button class="zip" onclick="makeZip(this)">导出 ZIP</button></div><div class="status" id="status">已上传 0 项</div></section><section class="settingsTarget" id="settingsTarget">
+  <div class="settingsHead"><h1>设置</h1><p>主题、使用说明与更新日志</p></div>
+
+  <details class="settingsFold themeFold">
+    <summary><span class="settingsFoldIcon">◐</span><span class="settingsFoldText"><b>主题</b><small>卡片材质、背景、按钮与字体</small></span><span class="settingsFoldChevron"></span></summary>
+    <div class="settingsFoldBody themeBody">
+      <div class="themeRow appearanceThemeRow"><div><b>外观模式</b><small id="appearanceHint">跟随系统</small></div><div id="appearanceModePicker" class="appearanceModePicker" role="radiogroup" aria-label="外观模式"><button type="button" data-appearance-mode="system">跟随系统</button><button type="button" data-appearance-mode="light">浅色</button><button type="button" data-appearance-mode="dark">深色</button></div></div>
+      <div class="themeRow materialThemeRow"><div><b>卡片材质</b><small id="cardMaterialHint">iOS 26+ 原生液态玻璃 / UIKit 原生磨砂</small></div><div class="materialModePicker" id="materialModePicker" role="radiogroup" aria-label="卡片材质"><button type="button" data-material="liquid">液态玻璃</button><button type="button" data-material="blur">原生磨砂</button></div></div>
+      <div class="themeRow"><div><b>背景颜色</b><small id="backgroundHint">浅色背景</small></div><div class="themeColor"><input id="appBackgroundColor" type="color" value="#F4F2EE"><button type="button" id="resetBackgroundColor">恢复</button></div></div>
+      <div class="themeRow"><div><b>卡片颜色</b><small>工具卡片使用纯色；其他卡片作为原生材质色调</small></div><div class="themeColor"><input id="appCardColor" type="color" value="#FFFFFF"><button type="button" id="resetCardColor">恢复</button></div></div>
+      <div class="themeRow"><div><b>按钮颜色</b><small>首页按钮及选中项；清空、导出 ZIP 颜色固定</small></div><div class="themeColor"><input id="appButtonColor" type="color" value="#FFFFFF"><button type="button" id="resetButtonColor">恢复</button></div></div>
+      <div class="themeRow appearanceThemeRow bottomSearchThemeRow"><div><b>底栏搜索按钮</b><small id="bottomSearchModeHint">关闭后使用顶部搜索框</small></div><div id="bottomSearchModePicker" role="radiogroup" aria-label="底栏搜索按钮"><button type="button" data-bottom-search-mode="off">关闭</button><button type="button" data-bottom-search-mode="merged">合并</button><button type="button" data-bottom-search-mode="separate">分开</button></div></div>
+      <div class="themeRow themeFontRow"><div><b>自定义字体</b><small id="customFontName">使用默认字体</small></div><div class="themeFontControls"><button type="button" id="chooseCustomFont">导入字体</button><button type="button" id="resetCustomFont">恢复</button><input id="customFontFile" type="file" accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2" hidden></div></div>
+    </div>
+  </details>
+
+  <details class="settingsFold">
+    <summary><span class="settingsFoldIcon">?</span><span class="settingsFoldText"><b>使用说明</b><small>查看功能说明与操作方法</small></span><span class="settingsFoldChevron"></span></summary>
+    <div class="settingsFoldBody guideInline">
+      <h3>这个工具有什么用？</h3>
+      <p>用于快速制作 LiquidUI / 微信图标替换包。只需按网页标题上传图片，管理器会自动处理对应命名、同名同步、补全、颜色和 ZIP 打包，不需要自己逐个查内部文件名。</p>
+      <ul>
+        <li><b>关键词批量导入：</b>图片文件名使用网页标题中的关键词即可模糊匹配，关键词至少 2 个字。</li>
+        <li><b>双分类补全：</b>用一张补全图片同时填充 LiquidUI 与原版微信中还没有图片的项目。</li>
+        <li><b>自动联动：</b>同一图标对应多个内部命名时，上传一次即可在导出时自动生成相关文件。</li>
+        <li><b>颜色修改：</b>可分别设置浅色选中、深色选中和全部图标颜色；不开启时保留默认处理。</li>
+        <li><b>排除图标：</b>补全后不想更换的项目可以点卡片右上角 ×，该项目不会进入本次 ZIP。</li>
+        <li><b>导出：</b>生成 ZIP 后可改名，再通过 iPhone 系统分享菜单保存或分享。</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="settingsFold">
+    <summary><span class="settingsFoldIcon">↻</span><span class="settingsFoldText"><b>更新日志</b><small>Version 1.0.4 · 当前版本</small></span><span class="settingsFoldChevron"></span></summary>
+    <div class="settingsFoldBody changelogInline">
+<section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.4 <span>当前版本 · Build 14</span></div><p><b class="add">新增</b> 底栏搜索改为关闭、合并、分开三段切换，保留已保存的搜索布局；关闭后恢复顶部搜索框。</p><p><b class="add">新增</b> APP 更名为 LUIYo。</p><p><b class="opt">优化</b> 首页工具卡片改用纯色，其他卡片保持原生材质。</p><p><b class="opt">优化</b> 清空固定蓝色、白色文字；导出 ZIP 固定绿色、白色文字。</p><p><b class="opt">优化</b> 首页分类和设置切换同步配色：未选中底色跟随卡片颜色，选中底色跟随按钮颜色。</p><p><b class="opt">优化</b> 首页按钮使用极轻阴影；关键词批量导入、清空默认 #007AFE，双分类补全默认 #46D86A；导出 ZIP 固定 #46D86A。</p><p><b class="opt">优化</b> 放大设置页特别鸣谢文字，展开内容时继续随页面让位。</p><p><b class="fix">修复</b> 深色液态玻璃下六个按钮不明显，按钮保持独立纯色并自动适配文字颜色。</p><p><b class="fix">修复</b> 原生底栏文字跟随导入字体，恢复默认和重新打开也同步生效。</p></section>
+<section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.3</div><p><b class="add">新增</b> 主题增加按钮颜色，首页按钮与分类底色同步；浅色、深色分别保存。</p><p><b class="add">新增</b> 跟随系统、浅色与深色外观；背景颜色分别保存并随外观切换。</p><p><b class="opt">优化</b> 搜索框位于反馈问题下方，随材质切换为液态玻璃或原生磨砂。</p><p><b class="opt">优化</b> 首页六个操作按钮保持纯色，其他卡片保留原有材质。</p><p><b class="opt">优化</b> 分类未选中底色使用按钮颜色，增加透明度以呈现柔和层次。</p><p><b class="opt">优化</b> 更新日志改为逐条彩色标签，按新增、优化、修复排序。</p><p><b class="opt">优化</b> 分类、材质与外观使用紧凑原生分段控件；缩短设置卡片。</p><p><b class="opt">优化</b> 移除自定义卡片描边，鸣谢仅在设置页随内容排布。</p><p><b class="fix">修复</b> 展开动画结束时的高度跳动和重复点击状态。</p></section>
+      <section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.2</div><p><b class="add">新增</b> 卡片液态效果开关；关闭后切换为 UIKit 原生磨砂效果。</p><p><b class="add">新增</b> 主题内自定义字体，可导入 TTF、OTF、WOFF、WOFF2 文件并持久保存。</p><p><b class="add">新增</b> 卡片材质改为纯色、液态玻璃、原生磨砂三种模式直接切换。</p><p><b class="add">新增</b> 主题增加卡片颜色，可修改纯色卡片颜色，并为原生液态玻璃/磨砂提供材质色调。</p><p><b class="opt">优化</b> 规则页移除图片导入入口，仅显示规则名称与图标规则名。</p><p><b class="opt">优化</b> 首页采用新的双列卡片 UI，上传区、工具区与顶部信息重新布局。</p><p><b class="opt">优化</b> 设置页入口卡片进一步压缩高度与文字尺寸。</p><p><b class="opt">优化</b> 首页白色工具控件、搜索框、颜色展开项、清空按钮、分类未选中项和上传框统一接入 UIKit 原生玻璃/磨砂材质。</p><p><b class="opt">优化</b> 材质切换与首页分类分段切换改为参考图的胶囊式，选中项使用内嵌白色圆角块。</p><p><b class="opt">优化</b> 首页按钮、搜索框、颜色入口与导出操作统一为分类栏同类圆润胶囊轮廓。</p><p><b class="opt">优化</b> 纯色模式下首页操作框统一为同一中性底色，补全图片、自定义颜色、清空等入口保持清晰可见。</p><p><b class="opt">优化</b> 搜索框在纯色模式下仍单独使用 iOS 26+ UIKit 原生 Liquid Glass；液态玻璃/原生磨砂模式下首页操作框统一跟随系统材质。</p><p><b class="fix">修复</b> 设置页使用说明与更新日志改为原位下拉拉伸卡片。</p><p><b class="fix">修复</b> 规则页顶部安全区与状态栏重叠问题。</p><p><b class="fix">修复</b> 默认背景调整为 #F4F2EE，卡片底色统一为 #FFFFFF。</p><p><b class="fix">修复</b> 首页、规则、设置三页卡片视觉统一，首页工具卡不再使用单独的透明样式。</p><p><b class="fix">修复</b> 使用说明、更新日志与主题卡片收起响应延迟，收起动画改为快速响应。</p><p><b class="fix">修复</b> 纯色模式默认不显示卡片描边；只有主动开启卡片描边后才显示所选描边颜色。</p><p><b class="fix">修复</b> 背景颜色现在同步到 UIKit 根视图，修改后立即生效并保存。</p><p><b class="fix">修复</b> 首页双分类切换中间露出的白色材质块；分类容器不再重复叠加玻璃。</p><p><b class="fix">修复</b> 液态玻璃与原生磨砂在刷新、筛选和重绘时原生材质层重新绑定导致的跳动。</p></section>
+      <section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.1</div><p><b class="add">新增</b> LiquidUI 全局换图标规则页，可按规则名称与图标规则名查找。</p><p><b class="add">新增</b> 关键词批量导入、双分类补全、同名项目自动联动与 ZIP 自定义名称分享。</p><p><b class="add">新增</b> 浅色选中、深色选中及全部图标颜色自定义。</p><p><b class="opt">优化</b> 设置页的使用说明与更新日志改为原位下拉拉伸，不再弹出独立页面。</p><p><b class="opt">优化</b> iOS 26+ 使用 UIKit 系统原生 Liquid Glass；不使用 CSS 自绘玻璃。</p><p><b class="opt">优化</b> iOS 25 及以下自动回退 UIKit 原生 systemMaterial 磨砂。</p><p><b class="opt">优化</b> 规则页移除图片导入入口，只保留规则名称与图标规则名。</p><p><b class="fix">修复</b> 规则页安全区，避免标题与状态栏重叠。</p></section>
+      <section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.0</div><p><b class="add">新增</b> 优优 LUI 图标补全基础功能。</p><p><b class="add">新增</b> LiquidUI / 原版微信图标上传、补全与 ZIP 导出。</p></section>
+    </div>
+  </details>
+  <details class="settingsFold" id="specialThanks" hidden>
+    <summary><span class="settingsFoldIcon">♡</span><span class="settingsFoldText"><b>特别鸣谢</b><small>感谢支持与帮助</small></span><span class="settingsFoldChevron"></span></summary>
+    <div class="settingsFoldBody"><p>感谢每一位为本项目提供反馈与帮助的朋友。</p></div>
+  </details>
+<footer id="settingsCredits">特别鸣谢 Mk · 作者：优优<br>仅供学习交流</footer></section><div class="categorytabs" role="tablist" aria-label="图标分类"><button role="tab" id="tabLui" class="active">LiquidUI</button><button role="tab" id="tabWechat">原版微信</button></div><div class="sectiontitle" id="sectionTitle">LiquidUI 图标</div><main id="list" class="grid"></main>
+<section class="rulePage" id="rulePage">
+  <header class="pageHead"><h1>规则</h1><p>LiquidUI 全局换图标命名规则</p></header>
+  <input class="ruleSearch" id="ruleSearch" type="search" placeholder="搜索图标名称、位置或文件名">
+  <div class="ruleList" id="ruleList"></div>
+</section>
+</div><nav class="appBottomNav" id="appBottomNav" aria-label="底栏导航">
+<button type="button" class="active" data-nav="home" onclick="appNavTo('home')"><span class="navIcon">⌂</span><span>首页</span></button>
+<button type="button" data-nav="rules" onclick="appNavTo('rules')"><span class="navIcon">≡</span><span>规则</span></button>
+<button type="button" data-nav="settings" onclick="appNavTo('settings')"><span class="navIcon">⚙︎</span><span>设置</span></button>
+<button type="button" data-nav="search" hidden onclick="window.__openBottomSearch?.()"><span class="navIcon">⌕</span><span>搜索</span></button>
+</nav><div class="sharemodal" id="shareModal"><div class="sharesheet"><h3>分享 ZIP</h3><p>修改文件名后，再打开 iPhone 系统分享菜单</p><input id="zipNameInput" value="优优LUI图标包" autocomplete="off"><div class="shareactions"><button class="sharecancel" type="button" onclick="closeShareModal()">取消</button><button class="sharego" type="button" onclick="sharePreparedZip()">分享 ZIP</button></div></div></div><script src="jszip.min.js"></script><script>
+const items=[{"title":"LiquidUI 底栏微信","file":"lui_tab_main_regular@3x.png","section":"LiquidUI 底栏 dock（各款底栏通用）","aliases":["LiquidUI 底栏微信"],"sections":["LiquidUI 底栏 dock（各款底栏通用）"]},{"title":"底栏微信","file":"bubble_circle_regular@3x.png","section":"微信原生底栏","aliases":["底栏微信","好友资料页发消息图标","点开并长按图片定位到聊天位置"],"sections":["微信原生底栏","微信聊天主界面"]},{"title":"LiquidUI 底栏微信选中","file":"lui_tab_main_filled@3x.png","section":"LiquidUI 底栏 dock（各款底栏通用）","aliases":["LiquidUI 底栏微信选中"],"sections":["LiquidUI 底栏 dock（各款底栏通用）"]},{"title":"底栏微信选中","file":"bubble_circle_filled@3x.png","section":"微信原生底栏","aliases":["底栏微信选中","发起群聊"],"sections":["微信原生底栏","微信主页面内+号内快捷功能小图标"]},{"title":"LiquidUI 底栏通讯录","file":"lui_tab_contacts_regular@3x.png","section":"LiquidUI 底栏 dock（各款底栏通用）","aliases":["LiquidUI 底栏通讯录"],"sections":["LiquidUI 底栏 dock（各款底栏通用）"]},{"title":"底栏通讯录","file":"person_list_regular@3x.png","section":"微信原生底栏","aliases":["底栏通讯录"],"sections":["微信原生底栏"]},{"title":"LiquidUI 底栏通讯录选中","file":"lui_tab_contacts_filled@3x.png","section":"LiquidUI 底栏 dock（各款底栏通用）","aliases":["LiquidUI 底栏通讯录选中"],"sections":["LiquidUI 底栏 dock（各款底栏通用）"]},{"title":"底栏通讯录选中","file":"person_list_filled@3x.png","section":"微信原生底栏","aliases":["底栏通讯录选中"],"sections":["微信原生底栏"]},{"title":"LiquidUI 底栏发现","file":"lui_tab_discover_regular@3x.png","section":"LiquidUI 底栏 dock（各款底栏通用）","aliases":["LiquidUI 底栏发现"],"sections":["LiquidUI 底栏 dock（各款底栏通用）"]},{"title":"底栏发现","file":"discover_regular@3x.png","section":"微信原生底栏","aliases":["底栏发现"],"sections":["微信原生底栏"]},{"title":"LiquidUI 底栏发现选中","file":"lui_tab_discover_filled@3x.png","section":"LiquidUI 底栏 dock（各款底栏通用）","aliases":["LiquidUI 底栏发现选中"],"sections":["LiquidUI 底栏 dock（各款底栏通用）"]},{"title":"底栏发现选中","file":"discover_filled@3x.png","section":"微信原生底栏","aliases":["底栏发现选中"],"sections":["微信原生底栏"]},{"title":"LiquidUI 底栏我的","file":"lui_tab_me_regular@3x.png","section":"LiquidUI 底栏 dock（各款底栏通用）","aliases":["LiquidUI 底栏我的"],"sections":["LiquidUI 底栏 dock（各款底栏通用）"]},{"title":"底栏我的","file":"person_regular@3x.png","section":"微信原生底栏","aliases":["底栏我的"],"sections":["微信原生底栏"]},{"title":"LiquidUI 底栏我的选中","file":"lui_tab_me_filled@3x.png","section":"LiquidUI 底栏 dock（各款底栏通用）","aliases":["LiquidUI 底栏我的选中"],"sections":["LiquidUI 底栏 dock（各款底栏通用）"]},{"title":"底栏我的选中","file":"person_filled@3x.png","section":"微信原生底栏","aliases":["底栏我的选中","个人名片","名片"],"sections":["微信原生底栏","聊天「+」面板（官方工具栏）","微信助手工具栏及相关图标"]},{"title":"「我」页插件入口（第三方插件管理器）","file":"lui_me_plugins@3x.png","section":"LiquidUI 其它自定图标","aliases":["「我」页插件入口（第三方插件管理器）"],"sections":["LiquidUI 其它自定图标"]},{"title":"指引箭头","file":"arrow_right_regular@3x.png","section":"通用字形（全 app 几百处共用，换了到处一起变）","aliases":["指引箭头"],"sections":["通用字形（全 app 几百处共用，换了到处一起变）","微信（我）页面"]},{"title":"Morph 底栏第三格「朋友圈」","file":"lui_morph_moments@3x.png","section":"LiquidUI 其它自定图标","aliases":["Morph 底栏第三格「朋友圈」"],"sections":["LiquidUI 其它自定图标"]},{"title":"右箭头 · 实心（通用字形）","file":"arrow_right_filled@3x.png","section":"通用字形（全 app 几百处共用，换了到处一起变）","aliases":["右箭头 · 实心（通用字形）"],"sections":["通用字形（全 app 几百处共用，换了到处一起变）"]},{"title":"首页顶栏身份条菜单 · 顶栏美化设置","file":"lui_home_topbar_menu_settings@3x.png","section":"LiquidUI 其它自定图标","aliases":["首页顶栏身份条菜单 · 顶栏美化设置"],"sections":["LiquidUI 其它自定图标"]},{"title":"微信界面层级返回左上角箭头","file":"arrow_left_regular@3x.png","section":"通用字形（全 app 几百处共用，换了到处一起变）","aliases":["微信界面层级返回左上角箭头","左上角返回上一页箭头"],"sections":["通用字形（全 app 几百处共用，换了到处一起变）","微信主页面图标名称","微信聊天主界面"]},{"title":"聊天页长按头像菜单 · 加为好友","file":"lui_chat_avatar_menu_add_friend@3x.png","section":"LiquidUI 其它自定图标","aliases":["聊天页长按头像菜单 · 加为好友"],"sections":["LiquidUI 其它自定图标"]},{"title":"右上角详情三个点","file":"dot_3_regular@3x.png","section":"通用字形（全 app 几百处共用，换了到处一起变）","aliases":["右上角详情三个点","多选更多"],"sections":["通用字形（全 app 几百处共用，换了到处一起变）","微信聊天主界面"]},{"title":"聊天页长按头像菜单 · @他","file":"lui_chat_avatar_menu_at@3x.png","section":"LiquidUI 其它自定图标","aliases":["聊天页长按头像菜单 · @他"],"sections":["LiquidUI 其它自定图标"]},{"title":"共享分享文件已发送√图标","file":"check_mark_filled@3x.png","section":"通用字形（全 app 几百处共用，换了到处一起变）","aliases":["共享分享文件已发送√图标"],"sections":["通用字形（全 app 几百处共用，换了到处一起变）","一些其它界面（多处共用）"]},{"title":"聊天页长按头像菜单 · 屏蔽 / 取消屏蔽","file":"lui_chat_avatar_menu_block@3x.png","section":"LiquidUI 其它自定图标","aliases":["聊天页长按头像菜单 · 屏蔽 / 取消屏蔽"],"sections":["LiquidUI 其它自定图标"]},{"title":"叉 · 线稿（通用字形）","file":"xmark_regular@3x.png","section":"通用字形（全 app 几百处共用，换了到处一起变）","aliases":["叉 · 线稿（通用字形）"],"sections":["通用字形（全 app 几百处共用，换了到处一起变）"]},{"title":"聊天页长按头像菜单 · 三个复制项","file":"lui_chat_avatar_menu_copy@3x.png","section":"LiquidUI 其它自定图标","aliases":["聊天页长按头像菜单 · 三个复制项"],"sections":["LiquidUI 其它自定图标"]},{"title":"叉 · 实心（通用字形）","file":"xmark_filled@3x.png","section":"通用字形（全 app 几百处共用，换了到处一起变）","aliases":["叉 · 实心（通用字形）"],"sections":["通用字形（全 app 几百处共用，换了到处一起变）"]},{"title":"聊天页长按头像菜单 · 设置遮罩","file":"lui_chat_avatar_menu_mask@3x.png","section":"LiquidUI 其它自定图标","aliases":["聊天页长按头像菜单 · 设置遮罩"],"sections":["LiquidUI 其它自定图标"]},{"title":"聊天页长按头像菜单 · 拍一拍","file":"lui_chat_avatar_menu_pat@3x.png","section":"LiquidUI 其它自定图标","aliases":["聊天页长按头像菜单 · 拍一拍"],"sections":["LiquidUI 其它自定图标"]},{"title":"聊天页长按头像菜单 · 查看资料","file":"lui_chat_avatar_menu_profile@3x.png","section":"LiquidUI 其它自定图标","aliases":["聊天页长按头像菜单 · 查看资料"],"sections":["LiquidUI 其它自定图标"]},{"title":"聊天页长按头像菜单 · 发红包","file":"lui_chat_avatar_menu_red_packet@3x.png","section":"LiquidUI 其它自定图标","aliases":["聊天页长按头像菜单 · 发红包"],"sections":["LiquidUI 其它自定图标"]},{"title":"聊天页长按头像菜单 · 发消息","file":"lui_chat_avatar_menu_send_message@3x.png","section":"LiquidUI 其它自定图标","aliases":["聊天页长按头像菜单 · 发消息"],"sections":["LiquidUI 其它自定图标"]},{"title":"聊天页长按头像菜单 · 转账","file":"lui_chat_avatar_menu_transfer@3x.png","section":"LiquidUI 其它自定图标","aliases":["聊天页长按头像菜单 · 转账"],"sections":["LiquidUI 其它自定图标"]},{"title":"LiquidUI「改金额」","file":"lui_chat_msg_menu_amount_edit@3x.png","section":"LiquidUI 其它自定图标","aliases":["LiquidUI「改金额」"],"sections":["LiquidUI 其它自定图标"]},{"title":"LiquidUI「屏蔽群成员」长按菜单位","file":"lui_chat_msg_menu_block_member@3x.png","section":"LiquidUI 其它自定图标","aliases":["LiquidUI「屏蔽群成员」长按菜单位"],"sections":["LiquidUI 其它自定图标"]},{"title":"LiquidUI「改文字」","file":"lui_chat_msg_menu_rewrite@3x.png","section":"LiquidUI 其它自定图标","aliases":["LiquidUI「改文字」"],"sections":["LiquidUI 其它自定图标"]},{"title":"TG 附件菜单底栏「相册」","file":"lui_chat_tg_attach_tab_album@3x.png","section":"LiquidUI 其它自定图标","aliases":["TG 附件菜单底栏「相册」"],"sections":["LiquidUI 其它自定图标"]},{"title":"TG 附件菜单底栏「文件」","file":"lui_chat_tg_attach_tab_file@3x.png","section":"LiquidUI 其它自定图标","aliases":["TG 附件菜单底栏「文件」"],"sections":["LiquidUI 其它自定图标"]},{"title":"TG 附件菜单底栏「位置」","file":"lui_chat_tg_attach_tab_location@3x.png","section":"LiquidUI 其它自定图标","aliases":["TG 附件菜单底栏「位置」"],"sections":["LiquidUI 其它自定图标"]},{"title":"TG 附件菜单底栏「更多」","file":"lui_chat_tg_attach_tab_more@3x.png","section":"LiquidUI 其它自定图标","aliases":["TG 附件菜单底栏「更多」"],"sections":["LiquidUI 其它自定图标"]},{"title":"TG 附件菜单底栏「贴纸」","file":"lui_chat_tg_attach_tab_sticker@3x.png","section":"LiquidUI 其它自定图标","aliases":["TG 附件菜单底栏「贴纸」"],"sections":["LiquidUI 其它自定图标"]},{"title":"输入胶囊功能区「冷应系统」","file":"lui_chat_input_fn_cold_reply@3x.png","section":"LiquidUI 其它自定图标","aliases":["输入胶囊功能区「冷应系统」"],"sections":["LiquidUI 其它自定图标"]},{"title":"联系人资料页「发消息」","file":"lui_contact_profile_message@3x.png","section":"LiquidUI 其它自定图标","aliases":["联系人资料页「发消息」"],"sections":["LiquidUI 其它自定图标"]},{"title":"LiquidUI「切换账号」","file":"lui_shortcut_account_switch@3x.png","section":"LiquidUI 其它自定图标","aliases":["LiquidUI「切换账号」"],"sections":["LiquidUI 其它自定图标"]},{"title":"LiquidUI「头像遮罩」","file":"lui_shortcut_avatar_mask@3x.png","section":"LiquidUI 其它自定图标","aliases":["LiquidUI「头像遮罩」"],"sections":["LiquidUI 其它自定图标"]},{"title":"LiquidUI「背景 Diy」","file":"lui_shortcut_bg_diy@3x.png","section":"LiquidUI 其它自定图标","aliases":["LiquidUI「背景 Diy」"],"sections":["LiquidUI 其它自定图标"]},{"title":"LiquidUI「深色模式」","file":"lui_shortcut_dark_mode@3x.png","section":"LiquidUI 其它自定图标","aliases":["LiquidUI「深色模式」"],"sections":["LiquidUI 其它自定图标"]},{"title":"LiquidUI「字体 Font」","file":"lui_shortcut_global_font@3x.png","section":"LiquidUI 其它自定图标","aliases":["LiquidUI「字体 Font」"],"sections":["LiquidUI 其它自定图标"]},{"title":"LiquidUI「首页卡片」","file":"lui_shortcut_home_cards@3x.png","section":"LiquidUI 其它自定图标","aliases":["LiquidUI「首页卡片」"],"sections":["LiquidUI 其它自定图标"]},{"title":"LiquidUI「企业好友」选中","file":"lui_home_side_menu_enterprise_filled@3x.png","section":"LiquidUI 其它自定图标","aliases":["LiquidUI「企业好友」选中"],"sections":["LiquidUI 其它自定图标"]},{"title":"LiquidUI「企业好友」","file":"lui_home_side_menu_enterprise_regular@3x.png","section":"LiquidUI 其它自定图标","aliases":["LiquidUI「企业好友」"],"sections":["LiquidUI 其它自定图标"]},{"title":"LiquidUI「置顶」选中","file":"lui_home_side_menu_pinned_filled@3x.png","section":"LiquidUI 其它自定图标","aliases":["LiquidUI「置顶」选中"],"sections":["LiquidUI 其它自定图标"]},{"title":"LiquidUI「置顶」","file":"lui_home_side_menu_pinned_regular@3x.png","section":"LiquidUI 其它自定图标","aliases":["LiquidUI「置顶」"],"sections":["LiquidUI 其它自定图标"]},{"title":"朋友圈空间风帖底「评论」","file":"lui_moments_qz_comment@3x.png","section":"LiquidUI 其它自定图标","aliases":["朋友圈空间风帖底「评论」"],"sections":["LiquidUI 其它自定图标"]},{"title":"朋友圈空间风「换封面」","file":"lui_moments_qz_cover@3x.png","section":"LiquidUI 其它自定图标","aliases":["朋友圈空间风「换封面」"],"sections":["LiquidUI 其它自定图标"]},{"title":"朋友圈空间风帖底「转发」","file":"lui_moments_qz_forward@3x.png","section":"LiquidUI 其它自定图标","aliases":["朋友圈空间风帖底「转发」"],"sections":["LiquidUI 其它自定图标"]},{"title":"朋友圈空间风帖底「转发朋友圈」","file":"lui_moments_qz_forward_moments@3x.png","section":"LiquidUI 其它自定图标","aliases":["朋友圈空间风帖底「转发朋友圈」"],"sections":["LiquidUI 其它自定图标"]},{"title":"朋友圈空间风帖底「转发会话」","file":"lui_moments_qz_forward_session@3x.png","section":"LiquidUI 其它自定图标","aliases":["朋友圈空间风帖底「转发会话」"],"sections":["LiquidUI 其它自定图标"]},{"title":"朋友圈空间风帖底「赞」","file":"lui_moments_qz_like@3x.png","section":"LiquidUI 其它自定图标","aliases":["朋友圈空间风帖底「赞」"],"sections":["LiquidUI 其它自定图标"]},{"title":"朋友圈空间风帖底「已赞」","file":"lui_moments_qz_liked@3x.png","section":"LiquidUI 其它自定图标","aliases":["朋友圈空间风帖底「已赞」"],"sections":["LiquidUI 其它自定图标"]},{"title":"朋友圈空间风「消息」","file":"lui_moments_qz_messages@3x.png","section":"LiquidUI 其它自定图标","aliases":["朋友圈空间风「消息」"],"sections":["LiquidUI 其它自定图标"]},{"title":"朋友圈空间风「说说」","file":"lui_moments_qz_post@3x.png","section":"LiquidUI 其它自定图标","aliases":["朋友圈空间风「说说」"],"sections":["LiquidUI 其它自定图标"]},{"title":"朋友圈空间风「个人资料」","file":"lui_moments_qz_profile@3x.png","section":"LiquidUI 其它自定图标","aliases":["朋友圈空间风「个人资料」"],"sections":["LiquidUI 其它自定图标"]},{"title":"设置齿轮 · 实心（LiquidUI 入口）","file":"gear_filled@3x.png","section":"LiquidUI 其它自定图标","aliases":["设置齿轮 · 实心（LiquidUI 入口）"],"sections":["LiquidUI 其它自定图标"]},{"title":"LiquidUI「重启微信」","file":"refresh_filled@3x.png","section":"LiquidUI 其它自定图标","aliases":["LiquidUI「重启微信」"],"sections":["LiquidUI 其它自定图标"]},{"title":"LiquidUI「卡包」","file":"icons_outlined_ticket@3x.png","section":"LiquidUI 其它自定图标","aliases":["LiquidUI「卡包」"],"sections":["LiquidUI 其它自定图标"]},{"title":"LiquidUI「听写」","file":"mike_no_circle@3x.png","section":"LiquidUI 其它自定图标","aliases":["LiquidUI「听写」"],"sections":["LiquidUI 其它自定图标"]},{"title":"LiquidUI 输入胶囊听写位 · 听写中","file":"mike_no_circle_filled@3x.png","section":"LiquidUI 其它自定图标","aliases":["LiquidUI 输入胶囊听写位 · 听写中"],"sections":["LiquidUI 其它自定图标"]},{"title":"LiquidUI「群聊」选中","file":"person_2_filled@3x.png","section":"LiquidUI 其它自定图标","aliases":["LiquidUI「群聊」选中"],"sections":["LiquidUI 其它自定图标"]},{"title":"LiquidUI「服务号」选中","file":"person_tie_filled@3x.png","section":"LiquidUI 其它自定图标","aliases":["LiquidUI「服务号」选中"],"sections":["LiquidUI 其它自定图标"]},{"title":"LiquidUI 自定义分组","file":"folder_regular@3x.png","section":"LiquidUI 其它自定图标","aliases":["LiquidUI 自定义分组"],"sections":["LiquidUI 其它自定图标"]},{"title":"LiquidUI 收起首页会话","file":"eyes_off_regular@3x.png","section":"LiquidUI 其它自定图标","aliases":["LiquidUI 收起首页会话"],"sections":["LiquidUI 其它自定图标"]},{"title":"LiquidUI 展开首页会话","file":"eyes_on_regular@3x.png","section":"LiquidUI 其它自定图标","aliases":["LiquidUI 展开首页会话"],"sections":["LiquidUI 其它自定图标"]},{"title":"搜索框搜索图标","file":"magnifying_glass_regular@3x.png","section":"微信主页面图标名称","aliases":["搜索框搜索图标"],"sections":["微信主页面图标名称"]},{"title":"搜索框点进去右侧语音图标","file":"mike_on_regular@3x.png","section":"微信主页面图标名称","aliases":["搜索框点进去右侧语音图标"],"sections":["微信主页面图标名称"]},{"title":"添加朋友","file":"person_plus_filled@3x.png","section":"微信主页面内+号内快捷功能小图标","aliases":["添加朋友"],"sections":["微信主页面内+号内快捷功能小图标"]},{"title":"搜索框点进去最近再搜右侧删除按钮","file":"trash_on_regular@3x.png","section":"微信主页面图标名称","aliases":["搜索框点进去最近再搜右侧删除按钮","多选删除"],"sections":["微信主页面图标名称","微信聊天主界面"]},{"title":"睁眼 · 实心（主题盒子一键已读）","file":"eyes_on_filled@3x.png","section":"微信主页面内+号内快捷功能小图标","aliases":["睁眼 · 实心（主题盒子一键已读）"],"sections":["微信主页面内+号内快捷功能小图标"]},{"title":"搜索框点进去搜索历史记录前面小图标","file":"clock_regular@3x.png","section":"微信主页面图标名称","aliases":["搜索框点进去搜索历史记录前面小图标"],"sections":["微信主页面图标名称"]},{"title":"首页右上「+」菜单 · 扫一扫","file":"scan_filled@3x.png","section":"微信主页面内+号内快捷功能小图标","aliases":["首页右上「+」菜单 · 扫一扫","扫一扫"],"sections":["微信主页面内+号内快捷功能小图标","微信助手工具栏及相关图标"]},{"title":"群聊免打扰小图标","file":"bell_off_regular@3x.png","section":"微信主页面图标名称","aliases":["群聊免打扰小图标"],"sections":["微信主页面图标名称"]},{"title":"收付款","file":"pay_filled@3x.png","section":"微信主页面内+号内快捷功能小图标","aliases":["收付款"],"sections":["微信主页面内+号内快捷功能小图标"]},{"title":"放大镜 · 实心（查找用户）","file":"magnifying_glass_filled@3x.png","section":"微信主页面内+号内快捷功能小图标","aliases":["放大镜 · 实心（查找用户）"],"sections":["微信主页面内+号内快捷功能小图标"]},{"title":"折叠的群聊","file":"icons_filled_chatbox@3x.png","section":"微信主页面图标名称","aliases":["折叠的群聊"],"sections":["微信主页面图标名称"]},{"title":"首页右上「+」菜单「支付」","file":"card_filled@3x.png","section":"微信主页面内+号内快捷功能小图标","aliases":["首页右上「+」菜单「支付」"],"sections":["微信主页面内+号内快捷功能小图标"]},{"title":"右上角+号（同输入框右侧+）","file":"icons_outlined_addoutline@3x.png","section":"微信主页面图标名称","aliases":["右上角+号（同输入框右侧+）","输入框右侧+号（同主页面右上+）"],"sections":["微信主页面图标名称","微信聊天主界面"]},{"title":"首页右上「+」菜单「写笔记」","file":"paper_pencil_filled@3x.png","section":"微信主页面内+号内快捷功能小图标","aliases":["首页右上「+」菜单「写笔记」"],"sections":["微信主页面内+号内快捷功能小图标"]},{"title":"接收消息刷新动画图标","file":"icons_filled_loading@3x.png","section":"微信主页面图标名称","aliases":["接收消息刷新动画图标"],"sections":["微信主页面图标名称"]},{"title":"首页右上「+」菜单「朋友圈」","file":"moment_filled@3x.png","section":"微信主页面内+号内快捷功能小图标","aliases":["首页右上「+」菜单「朋友圈」","点开小程序-更多-当前页面不可分享"],"sections":["微信主页面内+号内快捷功能小图标","微信聊天主界面"]},{"title":"搜索页悬浮语音输入按钮","file":"mike_on_heavy@3x.png","section":"微信主页面图标名称","aliases":["搜索页悬浮语音输入按钮"],"sections":["微信主页面图标名称"]},{"title":"首页右上「+」菜单「我的二维码」","file":"qr_code_filled@3x.png","section":"微信主页面内+号内快捷功能小图标","aliases":["首页右上「+」菜单「我的二维码」","点开二维码图片识别二维码图标"],"sections":["微信主页面内+号内快捷功能小图标","微信聊天主界面"]},{"title":"LiquidUI 首页「+」菜单 · 一键已读","file":"email_filled@3x.png","section":"微信主页面内+号内快捷功能小图标","aliases":["LiquidUI 首页「+」菜单 · 一键已读"],"sections":["微信主页面内+号内快捷功能小图标"]},{"title":"LiquidUI 首页「+」菜单 · 清空列表","file":"eyes_off_filled@3x.png","section":"微信主页面内+号内快捷功能小图标","aliases":["LiquidUI 首页「+」菜单 · 清空列表"],"sections":["微信主页面内+号内快捷功能小图标"]},{"title":"LiquidUI 首页「+」菜单 · 小程序","file":"mini_program_filled@3x.png","section":"微信主页面内+号内快捷功能小图标","aliases":["LiquidUI 首页「+」菜单 · 小程序"],"sections":["微信主页面内+号内快捷功能小图标"]},{"title":"右上角添加朋友按钮","file":"person_plus_regular@3x.png","section":"微信（通讯录）界面","aliases":["右上角添加朋友按钮"],"sections":["微信（通讯录）界面"]},{"title":"扫一扫","file":"scan_regular@3x.png","section":"（通讯录）添加朋友页面","aliases":["扫一扫","发现页 · 扫一扫"],"sections":["（通讯录）添加朋友页面","微信发现页名称"]},{"title":"通讯录界面滑动字母弹窗背景","file":"ContactIndexShape@3x.png","section":"微信（通讯录）界面","aliases":["通讯录界面滑动字母弹窗背景"],"sections":["微信（通讯录）界面"]},{"title":"手机联系人","file":"phone_rectangle_regular@3x.png","section":"（通讯录）添加朋友页面","aliases":["手机联系人"],"sections":["（通讯录）添加朋友页面"]},{"title":"雷达","file":"radar_regular@3x.png","section":"（通讯录）添加朋友页面","aliases":["雷达"],"sections":["（通讯录）添加朋友页面"]},{"title":"面对面建群","file":"person_2_regular@3x.png","section":"（通讯录）添加朋友页面","aliases":["面对面建群"],"sections":["（通讯录）添加朋友页面"]},{"title":"公众号","file":"person_tie_regular@3x.png","section":"（通讯录）添加朋友页面","aliases":["公众号"],"sections":["（通讯录）添加朋友页面"]},{"title":"朋友圈","file":"icons_outlined_colorful_moment@3x.png","section":"微信发现页名称","aliases":["朋友圈","朋友圈（8.0.78 我页用这张）"],"sections":["微信发现页名称","微信（我）页面"]},{"title":"「我」页 · 收藏","file":"icons_outlined_colorful_favorites@3x.png","section":"微信（我）页面","aliases":["「我」页 · 收藏"],"sections":["微信（我）页面"]},{"title":"视频号","file":"icons_outlined_finder@3x.png","section":"微信发现页名称","aliases":["视频号"],"sections":["微信发现页名称","聊天「+」面板（官方工具栏）"]},{"title":"服务图标","file":"icons_outlined_wechatpay@3x.png","section":"微信（我）页面","aliases":["服务图标"],"sections":["微信（我）页面"]},{"title":"卡包图标","file":"icons_outlined_colorful_cards@3x.png","section":"微信（我）页面","aliases":["卡包图标"],"sections":["微信（我）页面"]},{"title":"搜一搜","file":"icons_outlined_searchlogo@3x.png","section":"微信发现页名称","aliases":["搜一搜"],"sections":["微信发现页名称"]},{"title":"设置按钮图标","file":"gear_regular@3x.png","section":"微信（我）页面","aliases":["设置按钮图标"],"sections":["微信（我）页面"]},{"title":"看一看","file":"news_regular@3x.png","section":"微信发现页名称","aliases":["看一看"],"sections":["微信发现页名称"]},{"title":"服务内的钱包图标","file":"icons_outlined_wallet@3x.png","section":"微信（我）页面","aliases":["服务内的钱包图标"],"sections":["微信（我）页面"]},{"title":"听一听","file":"icons_filled_ting_finder_entry_music@3x.png","section":"微信发现页名称","aliases":["听一听"],"sections":["微信发现页名称"]},{"title":"服务内的收付款图标","file":"pay_regular@3x.png","section":"微信（我）页面","aliases":["服务内的收付款图标","服务内的收付款内付款码左上角"],"sections":["微信（我）页面"]},{"title":"购物","file":"shopping_bag_regular@3x.png","section":"微信发现页名称","aliases":["购物"],"sections":["微信发现页名称"]},{"title":"游戏","file":"icons_outlined_colorful_game@3x.png","section":"微信发现页名称","aliases":["游戏"],"sections":["微信发现页名称"]},{"title":"附近直播","file":"icons_outlined_live_nearby@3x.png","section":"微信发现页名称","aliases":["附近直播"],"sections":["微信发现页名称"]},{"title":"朋友圈","file":"picture_regular@3x.png","section":"微信（我）页面","aliases":["朋友圈"],"sections":["微信（我）页面"]},{"title":"直播","file":"icons_outlined_float_window_on@3x.png","section":"微信发现页名称","aliases":["直播"],"sections":["微信发现页名称"]},{"title":"我的个人信息二维码","file":"qr_code_regular@3x.png","section":"微信（我）页面","aliases":["我的个人信息二维码"],"sections":["微信（我）页面"]},{"title":"小程序","file":"icons_outlined_miniprogram@3x.png","section":"微信发现页名称","aliases":["小程序"],"sections":["微信发现页名称"]},{"title":"摇一摇","file":"shake_regular@3x.png","section":"微信发现页名称","aliases":["摇一摇"],"sections":["微信发现页名称"]},{"title":"表情","file":"smile_regular@3x.png","section":"微信（我）页面","aliases":["表情","输入框右侧表情"],"sections":["微信（我）页面","微信聊天主界面"]},{"title":"附近（8.0.78 发现页用这张）","file":"nearby_regular@3x.png","section":"微信发现页名称","aliases":["附近（8.0.78 发现页用这张）"],"sections":["微信发现页名称"]},{"title":"WeChat Out（国际账号才显示）","file":"wechat_out_regular@3x.png","section":"微信发现页名称","aliases":["WeChat Out（国际账号才显示）"],"sections":["微信发现页名称"]},{"title":"相册","file":"picture_filled@3x.png","section":"聊天「+」面板（官方工具栏）","aliases":["相册","照片同官方"],"sections":["聊天「+」面板（官方工具栏）","微信助手工具栏及相关图标"]},{"title":"输入框左侧语音按钮","file":"voice_circle_regular@3x.png","section":"微信聊天主界面","aliases":["输入框左侧语音按钮"],"sections":["微信聊天主界面"]},{"title":"拍摄","file":"camera_filled@3x.png","section":"聊天「+」面板（官方工具栏）","aliases":["拍摄"],"sections":["聊天「+」面板（官方工具栏）"]},{"title":"输入框左右键盘","file":"keyboard_circle_regular@3x.png","section":"微信聊天主界面","aliases":["输入框左右键盘"],"sections":["微信聊天主界面"]},{"title":"视频通话","file":"icons_filled_videocall@3x.png","section":"聊天「+」面板（官方工具栏）","aliases":["视频通话"],"sections":["聊天「+」面板（官方工具栏）"]},{"title":"语音通话","file":"call_on_filled@3x.png","section":"聊天「+」面板（官方工具栏）","aliases":["语音通话"],"sections":["聊天「+」面板（官方工具栏）"]},{"title":"位置","file":"location_filled@3x.png","section":"聊天「+」面板（官方工具栏）","aliases":["位置"],"sections":["聊天「+」面板（官方工具栏）","微信助手工具栏及相关图标"]},{"title":"表情点开表情收藏","file":"heart_regular@3x.png","section":"微信聊天主界面","aliases":["表情点开表情收藏","朋友圈点赞"],"sections":["微信聊天主界面","朋友圈内小图标"]},{"title":"红包","file":"icons_filled_red_envelope@3x.png","section":"聊天「+」面板（官方工具栏）","aliases":["红包","红包图标"],"sections":["聊天「+」面板（官方工具栏）","微信助手工具栏及相关图标"]},{"title":"表情点开表情拍摄","file":"icons_outlined_takephoto_nor@3x.png","section":"微信聊天主界面","aliases":["表情点开表情拍摄"],"sections":["微信聊天主界面"]},{"title":"转账","file":"transfer_filled@3x.png","section":"聊天「+」面板（官方工具栏）","aliases":["转账","转账按钮"],"sections":["聊天「+」面板（官方工具栏）","微信助手工具栏及相关图标"]},{"title":"群聊资料页群成员+","file":"avatar_dotline_add_bg@3x.png","section":"微信聊天主界面","aliases":["群聊资料页群成员+"],"sections":["微信聊天主界面"]},{"title":"语音输入","file":"icons_filled_voiceinput_white@3x.png","section":"聊天「+」面板（官方工具栏）","aliases":["语音输入"],"sections":["聊天「+」面板（官方工具栏）","微信助手工具栏及相关图标"]},{"title":"群聊资料页群成员-","file":"avatar_dotline_minus_bg@3x.png","section":"微信聊天主界面","aliases":["群聊资料页群成员-"],"sections":["微信聊天主界面"]},{"title":"聊天「+」面板 · 收藏","file":"favorites_filled@3x.png","section":"聊天「+」面板（官方工具栏）","aliases":["聊天「+」面板 · 收藏","收藏按钮","收藏"],"sections":["聊天「+」面板（官方工具栏）","微信菜单标签页小图标","微信助手工具栏及相关图标"]},{"title":"好友资料页音视频通话","file":"video_regular@3x.png","section":"微信聊天主界面","aliases":["好友资料页音视频通话","视频聊天气泡内的图标"],"sections":["微信聊天主界面","微信聊天界面气泡"]},{"title":"文件","file":"folder_filled@3x.png","section":"聊天「+」面板（官方工具栏）","aliases":["文件","文件按钮图标"],"sections":["聊天「+」面板（官方工具栏）","微信助手工具栏及相关图标"]},{"title":"好友资料页音视频通话点开弹窗视屏通话","file":"video_filled@3x.png","section":"微信聊天主界面","aliases":["好友资料页音视频通话点开弹窗视屏通话","视频通话时摄像头开启状态"],"sections":["微信聊天主界面","微信拨打语音电话界面"]},{"title":"卡券","file":"cardholder_filled@3x.png","section":"聊天「+」面板（官方工具栏）","aliases":["卡券"],"sections":["聊天「+」面板（官方工具栏）"]},{"title":"好友资料页性别男图标","file":"icons_filled_colorful_man@3x.png","section":"微信聊天主界面","aliases":["好友资料页性别男图标"],"sections":["微信聊天主界面"]},{"title":"聊天「+」面板「语音通话」（群聊）","file":"icons_filled_video_phone@3x.png","section":"聊天「+」面板（官方工具栏）","aliases":["聊天「+」面板「语音通话」（群聊）","通话"],"sections":["聊天「+」面板（官方工具栏）","微信助手工具栏及相关图标"]},{"title":"好友资料页性别女图标","file":"icons_filled_colorful_female@3x.png","section":"微信聊天主界面","aliases":["好友资料页性别女图标"],"sections":["微信聊天主界面"]},{"title":"聊天「+」面板「礼物」","file":"gift_filled_icon@3x.png","section":"聊天「+」面板（官方工具栏）","aliases":["聊天「+」面板「礼物」"],"sections":["聊天「+」面板（官方工具栏）"]},{"title":"微信助手聊天界面搜索","file":"icons_filled_search@3x.png","section":"微信聊天主界面","aliases":["微信助手聊天界面搜索","搜表情"],"sections":["微信聊天主界面","微信助手工具栏及相关图标"]},{"title":"问小微","file":"ai_filled@3x.png","section":"聊天「+」面板（官方工具栏）","aliases":["问小微","问小微（长按消息菜单）"],"sections":["聊天「+」面板（官方工具栏）","微信菜单标签页小图标"]},{"title":"群消息999+前面符号","file":"icons_outlined_double_arrow@3x.png","section":"微信聊天主界面","aliases":["群消息999+前面符号"],"sections":["微信聊天主界面"]},{"title":"群工具","file":"icons_filled_grouptool@3x.png","section":"聊天「+」面板（官方工具栏）","aliases":["群工具"],"sections":["聊天「+」面板（官方工具栏）"]},{"title":"点开图片底部识别图片","file":"search_filled@3x.png","section":"微信聊天主界面","aliases":["点开图片底部识别图片","点开并长按图片搜一搜"],"sections":["微信聊天主界面"]},{"title":"接龙","file":"icon_outlined_solitaire@3x.png","section":"聊天「+」面板（官方工具栏）","aliases":["接龙"],"sections":["聊天「+」面板（官方工具栏）"]},{"title":"点开图片底部保存到本地","file":"download_filled@3x.png","section":"微信聊天主界面","aliases":["点开图片底部保存到本地"],"sections":["微信聊天主界面"]},{"title":"直播","file":"icons_filled_live@3x.png","section":"聊天「+」面板（官方工具栏）","aliases":["直播"],"sections":["聊天「+」面板（官方工具栏）"]},{"title":"点开图片底部查看本群图片","file":"icons_filled_img_photowall@3x.png","section":"微信聊天主界面","aliases":["点开图片底部查看本群图片"],"sections":["微信聊天主界面"]},{"title":"音乐按钮","file":"icon_music_filled@3x.png","section":"聊天「+」面板（官方工具栏）","aliases":["音乐按钮"],"sections":["聊天「+」面板（官方工具栏）"]},{"title":"点开图片底部分享更多","file":"dot_3_filled@3x.png","section":"微信聊天主界面","aliases":["点开图片底部分享更多","消息长按菜单「更多」"],"sections":["微信聊天主界面","微信菜单标签页小图标"]},{"title":"点开图片底部翻译","file":"translate_filled@3x.png","section":"微信聊天主界面","aliases":["点开图片底部翻译","消息长按菜单「翻译」"],"sections":["微信聊天主界面","微信菜单标签页小图标"]},{"title":"转帐和红包上方发微信支付图标","file":"icons_filled_wechatpay@3x.png","section":"微信聊天界面（红包 / 转账 / 语音）","aliases":["转帐和红包上方发微信支付图标"],"sections":["微信聊天界面（红包 / 转账 / 语音）"]},{"title":"发红包时输入文字那里表情按钮","file":"add_emotion_outlined@3x.png","section":"微信聊天界面（红包 / 转账 / 语音）","aliases":["发红包时输入文字那里表情按钮"],"sections":["微信聊天界面（红包 / 转账 / 语音）"]},{"title":"点开并长按图片提取文字","file":"icons_outlined_ocr@3x.png","section":"微信聊天主界面","aliases":["点开并长按图片提取文字"],"sections":["微信聊天主界面"]},{"title":"转账时键盘上面清除键","file":"wcpay_keyboard_delete@3x.png","section":"微信聊天界面（红包 / 转账 / 语音）","aliases":["转账时键盘上面清除键"],"sections":["微信聊天界面（红包 / 转账 / 语音）"]},{"title":"点开并长按图片编辑","file":"pencil_rectangle_regular@3x.png","section":"微信聊天主界面","aliases":["点开并长按图片编辑"],"sections":["微信聊天主界面"]},{"title":"选中转文字时取消","file":"previous_filled@3x.png","section":"微信聊天界面（红包 / 转账 / 语音）","aliases":["选中转文字时取消","消息长按菜单「撤回」"],"sections":["微信聊天界面（红包 / 转账 / 语音）","微信菜单标签页小图标"]},{"title":"点开并长按图片保存图片","file":"download_regular@3x.png","section":"微信聊天主界面","aliases":["点开并长按图片保存图片","点开链接-更多-保存为图片","多选更多-保存至相册"],"sections":["微信聊天主界面"]},{"title":"语音聊天气泡内的图标","file":"icons_outlined_call_end@3x.png","section":"微信聊天界面气泡","aliases":["语音聊天气泡内的图标"],"sections":["微信聊天界面气泡"]},{"title":"点开并长按图片转发给朋友","file":"share_filled@3x.png","section":"微信聊天主界面","aliases":["点开并长按图片转发给朋友","点开链接-更多-转发给朋友","消息长按菜单「转发」"],"sections":["微信聊天主界面","微信菜单标签页小图标"]},{"title":"点开并长按图片此聊天中的图片视频","file":"icon_outlined_picture@3x.png","section":"微信聊天主界面","aliases":["点开并长按图片此聊天中的图片视频"],"sections":["微信聊天主界面"]},{"title":"点开链接-更多-在默认浏览器中打开","file":"icons_outlined_colorful_menu_browser@3x.png","section":"微信聊天主界面","aliases":["点开链接-更多-在默认浏览器中打开","黄白助手（同点开链接默认浏览器图标)"],"sections":["微信聊天主界面","微信助手工具栏及相关图标"]},{"title":"点开链接-更多-浮窗","file":"icons_outlined_multitask@3x.png","section":"微信聊天主界面","aliases":["点开链接-更多-浮窗","浮窗"],"sections":["微信聊天主界面","微信助手工具栏及相关图标"]},{"title":"点开链接-更多-投诉","file":"exclamation_mark_triangle_regular@3x.png","section":"微信聊天主界面","aliases":["点开链接-更多-投诉","点开小程序-更多-反馈与投诉"],"sections":["微信聊天主界面"]},{"title":"点开链接-更多-复制链接","file":"link_regular@3x.png","section":"微信聊天主界面","aliases":["点开链接-更多-复制链接"],"sections":["微信聊天主界面"]},{"title":"点开链接-更多-刷新","file":"refresh_regular@3x.png","section":"微信聊天主界面","aliases":["点开链接-更多-刷新"],"sections":["微信聊天主界面"]},{"title":"点开链接-更多-全文翻译","file":"translate_regular@3x.png","section":"微信聊天主界面","aliases":["点开链接-更多-全文翻译"],"sections":["微信聊天主界面"]},{"title":"点开链接-更多-查找页面内容","file":"icons_outlined_find_content@3x.png","section":"微信聊天主界面","aliases":["点开链接-更多-查找页面内容"],"sections":["微信聊天主界面"]},{"title":"点开链接-更多-调整字体","file":"icons_outlined_font@3x.png","section":"微信聊天主界面","aliases":["点开链接-更多-调整字体","微信净化添加字体"],"sections":["微信聊天主界面","微信菜单标签页小图标"]},{"title":"点开文章-分享或更多-听全文","file":"icon_outlined_listen@3x.png","section":"微信聊天主界面","aliases":["点开文章-分享或更多-听全文"],"sections":["微信聊天主界面"]},{"title":"点开文章-分享或更多稍后听","file":"icons_outlined_listen_later@3x.png","section":"微信聊天主界面","aliases":["点开文章-分享或更多稍后听"],"sections":["微信聊天主界面"]},{"title":"点开文章-分享或更多-更多信息","file":"tag_regular@3x.png","section":"微信聊天主界面","aliases":["点开文章-分享或更多-更多信息"],"sections":["微信聊天主界面"]},{"title":"点开表情-更多-添加到表情","file":"icons_outlined_addsticker@3x.png","section":"微信聊天主界面","aliases":["点开表情-更多-添加到表情"],"sections":["微信聊天主界面"]},{"title":"点开表情-更多-合拍","file":"icons_outlined_makesticker@3x.png","section":"微信聊天主界面","aliases":["点开表情-更多-合拍"],"sections":["微信聊天主界面"]},{"title":"点开文件或压缩包-更多-用其他应用打开","file":"icons_filled_open_by_other_app@3x.png","section":"微信聊天主界面","aliases":["点开文件或压缩包-更多-用其他应用打开"],"sections":["微信聊天主界面"]},{"title":"多选转发","file":"share_regular@3x.png","section":"微信聊天主界面","aliases":["多选转发"],"sections":["微信聊天主界面"]},{"title":"多选收藏","file":"favorites_regular@3x.png","section":"微信聊天主界面","aliases":["多选收藏"],"sections":["微信聊天主界面"]},{"title":"多选更多-下载选中内容","file":"icon_outlined_download_select@3x.png","section":"微信聊天主界面","aliases":["多选更多-下载选中内容"],"sections":["微信聊天主界面"]},{"title":"多选更多-添加至邮件","file":"email_regular@3x.png","section":"微信聊天主界面","aliases":["多选更多-添加至邮件"],"sections":["微信聊天主界面"]},{"title":"灰度测试的公众号/小程序浮窗","file":"icons_filled_minimizewindow@3x.png","section":"微信聊天主界面","aliases":["灰度测试的公众号/小程序浮窗"],"sections":["微信聊天主界面"]},{"title":"输入框全屏输入按钮","file":"expand_content_filled@3x.png","section":"微信聊天主界面","aliases":["输入框全屏输入按钮"],"sections":["微信聊天主界面"]},{"title":"聊天标题旁听筒模式小图标","file":"ear_regular@3x.png","section":"微信聊天主界面","aliases":["聊天标题旁听筒模式小图标"],"sections":["微信聊天主界面"]},{"title":"表情面板删除键","file":"icons_outlined_delete_emoji@3x.png","section":"微信聊天主界面","aliases":["表情面板删除键"],"sections":["微信聊天主界面"]},{"title":"聊天顶部位置共享提示条图标","file":"direction_indicator_filled@3x.png","section":"微信聊天主界面","aliases":["聊天顶部位置共享提示条图标"],"sections":["微信聊天主界面"]},{"title":"聊天里位置共享消息图标","file":"direction_indicator_stroke@3x.png","section":"微信聊天主界面","aliases":["聊天里位置共享消息图标"],"sections":["微信聊天主界面"]},{"title":"安全提示条感叹号（多处共用）","file":"exclamation_mark_circle_filled@3x.png","section":"微信聊天主界面","aliases":["安全提示条感叹号（多处共用）"],"sections":["微信聊天主界面"]},{"title":"复制按钮图标","file":"doc_filled@3x.png","section":"微信菜单标签页小图标","aliases":["复制按钮图标"],"sections":["微信菜单标签页小图标"]},{"title":"微信助手","file":"icons_filled_setting@3x.png","section":"微信助手工具栏及相关图标","aliases":["微信助手"],"sections":["微信助手工具栏及相关图标"]},{"title":"消息长按菜单「引用」","file":"icons_filled_quote@3x.png","section":"微信菜单标签页小图标","aliases":["消息长按菜单「引用」"],"sections":["微信菜单标签页小图标"]},{"title":"收付款","file":"icons_filled_qr_code@3x.png","section":"微信助手工具栏及相关图标","aliases":["收付款"],"sections":["微信助手工具栏及相关图标"]},{"title":"+1按钮","file":"icons_filled_add2@3x.png","section":"微信菜单标签页小图标","aliases":["+1按钮"],"sections":["微信菜单标签页小图标"]},{"title":"消息长按菜单「删除」","file":"trash_on_filled@3x.png","section":"微信菜单标签页小图标","aliases":["消息长按菜单「删除」"],"sections":["微信菜单标签页小图标"]},{"title":"@图标","file":"icons_filled_at@3x.png","section":"微信助手工具栏及相关图标","aliases":["@图标"],"sections":["微信助手工具栏及相关图标"]},{"title":"粘贴","file":"icons_filled_note@3x.png","section":"微信助手工具栏及相关图标","aliases":["粘贴"],"sections":["微信助手工具栏及相关图标"]},{"title":"消息长按菜单「多选」","file":"icons_filled_multiple_choice@3x.png","section":"微信菜单标签页小图标","aliases":["消息长按菜单「多选」"],"sections":["微信菜单标签页小图标"]},{"title":"消息长按菜单「提醒」","file":"bell_on_filled@3x.png","section":"微信菜单标签页小图标","aliases":["消息长按菜单「提醒」"],"sections":["微信菜单标签页小图标"]},{"title":"分词","file":"icons_filled_allselect@3x.png","section":"微信菜单标签页小图标","aliases":["分词"],"sections":["微信菜单标签页小图标"]},{"title":"听筒播放","file":"ear_filled@3x.png","section":"微信菜单标签页小图标","aliases":["听筒播放"],"sections":["微信菜单标签页小图标"]},{"title":"翻译图标","file":"icons_filled_translate@3x.png","section":"微信助手工具栏及相关图标","aliases":["翻译图标"],"sections":["微信助手工具栏及相关图标"]},{"title":"misaka小丑","file":"icons_filled_filter@3x.png","section":"微信菜单标签页小图标","aliases":["misaka小丑"],"sections":["微信菜单标签页小图标"]},{"title":"复读机","file":"icons_filled_add@3x.png","section":"微信菜单标签页小图标","aliases":["复读机","添加同复读机"],"sections":["微信菜单标签页小图标","微信助手工具栏及相关图标"]},{"title":"消息长按菜单「搜一搜」","file":"icons_filled_WeChatSearchEmblem@3x.png","section":"微信菜单标签页小图标","aliases":["消息长按菜单「搜一搜」"],"sections":["微信菜单标签页小图标"]},{"title":"消息长按菜单「编辑」","file":"pencil_rectangle_filled@3x.png","section":"微信菜单标签页小图标","aliases":["消息长按菜单「编辑」"],"sections":["微信菜单标签页小图标"]},{"title":"长按表情包相关表情","file":"icons_filled_othersticker@3x.png","section":"微信菜单标签页小图标","aliases":["长按表情包相关表情"],"sections":["微信菜单标签页小图标"]},{"title":"长按表情合拍","file":"icons_filled_makesticker@3x.png","section":"微信菜单标签页小图标","aliases":["长按表情合拍"],"sections":["微信菜单标签页小图标"]},{"title":"快捷回复","file":"icons_filled_chats@3x.png","section":"微信助手工具栏及相关图标","aliases":["快捷回复"],"sections":["微信助手工具栏及相关图标"]},{"title":"语音键 · 实心（pkc 转语音借用）","file":"voice_circle_filled@3x.png","section":"微信菜单标签页小图标","aliases":["语音键 · 实心（pkc 转语音借用）"],"sections":["微信菜单标签页小图标"]},{"title":"扫一扫","file":"icons_filled_scan@3x.png","section":"微信助手工具栏及相关图标","aliases":["扫一扫"],"sections":["微信助手工具栏及相关图标"]},{"title":"消息长按菜单「转文字」","file":"convert_to_text_filled@3x.png","section":"微信菜单标签页小图标","aliases":["消息长按菜单「转文字」"],"sections":["微信菜单标签页小图标"]},{"title":"拍摄","file":"icons_filled_camera@3x.png","section":"微信助手工具栏及相关图标","aliases":["拍摄"],"sections":["微信助手工具栏及相关图标"]},{"title":"取消语音消息转文字","file":"icon_filled_convert_to_text_off@3x.png","section":"微信菜单标签页小图标","aliases":["取消语音消息转文字"],"sections":["微信菜单标签页小图标"]},{"title":"黄白视频转语","file":"icons_filled_radar@3x.png","section":"微信菜单标签页小图标","aliases":["黄白视频转语"],"sections":["微信菜单标签页小图标"]},{"title":"全屏输入","file":"icons_filled_maxwindow@3x.png","section":"微信助手工具栏及相关图标","aliases":["全屏输入"],"sections":["微信助手工具栏及相关图标"]},{"title":"消息长按菜单「置顶」","file":"icon_stick@3x.png","section":"微信菜单标签页小图标","aliases":["消息长按菜单「置顶」"],"sections":["微信菜单标签页小图标"]},{"title":"小霸王","file":"icons_filled_game@3x.png","section":"微信助手工具栏及相关图标","aliases":["小霸王"],"sections":["微信助手工具栏及相关图标"]},{"title":"消息长按菜单「移除置顶」","file":"icon_unstick@3x.png","section":"微信菜单标签页小图标","aliases":["消息长按菜单「移除置顶」"],"sections":["微信菜单标签页小图标"]},{"title":"微信净化导入字体","file":"text_filled@3x.png","section":"微信菜单标签页小图标","aliases":["微信净化导入字体"],"sections":["微信菜单标签页小图标"]},{"title":"助手语音包/文件转语音","file":"icons_filled_song@3x.png","section":"微信助手工具栏及相关图标","aliases":["助手语音包/文件转语音"],"sections":["微信助手工具栏及相关图标"]},{"title":"联系人","file":"icons_filled_contacts@3x.png","section":"微信助手工具栏及相关图标","aliases":["联系人"],"sections":["微信助手工具栏及相关图标"]},{"title":"背景播放","file":"icons_filled_miniwindow@3x.png","section":"微信菜单标签页小图标","aliases":["背景播放"],"sections":["微信菜单标签页小图标"]},{"title":"视频号直播 · 礼物（主题盒子借用）","file":"icons_filled_gift@3x.png","section":"微信助手工具栏及相关图标","aliases":["视频号直播 · 礼物（主题盒子借用）"],"sections":["微信助手工具栏及相关图标"]},{"title":"消息长按菜单「复制」","file":"copy_filled@3x.png","section":"微信菜单标签页小图标","aliases":["消息长按菜单「复制」"],"sections":["微信菜单标签页小图标"]},{"title":"语音视频电话时扬声器关闭状态","file":"volume_off_filled@3x.png","section":"微信拨打语音电话界面","aliases":["语音视频电话时扬声器关闭状态"],"sections":["微信拨打语音电话界面"]},{"title":"朋友圈评论","file":"bubble_regular@3x.png","section":"朋友圈内小图标","aliases":["朋友圈评论"],"sections":["朋友圈内小图标"]},{"title":"语音视频电话时扬声器开启状态","file":"volume_on_filled@3x.png","section":"微信拨打语音电话界面","aliases":["语音视频电话时扬声器开启状态"],"sections":["微信拨打语音电话界面"]},{"title":"朋友圈上滑后的相机图片","file":"camera_regular@3x.png","section":"朋友圈内小图标","aliases":["朋友圈上滑后的相机图片"],"sections":["朋友圈内小图标"]},{"title":"语音视频电话时麦克风关闭状态","file":"mike_off_regular@3x.png","section":"微信拨打语音电话界面","aliases":["语音视频电话时麦克风关闭状态"],"sections":["微信拨打语音电话界面"]},{"title":"语音视频电话时麦克风开启状态","file":"mike_on_filled@3x.png","section":"微信拨打语音电话界面","aliases":["语音视频电话时麦克风开启状态"],"sections":["微信拨打语音电话界面"]},{"title":"暂停（播放器 / 下载进度，多处共用）","file":"pause_filled@3x.png","section":"一些其它界面（多处共用）","aliases":["暂停（播放器 / 下载进度，多处共用）"],"sections":["一些其它界面（多处共用）"]},{"title":"视频通话时摄像头关闭状态","file":"icons_filled_video_call_off@3x.png","section":"微信拨打语音电话界面","aliases":["视频通话时摄像头关闭状态"],"sections":["微信拨打语音电话界面"]},{"title":"多选联系人勾选框 · 未选中","file":"ui-resources_checkbox_unselected@3x.png","section":"一些其它界面（多处共用）","aliases":["多选联系人勾选框 · 未选中"],"sections":["一些其它界面（多处共用）"]},{"title":"视频语音电话时挂断按钮","file":"call_off_filled@3x.png","section":"微信拨打语音电话界面","aliases":["视频语音电话时挂断按钮"],"sections":["微信拨打语音电话界面"]},{"title":"加号（导航栏等，多处共用）","file":"plus_regular@3x.png","section":"一些其它界面（多处共用）","aliases":["加号（导航栏等，多处共用）"],"sections":["一些其它界面（多处共用）"]},{"title":"加号 · 实心","file":"plus_filled@3x.png","section":"一些其它界面（多处共用）","aliases":["加号 · 实心"],"sections":["一些其它界面（多处共用）"]},{"title":"视频号视频点赞","file":"icons_outlined_channels_good@3x.png","section":"视频号页面及相关","aliases":["视频号视频点赞"],"sections":["视频号页面及相关"]},{"title":"便签 · 实心","file":"note_filled@3x.png","section":"一些其它界面（多处共用）","aliases":["便签 · 实心"],"sections":["一些其它界面（多处共用）"]},{"title":"视频号视频点赞后","file":"icons_filled_channels_good@3x.png","section":"视频号页面及相关","aliases":["视频号视频点赞后"],"sections":["视频号页面及相关"]},{"title":"位置未钉（check_mark_regular）","file":"check_mark_regular@3x.png","section":"一些其它界面（多处共用）","aliases":["位置未钉（check_mark_regular）"],"sections":["一些其它界面（多处共用）"]},{"title":"视频号视频分享","file":"icons_outlined_channels_share@3x.png","section":"视频号页面及相关","aliases":["视频号视频分享"],"sections":["视频号页面及相关"]},{"title":"位置未钉（doc_regular）","file":"doc_regular@3x.png","section":"一些其它界面（多处共用）","aliases":["位置未钉（doc_regular）"],"sections":["一些其它界面（多处共用）"]},{"title":"视频号视频爱心","file":"icons_outlined_channels_like@3x.png","section":"视频号页面及相关","aliases":["视频号视频爱心"],"sections":["视频号页面及相关"]},{"title":"位置未钉（empty_album_music）","file":"empty_album_music@3x.png","section":"一些其它界面（多处共用）","aliases":["位置未钉（empty_album_music）"],"sections":["一些其它界面（多处共用）"]},{"title":"视频号视频爱心点击后","file":"icons_filled_like_finder@3x.png","section":"视频号页面及相关","aliases":["视频号视频爱心点击后"],"sections":["视频号页面及相关"]},{"title":"位置未钉（icons_filled_sns）","file":"icons_filled_sns@3x.png","section":"一些其它界面（多处共用）","aliases":["位置未钉（icons_filled_sns）"],"sections":["一些其它界面（多处共用）"]},{"title":"视频号视频最下方评论","file":"icons_outlined_channels_comment@3x.png","section":"视频号页面及相关","aliases":["视频号视频最下方评论"],"sections":["视频号页面及相关"]},{"title":"设为状态","file":"icons_filled_state@3x.png","section":"视频号页面及相关","aliases":["设为状态"],"sections":["视频号页面及相关"]},{"title":"自动上滑","file":"icons_outlined_autoplay_next_on@3x.png","section":"视频号页面及相关","aliases":["自动上滑"],"sections":["视频号页面及相关"]},{"title":"帮他上热门","file":"icons_outlined_double_fire@3x.png","section":"视频号页面及相关","aliases":["帮他上热门"],"sections":["视频号页面及相关"]},{"title":"投屏","file":"airplay_filled@3x.png","section":"视频号页面及相关","aliases":["投屏"],"sections":["视频号页面及相关"]},{"title":"倍速播放","file":"icons_outlined_play_quickly2@3x.png","section":"视频号页面及相关","aliases":["倍速播放"],"sections":["视频号页面及相关"]},{"title":"不感兴趣","file":"icons_outlined_channels_like_off@3x.png","section":"视频号页面及相关","aliases":["不感兴趣"],"sections":["视频号页面及相关"]},{"title":"视频号主页上方朋友选中状态爱心","file":"icons_outlined_channels_like_thick@3x.png","section":"视频号页面及相关","aliases":["视频号主页上方朋友选中状态爱心"],"sections":["视频号页面及相关"]},{"title":"视频号横屏播放","file":"icons_outlined_channels_turn@3x.png","section":"视频号页面及相关","aliases":["视频号横屏播放"],"sections":["视频号页面及相关"]},{"title":"视频号封面视频播放符号","file":"icons_filled_sight_play@3x.png","section":"视频号页面及相关","aliases":["视频号封面视频播放符号"],"sections":["视频号页面及相关"]},{"title":"视频号视频点进去播放符号","file":"icons_filled_play3@3x.png","section":"视频号页面及相关","aliases":["视频号视频点进去播放符号"],"sections":["视频号页面及相关"]},{"title":"个人视频号视频权限","file":"icons_finder_comment_limit_regular@3x.png","section":"视频号页面及相关","aliases":["个人视频号视频权限"],"sections":["视频号页面及相关"]},{"title":"拍摄页闪光灯 · 开","file":"icons_filled_flash_on@3x.png","section":"拍摄 / 相册","aliases":["拍摄页闪光灯 · 开"],"sections":["拍摄 / 相册"]},{"title":"小程序右上角胶囊 · 更多（···）","file":"weapp_capsule_more@3x.png","section":"小程序","aliases":["小程序右上角胶囊 · 更多（···）"],"sections":["小程序"]},{"title":"拍摄页闪光灯 · 关","file":"icons_filled_flash_off@3x.png","section":"拍摄 / 相册","aliases":["拍摄页闪光灯 · 关"],"sections":["拍摄 / 相册"]},{"title":"小程序右上角胶囊 · 关闭","file":"weapp_capsule_exit@3x.png","section":"小程序","aliases":["小程序右上角胶囊 · 关闭"],"sections":["小程序"]},{"title":"拍摄页切换前后摄像头","file":"icons_filled_switch@3x.png","section":"拍摄 / 相册","aliases":["拍摄页切换前后摄像头"],"sections":["拍摄 / 相册"]},{"title":"小程序默认图标","file":"Miniprogram_Icon_Default@3x.png","section":"小程序","aliases":["小程序默认图标"],"sections":["小程序"]},{"title":"拍摄对焦框亮度（太阳）","file":"icons_filled_sun@3x.png","section":"拍摄 / 相册","aliases":["拍摄对焦框亮度（太阳）"],"sections":["拍摄 / 相册"]},{"title":"小程序默认图标（夜间）","file":"Miniprogram_Icon_DefaultDM@3x.png","section":"小程序","aliases":["小程序默认图标（夜间）"],"sections":["小程序"]},{"title":"相册选图 · 从 iCloud 下载中","file":"icons_outlined_icloud@3x.png","section":"拍摄 / 相册","aliases":["相册选图 · 从 iCloud 下载中"],"sections":["拍摄 / 相册"]},{"title":"首页下拉小程序面板 · 搜索","file":"icons_filled_new_search@3x.png","section":"小程序","aliases":["首页下拉小程序面板 · 搜索"],"sections":["小程序"]}]
+// 底栏分为 LiquidUI 与原版微信两个分类；各自上传一次，选中版自动生成
+const tabSets=[
+  ['LiquidUI 底栏微信','lui_tab_main_regular@3x.png','lui_tab_main_filled@3x.png','liquidui'],
+  ['底栏微信','bubble_circle_regular@3x.png','bubble_circle_filled@3x.png','wechat'],
+  ['LiquidUI 底栏通讯录','lui_tab_contacts_regular@3x.png','lui_tab_contacts_filled@3x.png','liquidui'],
+  ['底栏通讯录','person_list_regular@3x.png','person_list_filled@3x.png','wechat'],
+  ['LiquidUI 底栏发现','lui_tab_discover_regular@3x.png','lui_tab_discover_filled@3x.png','liquidui'],
+  ['底栏发现','discover_regular@3x.png','discover_filled@3x.png','wechat'],
+  ['LiquidUI 底栏我的','lui_tab_me_regular@3x.png','lui_tab_me_filled@3x.png','liquidui'],
+  ['底栏我的','person_regular@3x.png','person_filled@3x.png','wechat']
+];
+for(const [title,normal,selected,category] of tabSets){
+  const idxs=items.map((x,i)=>[normal,selected].includes(x.file)?i:-1).filter(i=>i>=0);
+  if(!idxs.length) continue;
+  const first=idxs[0];
+  items[first]={...items[first],title,file:normal,files:[normal],selectedFiles:[selected],category};
+  for(let k=idxs.length-1;k>=1;k--) items.splice(idxs[k],1);
+}
+// 原生微信分类中隐藏这 4 个底栏上传卡片；数据仍保留并参与同名同步、补全和 ZIP 导出。
+const hiddenWechatTitles=new Set(['底栏微信','底栏通讯录','底栏发现','底栏我的']);
+items.forEach(it=>{
+  if(it.category==='wechat' && hiddenWechatTitles.has(String(it.title||'').replace(/^LiquidUI\s*/i,'').trim())){
+    it.hiddenFromUI=true;
+  }
+});
+// 自动分类：lui_ / LiquidUI 自定义资源归 LiquidUI，其余为微信原版资源
+items.forEach(it=>{
+  if(it.category) return;
+  const fs=[...(it.files||[it.file]),...(it.selectedFiles||[])];
+  const hasLui=fs.some(n=>/^lui_/i.test(n)) || /LiquidUI/i.test(it.section||'') || /LiquidUI/i.test(it.title||'');
+  it.category=hasLui?'liquidui':'wechat';
+});
+const extraNamingRules=[{"file":"tabbar_main.png","targetFile":"lui_tab_main_regular@3x.png","mode":"normal","titles":["底栏微信"]},{"file":"tabbar_mainHL.png","targetFile":"lui_tab_main_regular@3x.png","mode":"selected","titles":["底栏微信选中"]},{"file":"tabbar_contacts.png","targetFile":"lui_tab_contacts_regular@3x.png","mode":"normal","titles":["底栏通讯录"]},{"file":"tabbar_contactsHL.png","targetFile":"lui_tab_contacts_regular@3x.png","mode":"selected","titles":["底栏通讯录选中"]},{"file":"tabbar_discover.png","targetFile":"lui_tab_discover_regular@3x.png","mode":"normal","titles":["底栏发现页"]},{"file":"tabbar_discoverHL.png","targetFile":"lui_tab_discover_regular@3x.png","mode":"selected","titles":["底栏发现页"]},{"file":"tabbar_me.png","targetFile":"lui_tab_me_regular@3x.png","mode":"normal","titles":["底栏我的"]},{"file":"tabbar_meHL.png","targetFile":"lui_tab_me_regular@3x.png","mode":"selected","titles":["底栏我的选中"]},{"file":"enterprisewechat_filled_colorful@3x.png","targetFile":"icons_filled_contacts@3x.png","mode":"normal","titles":["企业微信联系人"]},{"file":"add_friend_icon_scanqr@3x.png","targetFile":"scan_regular@3x.png","mode":"normal","titles":["扫一扫"]},{"file":"add_friend_icon_contacts@3x.png","targetFile":"phone_rectangle_regular@3x.png","mode":"normal","titles":["手机联系人"]},{"file":"add_friend_icon_addgroup@3x.png","targetFile":"person_2_regular@3x.png","mode":"normal","titles":["面对面建群","群聊图标"]},{"file":"add_friend_icon_offical@3x.png","targetFile":"person_tie_regular@3x.png","mode":"normal","titles":["公众号","公众号图标"]},{"file":"icons_filled_circle_delete@3x.png","targetFile":"eyes_off_filled@3x.png","mode":"normal","titles":["清理会话"]},{"file":"MoreFunctionFrame@3x.png","targetFile":null,"mode":"normal","titles":["快捷栏背景图片"]},{"file":"plugins_FriendNotify@3x.png","targetFile":null,"mode":"normal","titles":["新的朋友"]},{"file":"Contact_Chatonlyfriends@3x.png","targetFile":null,"mode":"normal","titles":["仅聊天的朋友"]},{"file":"add_friend_icon_brand_service@3x.png","targetFile":"person_tie_filled@3x.png","mode":"normal","titles":["服务号图标"]},{"file":"Contact_icon_ContactTag@3x.png","targetFile":null,"mode":"normal","titles":["标签图标"]},{"file":"openimbrand@3x.png","targetFile":"icons_filled_contacts@3x.png","mode":"normal","titles":["企业微信联系人"]},{"file":"WeChat_Lab_Logo_light_small@3x.png","targetFile":"lui_me_plugins@3x.png","mode":"normal","titles":["老猫收纳插件图标"]},{"file":"WeChat_Lab_Logo@3x.png","targetFile":"lui_me_plugins@3x.png","mode":"normal","titles":["老猫收纳插件内logo"]},{"file":"dt_icon@3x.png","targetFile":null,"mode":"normal","titles":["老猫斗图助手斗图标"]},{"file":"msg_tip_bg@3x.png  尺寸375*120","targetFile":null,"mode":"normal","titles":["群消息999+弹窗背景图片"]},{"file":"miss_read_Arrow@3x.png","targetFile":null,"mode":"normal","titles":["净化回到引用位置向下箭头"]},{"file":"Action_Moments@3x.png","targetFile":"icons_outlined_colorful_moment@3x.png","mode":"normal","titles":["点开链接更多-分享到朋友圈"]},{"file":"favorites_filled_colorful@3x.png","targetFile":"favorites_filled@3x.png","mode":"normal","titles":["点开链接-更多-收藏"]},{"file":"AS_Email@3x.png","targetFile":"email_regular@3x.png","mode":"normal","titles":["点开链接-更多-邮件"]},{"file":"weapp_more_darkmode@3x.png","targetFile":null,"mode":"normal","titles":["点开链接-更多-更多打开方式"]},{"file":"weapp_icon_debug@3x.png","targetFile":null,"mode":"normal","titles":["点开链接-更多-打开调试"]},{"file":"weapp_corner_icon_light@3x.png","targetFile":"icons_outlined_miniprogram@3x.png","mode":"normal","titles":["点开链接-更多-在小程序工具中打开"]},{"file":"weapp_menu_add_to_desktop@3x.png","targetFile":"icons_outlined_miniprogram@3x.png","mode":"normal","titles":["点开小程序-更多-添加到桌面"]},{"file":"weapp_icon_growguard@3x.png","targetFile":"icons_outlined_miniprogram@3x.png","mode":"normal","titles":["点开小程序-更多-成长守护防沉迷"]},{"file":"weapp_icon_star@3x.png","targetFile":"icons_outlined_miniprogram@3x.png","mode":"normal","titles":["点开小程序-更多-添加到我的小程序"]},{"file":"weapp_icon_unstar@3x.png","targetFile":"icons_outlined_miniprogram@3x.png","mode":"normal","titles":["点开小程序-更多-从我的小程序移除"]},{"file":"Payloading_01@3x.png","targetFile":null,"mode":"normal","titles":["转账和红包下方过渡动画"]},{"file":"Payloading_02@3x.png","targetFile":null,"mode":"normal","titles":["转账和红包下方过渡动画"]},{"file":"Payloading_03@3x.png","targetFile":null,"mode":"normal","titles":["转账和红包下方过渡动画"]},{"file":"icons_outlined_close_8@3x.png","targetFile":null,"mode":"normal","titles":["发送语音时取消发送"]},{"file":"icons_outlined_text_8@3x.png","targetFile":"icon_filled_convert_to_text_off@3x.png","mode":"normal","titles":["发送语音时转文字"]},{"file":"Icons_filled_voice1@3x.png","targetFile":"voice_circle_filled@3x.png","mode":"normal","titles":["选中转文字时发送原语音"]},{"file":"ui-resources_checkbox_selected_fill@3x.png","targetFile":null,"mode":"normal","titles":["工具栏发送照片时选择原图选中状态"]},{"file":"ui-resources_checkbox_checked@3x.png","targetFile":null,"mode":"normal","titles":["pkc照片加密选中状态"]},{"file":"ui-resources_checkbox_unchecked@3x.png","targetFile":null,"mode":"normal","titles":["pkc照片加密未选中状态"]},{"file":"ChatRoom_Bubble_HB_Overtime_Sender@3x.png","targetFile":"icons_filled_red_envelope@3x.png","mode":"normal","titles":["对方红包气泡已领取或已过期暗面"]},{"file":"ChatRoom_Bubble_Overtime_Sender_Light@3x.png","targetFile":"icons_filled_red_envelope@3x.png","mode":"normal","titles":["对方红包气泡已领取或已过期暗面"]},{"file":"ChatRoom_Bubble_HB_Sender_Handled@3x.png","targetFile":"icons_filled_red_envelope@3x.png","mode":"normal","titles":["对方红包气泡已领取或已过期暗面"]},{"file":"ChatRoom_Bubble_AA_Sender_Handled@3x.png","targetFile":"icons_filled_red_envelope@3x.png","mode":"normal","titles":["对方红包气泡已领取或已过期暗面"]},{"file":"ChatRoom_Bubble_AA_Sender@3x.png","targetFile":"icons_filled_red_envelope@3x.png","mode":"normal","titles":["对方红包已未领取状态亮面"]},{"file":"ChatRoom_Bubble_HB_Sender@3x.png","targetFile":"icons_filled_red_envelope@3x.png","mode":"normal","titles":["对方红包已未领取状态亮面"]},{"file":"ChatRoom_Bubble_AA_Receiver_Handled@3x.png","targetFile":"icons_filled_red_envelope@3x.png","mode":"normal","titles":["我方红包气泡已领取或已过期暗面"]},{"file":"ChatRoom_Bubble_HB_Receiver_Handled@3x.png","targetFile":"icons_filled_red_envelope@3x.png","mode":"normal","titles":["我方红包气泡已领取或已过期暗面"]},{"file":"ChatRoom_Bubble_Overtime_Receiver_Light@3x.png","targetFile":"icons_filled_red_envelope@3x.png","mode":"normal","titles":["我方红包气泡已领取或已过期暗面"]},{"file":"ChatRoom_Bubble_HB_Overtime_Receiver@3x.png","targetFile":"icons_filled_red_envelope@3x.png","mode":"normal","titles":["我方红包气泡已领取或已过期暗面"]},{"file":"ChatRoom_Bubble_AA_Receiver@3x.png","targetFile":"icons_filled_red_envelope@3x.png","mode":"normal","titles":["我方红包已未领取状态亮面"]},{"file":"ChatRoom_Bubble_HB_Receiver@3x.png","targetFile":"icons_filled_red_envelope@3x.png","mode":"normal","titles":["我方红包已未领取状态亮面"]},{"file":"LuckyMoney_RoundBtnDisable@3x.png","targetFile":"icons_filled_red_envelope@3x.png","mode":"normal","titles":["发红包时红包封面上（开）按钮"]},{"file":"c2c_overtime_icon@3x.png","targetFile":"icons_filled_red_envelope@3x.png","mode":"normal","titles":["转账过期红包封面上感叹号"]},{"file":"c2c_rejected_icon@3x.png","targetFile":"icons_filled_red_envelope@3x.png","mode":"normal","titles":["红包封面上向右箭头"]},{"file":"redenvelope_handled@3x.png","targetFile":"icons_filled_red_envelope@3x.png","mode":"normal","titles":["私聊群聊红包已领取红包符号"]},{"file":"c2c_hongbao_icon_cn@3x.png","targetFile":"icons_filled_red_envelope@3x.png","mode":"normal","titles":["普通红包气泡上未领取红包符号"]},{"file":"c2c_received_icon@3x.png","targetFile":"transfer_filled@3x.png","mode":"normal","titles":["转账已接收气泡上方√号"]},{"file":"c2c_cancle_icon@3x.png","targetFile":"transfer_filled@3x.png","mode":"normal","titles":["转账已被退还返回符号"]},{"file":"c2c_transfer_icon@3x.png","targetFile":"transfer_filled@3x.png","mode":"normal","titles":["转账气泡上面双向箭头符号"]},{"file":"icon_voice_playing1@3x.png","targetFile":"icons_outlined_call_end@3x.png","mode":"normal","titles":["语音消息气泡上面符号1"]},{"file":"icon_voice_playing2@3x.png","targetFile":"icons_outlined_call_end@3x.png","mode":"normal","titles":["语音消息气泡上面符号2"]},{"file":"icon_voice_playing3@3x.png","targetFile":"icons_outlined_call_end@3x.png","mode":"normal","titles":["语音消息气泡上面符号3"]},{"file":"ChatRoom_Bubble_Gift_Sender_Handled@3x.png","targetFile":"gift_filled_icon@3x.png","mode":"normal","titles":["礼物气泡"]},{"file":"ChatRoom_Bubble_Gift_Sender@3x.png","targetFile":"gift_filled_icon@3x.png","mode":"normal","titles":["礼物气泡"]},{"file":"ChatRoom_Bubble_Gift_Receiver_Handled@3x.png","targetFile":"gift_filled_icon@3x.png","mode":"normal","titles":["礼物气泡"]},{"file":"ChatRoom_Bubble_Gift_Receiver@3x.png","targetFile":"gift_filled_icon@3x.png","mode":"normal","titles":["礼物气泡"]},{"file":"icons_multitalk_scroll@3x.png","targetFile":null,"mode":"normal","titles":["复用","换行同复用"]},{"file":"expression@3x.png","targetFile":null,"mode":"normal","titles":["净化小丑","净化转发同小丑"]},{"file":"wcpay_records.svg","targetFile":"icons_filled_filter@3x.png","mode":"normal","titles":["misaka备忘录"]},{"file":"icons_filled_channels_recommend_group@3x.png","targetFile":"icons_filled_setting@3x.png","mode":"normal","titles":["黄白助手还原"]},{"file":"icons_outlined_table@3x.png","targetFile":null,"mode":"normal","titles":["编辑文字"]},{"file":"icons_filled_AddSticker@3x.png","targetFile":"smile_regular@3x.png","mode":"normal","titles":["长按图片添加至表情长按表情添加"]},{"file":"icons_red_story_volume_off@3x.png","targetFile":"volume_off_filled@3x.png","mode":"normal","titles":["视频静音播放"]},{"file":"ad_finder_link_icon@3x.png","targetFile":null,"mode":"normal","titles":["PKC密图密视转发","pkc解图"]},{"file":"icons_filled_retransmission@3x.png","targetFile":null,"mode":"normal","titles":["pkc解密","随机小姐姐"]},{"file":"icons_regualr_note_2@3x.png","targetFile":null,"mode":"normal","titles":["pkc语音转MP3"]},{"file":"icons_filled_effects@3x.png","targetFile":"icons_filled_filter@3x.png","mode":"normal","titles":["misaka"]},{"file":"icons_outlined_emoji_ani@3x.png","targetFile":"icons_filled_chats@3x.png","mode":"normal","titles":["Ai回复"]},{"file":"icons_outlined_like_1@3x.png","targetFile":"heart_regular@3x.png","mode":"normal","titles":["朋友圈点赞后爱心按钮"]},{"file":"AlbumReflashIcon@3x.png","targetFile":"refresh_regular@3x.png","mode":"normal","titles":["朋友圈下拉刷新图标"]},{"file":"icons_finder_minimize@3x.png","targetFile":null,"mode":"normal","titles":["语音视频电话时左上角缩小"]},{"file":"icons_outlined_channels_bulletscreen_open@3x.png","targetFile":"icons_outlined_channels_comment@3x.png","mode":"normal","titles":["视频号视频下面评论"]},{"file":"icon_color_momentcover@3x.png","targetFile":"lui_moments_qz_cover@3x.png","mode":"normal","titles":["视频号设为朋友圈封面"]},{"file":"icons_outlined_channels_bulletscreen_off@3x.png","targetFile":null,"mode":"normal","titles":["不看弹幕"]},{"file":"icons_outlined_channels_bulletscreen_on@3x.png","targetFile":null,"mode":"normal","titles":["显示弹幕"]},{"file":"finder_colorring@3x.png","targetFile":null,"mode":"normal","titles":["设为来电铃声"]},{"file":"icon_finder_pat_music@3x.png","targetFile":"icon_music_filled@3x.png","mode":"normal","titles":["视频号背景声音"]},{"file":"icons_filled_channel@3x","targetFile":"icons_outlined_finder@3x.png","mode":"normal","titles":["视频号封面up主前面符号"]},{"file":"icons_outline_author_copyid@3x.pmg","targetFile":"icons_outlined_finder@3x.png","mode":"normal","titles":["个人视频号复制视频id"]},{"file":"fileicon_zip_icon@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件zip图标命名"]},{"file":"fileicon_pdf_icon@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件PDF图标命名"]},{"file":"fileicon_excel_icon@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件Excel图标命名"]},{"file":"fileicon_word_icon@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件word图标命名"]},{"file":"fileicon_txt_icon@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件txt图标命名"]},{"file":"fileicon_music_icon@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件音乐图标命名"]},{"file":"fileicon_photo_icon_light@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件图像图标命名"]},{"file":"fileicon_ofd_icon@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件ofd图标命名"]},{"file":"fileicon_voice_icon_light@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件MP3图标命名"]},{"file":"fileicon_video_icon_light@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件视频图标命名"]},{"file":"fileicon_unknown_icon_light@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件视未知命名"]}];
+let extraFillApplied=false;
+const chosen=new Map();
+const excluded=new Set(); // 用户点 × 后，本次导出不包含这些图标；再次手动上传可恢复
+const list=document.getElementById('list');
+let activeCategory='liquidui';
+// LiquidUI 与原版微信通用同名联动：两个分类里只要显示标题相同，任意一边上传，另一边自动同步同一张图片。
+// 例如“底栏微信”“底栏通讯录”，以及以后新增的其它同名图标，都无需再单独写同步规则。
+function syncTitleKey(title){
+  return String(title||'')
+    .replace(/^LiquidUI\s*/i,'')
+    .replace(/\s+/g,'')
+    .trim()
+    .toLowerCase();
+}
+const titleGroups=new Map();
+items.forEach((it,i)=>{
+  const key=syncTitleKey(it.title);
+  if(!key) return;
+  if(!titleGroups.has(key)) titleGroups.set(key,[]);
+  titleGroups.get(key).push(i);
+});
+const sameNameSyncMap=new Map();
+for(const idxs of titleGroups.values()){
+  const cats=new Set(idxs.map(i=>items[i].category));
+  if(!cats.has('liquidui') || !cats.has('wechat')) continue;
+  for(const i of idxs){
+    const peers=idxs.filter(j=>j!==i && items[j].category!==items[i].category);
+    if(peers.length) sameNameSyncMap.set(i,peers);
+  }
+}
+function setChosenWithSync(i,f){
+  chosen.set(i,f);
+  excluded.delete(i);
+  const peers=sameNameSyncMap.get(i)||[];
+  peers.forEach(j=>{chosen.set(j,f);excluded.delete(j)});
+  return peers.length;
+}
+function removeChosenWithSync(i){
+  const targets=[i,...(sameNameSyncMap.get(i)||[])];
+  targets.forEach(j=>{chosen.delete(j);excluded.add(j)});
+  renderList();
+  updateStatus();
+}
+document.getElementById('count').textContent='共 '+items.filter(x=>!x.hiddenFromUI).length+' 个上传项';
+function normalizeSearchText(v){
+  return String(v??'').toLowerCase()
+    .normalize('NFKC')
+    .replace(/[^\p{L}\p{N}]+/gu,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+function itemSearchText(it){
+  return normalizeSearchText([
+    it.title,it.file,it.section,
+    ...(it.aliases||[]),...(it.sections||[]),
+    ...(it.files||[]),...(it.selectedFiles||[])
+  ].filter(Boolean).join(' '));
+}
+function itemMatchesQuery(it,q){
+  const tokens=normalizeSearchText(q).split(' ').filter(Boolean);
+  if(!tokens.length)return true;
+  const hay=itemSearchText(it);
+  return tokens.every(t=>hay.includes(t));
+}
+function renderList(){
+  list.innerHTML='';
+  const q=document.getElementById('searchInput')?.value||'';
+  items.forEach((it,i)=>{
+    if(it.category!==activeCategory || it.hiddenFromUI || !itemMatchesQuery(it,q)) return;
+    const c=document.createElement('div');c.className='card'+(excluded.has(i)?' excluded':'');c.dataset.i=i;
+    const removeBtn=chosen.has(i)?`<button type="button" class="removeIcon" data-remove="${i}" aria-label="移除这个图标">×</button>`:'';
+    c.innerHTML=`<div class="title">${it.title.replace(/^LiquidUI\s*/,'')}</div><label class="pick">上传图片<input type="file" accept="image/*" data-i="${i}"></label><div class="preview" id="p${i}"><img><span>已上传</span></div>${removeBtn}`;
+    list.appendChild(c);
+    if(chosen.has(i)) showPreviewOnly(i,chosen.get(i));
+  });
+}
+function showPreviewOnly(i,f){const p=document.getElementById('p'+i);if(!p)return;const img=p.querySelector('img');if(img.dataset.url)URL.revokeObjectURL(img.dataset.url);const u=URL.createObjectURL(f);img.src=u;img.dataset.url=u;p.style.display='flex'}
+function showFile(i,f){
+  setChosenWithSync(i,f);
+  showPreviewOnly(i,f);
+  const peers=sameNameSyncMap.get(i)||[];
+  peers.forEach(j=>showPreviewOnly(j,f));
+  updateStatus()
+}
+function updateStatus(){const total=items.filter(x=>x.category===activeCategory&&!x.hiddenFromUI).length, done=[...chosen.keys()].filter(i=>items[i].category===activeCategory&&!items[i].hiddenFromUI).length;document.getElementById('status').textContent='已上传 '+done+' / '+total+' 项';const live=document.getElementById('liveImported');if(live)live.textContent='当前上传项目：'+chosen.size+' 项'}
+function switchCategory(cat){activeCategory=cat;document.getElementById('tabLui').classList.toggle('active',cat==='liquidui');document.getElementById('tabWechat').classList.toggle('active',cat==='wechat');document.getElementById('sectionTitle').textContent=cat==='liquidui'?'LiquidUI 图标':'原版微信图标';renderList();updateStatus()}
+document.getElementById('tabLui').onclick=()=>switchCategory('liquidui');
+document.getElementById('tabWechat').onclick=()=>switchCategory('wechat');
+list.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.removeIcon');if(!b)return;e.preventDefault();e.stopPropagation();removeChosenWithSync(+b.dataset.remove)});
+list.addEventListener('change',e=>{if(!e.target.matches('input[type=file]'))return;const f=e.target.files&&e.target.files[0];if(!f)return;showFile(+e.target.dataset.i,f);renderList()});
+// 批量导入：按照网页上显示的中文标题 / 关键词自动匹配，而不是要求图片使用内部资源文件名。
+function importKeywordNormalize(v){
+  return String(v||'')
+    .replace(/\.[a-z0-9]{1,8}$/i,'')
+    .replace(/liquid\s*ui/ig,'')
+    .replace(/\blui\b/ig,'')
+    .replace(/@\d+x/ig,'')
+    .replace(/[「」『』【】\[\]（）()<>《》·•—–_\-+.,，。:：;；'\"“”‘’/\\|\s]/g,'')
+    .toLowerCase();
+}
+function itemImportKeywords(it){
+  // 批量导入关键词严格来自网页卡片当前显示的标题。
+  // LiquidUI 前缀在网页卡片里不会显示，因此匹配时也去掉。
+  const visibleTitle=String(it.title||'').replace(/^LiquidUI\s*/,'').trim();
+  const k=importKeywordNormalize(visibleTitle);
+  return k?[k]:[];
+}
+function longestCommonSubstringLen(a,b){
+  if(!a||!b)return 0;
+  const dp=new Array(b.length+1).fill(0);
+  let best=0;
+  for(let i=1;i<=a.length;i++){
+    let prev=0;
+    for(let j=1;j<=b.length;j++){
+      const old=dp[j];
+      if(a[i-1]===b[j-1]){
+        dp[j]=prev+1;
+        if(dp[j]>best)best=dp[j];
+      }else dp[j]=0;
+      prev=old;
+    }
+  }
+  return best;
+}
+function findItemByWebKeyword(filename){
+  const stem=importKeywordNormalize(filename);
+  // 模糊关键词至少 2 个字；1 个字直接不参与匹配，避免误导入。
+  if(!stem || stem.length<2) return {index:-1,ambiguous:false,tooShort:true};
+  const scored=[];
+  items.forEach((it,i)=>{
+    for(const k of itemImportKeywords(it)){
+      if(!k || k.length<2) continue;
+      let score=0;
+      let fuzzy=0;
+      if(stem===k) score=20000+k.length;
+      else if(stem.includes(k)) score=15000+k.length;
+      else if(k.includes(stem)) score=12000+stem.length;
+      else {
+        fuzzy=longestCommonSubstringLen(stem,k);
+        if(fuzzy>=2) score=5000+fuzzy*100-Math.abs(stem.length-k.length);
+      }
+      if(score) scored.push({i,score,k,fuzzy});
+    }
+  });
+  if(!scored.length) return {index:-1,ambiguous:false,tooShort:false};
+  scored.sort((a,b)=>b.score-a.score || b.k.length-a.k.length || a.i-b.i);
+  const best=scored[0];
+  const tied=[...new Set(scored.filter(x=>x.score===best.score).map(x=>x.i))];
+  if(tied.length>1){
+    // 同名跨分类优先当前分类，随后由同名联动同步到另一分类。
+    const current=tied.find(i=>items[i].category===activeCategory);
+    if(current!==undefined) return {index:current,ambiguous:false,tooShort:false};
+    return {index:tied[0],ambiguous:false,tooShort:false};
+  }
+  return {index:best.i,ambiguous:false,tooShort:false};
+}
+document.getElementById('batchInput').addEventListener('change',e=>{
+  let n=0,synced=0;
+  const unmatched=[];
+  const tooShort=[];
+  for(const f of e.target.files){
+    const result=findItemByWebKeyword(f.name);
+    const i=result.index;
+    if(i>=0){
+      const before=chosen.size;
+      setChosenWithSync(i,f);
+      n++;
+      synced+=Math.max(0,chosen.size-before-1);
+    }else{
+      if(result.tooShort) tooShort.push(f.name); else unmatched.push(f.name);
+    }
+  }
+  renderList();updateStatus();
+  e.target.value='';
+  if(n){
+    let msg='已按网页标题模糊关键词自动匹配 '+n+' 张图片';
+    if(synced) msg+='，并同步 '+synced+' 个同名对应项';
+    if(unmatched.length){
+      msg+='\n\n未匹配 '+unmatched.length+' 张：\n'+unmatched.slice(0,8).join('\n');
+      if(unmatched.length>8) msg+='\n…还有 '+(unmatched.length-8)+' 张';
+      msg+='\n\n可使用网页标题中的模糊关键词，例如：微信.png、通讯录.png、转账.png；关键词至少 2 个字。';
+    }
+    if(tooShort.length){
+      msg+='\n\n关键词少于 2 个字，已跳过 '+tooShort.length+' 张：\n'+tooShort.slice(0,8).join('\n');
+    }
+    alert(msg);
+  }else{
+    let msg='没有匹配到网页标题关键词。\n\n现在支持模糊关键词，但关键词必须至少 2 个字，例如：\n微信.png\n通讯录.png\n转账.png\n位置.png';
+    if(tooShort.length) msg+='\n\n其中 '+tooShort.length+' 张图片的关键词少于 2 个字，已跳过。';
+    alert(msg);
+  }
+});
+let fillFile=null;
+document.getElementById('fillInput').addEventListener('change',e=>{fillFile=e.target.files&&e.target.files[0]||null;document.getElementById('status').textContent=fillFile?'补全图片已选择：'+fillFile.name:'已上传 '+chosen.size+' 项'});
+document.getElementById('fillBtn').addEventListener('click',()=>{if(!fillFile){alert('请先选择一张“一键补全图片”');return}extraFillApplied=true;let n=0;items.forEach((it,i)=>{if(!chosen.has(i)&&!excluded.has(i)){chosen.set(i,fillFile);n++}});renderList();updateStatus();alert('已同时补全 LiquidUI + 原版微信，共 '+n+' 个空缺图标；没有网页关键词对应的命名规则也会使用这张补全图片'+(excluded.size?'；已排除的图标保持不补全':'') )});
+function applySearch(){renderList()}
+document.getElementById('searchInput')?.addEventListener('input',applySearch);
+const colorFoldBtn=document.getElementById('colorFoldBtn');
+const colorPanel=document.getElementById('colorPanel');
+if(colorFoldBtn&&colorPanel){
+  colorFoldBtn.addEventListener('click',()=>{
+    const open=colorPanel.classList.toggle('open');
+    colorFoldBtn.classList.toggle('open',open);
+    colorFoldBtn.setAttribute('aria-expanded',open?'true':'false');
+  });
+}
+const selectedLightEnabled=document.getElementById('selectedLightEnabled');
+const selectedLightRow=document.getElementById('selectedLightRow');
+function updateSelectedLightState(){selectedLightRow.classList.toggle('disabled',!selectedLightEnabled.checked)}
+selectedLightEnabled.addEventListener('change',updateSelectedLightState);
+updateSelectedLightState();
+const selectedDarkEnabled=document.getElementById('selectedDarkEnabled');
+const selectedDarkRow=document.getElementById('selectedDarkRow');
+function updateSelectedDarkState(){selectedDarkRow.classList.toggle('disabled',!selectedDarkEnabled.checked)}
+selectedDarkEnabled.addEventListener('change',updateSelectedDarkState);
+updateSelectedDarkState();
+const allColorEnabled=document.getElementById('allColorEnabled');
+const allColorRow=document.getElementById('allColorRow');
+function updateAllColorState(){allColorRow.classList.toggle('disabled',!allColorEnabled.checked)}
+allColorEnabled.addEventListener('change',updateAllColorState);
+updateAllColorState();
+renderList();updateStatus();
+function clearAll(){chosen.clear();excluded.clear();fillFile=null;extraFillApplied=false;document.querySelectorAll('input[type=file]').forEach(x=>x.value='');renderList();updateStatus()}
+async function drawToCanvas(file){
+  const url=URL.createObjectURL(file);
+  try{
+    const im=new Image();
+    await new Promise((ok,no)=>{im.onload=ok;im.onerror=no;im.src=url});
+    const size=128,c=document.createElement('canvas');c.width=c.height=size;
+    const x=c.getContext('2d');
+    const sc=Math.min(size/im.width,size/im.height),w=im.width*sc,h=im.height*sc;
+    x.drawImage(im,(size-w)/2,(size-h)/2,w,h);
+    return c;
+  }finally{URL.revokeObjectURL(url)}
+}
+function recolorCanvas(c,hex){
+  const x=c.getContext('2d'),data=x.getImageData(0,0,c.width,c.height);
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  for(let i=0;i<data.data.length;i+=4){
+    if(data.data[i+3]>0){data.data[i]=r;data.data[i+1]=g;data.data[i+2]=b}
+  }
+  x.putImageData(data,0,0);
+  return c;
+}
+function darkenCanvas(c,factor=0.68){
+  const x=c.getContext('2d'),d=x.getImageData(0,0,c.width,c.height);
+  for(let i=0;i<d.data.length;i+=4){
+    if(d.data[i+3]>0){
+      d.data[i]=Math.round(d.data[i]*factor);
+      d.data[i+1]=Math.round(d.data[i+1]*factor);
+      d.data[i+2]=Math.round(d.data[i+2]*factor);
+    }
+  }
+  x.putImageData(d,0,0);
+  return c;
+}
+function invertCanvas(c){
+  const x=c.getContext('2d'),d=x.getImageData(0,0,c.width,c.height);
+  for(let i=0;i<d.data.length;i+=4){
+    if(d.data[i+3]>0){d.data[i]=255-d.data[i];d.data[i+1]=255-d.data[i+1];d.data[i+2]=255-d.data[i+2]}
+  }
+  x.putImageData(d,0,0);
+  return c;
+}
+function canvasBlob(c){return new Promise(ok=>c.toBlob(ok,'image/png'))}
+async function toPng(file){
+  const c=await drawToCanvas(file);
+  if(document.getElementById('allColorEnabled').checked){
+    recolorCanvas(c,document.getElementById('allColor').value||'#222222');
+  }
+  return await canvasBlob(c);
+}
+async function toSelectedPng(file){
+  const c=await drawToCanvas(file);
+  if(document.getElementById('selectedLightEnabled').checked){
+    recolorCanvas(c,document.getElementById('selectedColor').value||'#1677ff');
+  }else{
+    // 未启用自定义浅色时，按之前的规则自动把选中图标加深。
+    darkenCanvas(c,0.68);
+  }
+  return await canvasBlob(c);
+}
+async function toDarkPng(file, selected=false){
+  const c=await drawToCanvas(file);
+  if(selected){
+    if(document.getElementById('selectedDarkEnabled').checked){
+      recolorCanvas(c,document.getElementById('selectedDarkColor').value||'#ffffff');
+      return await canvasBlob(c);
+    }
+    // 深色选中未自定义时：先生成浅色选中效果，再自动反转。
+    if(document.getElementById('selectedLightEnabled').checked){
+      recolorCanvas(c,document.getElementById('selectedColor').value||'#1677ff');
+    }else{
+      darkenCanvas(c,0.68);
+    }
+  }else if(document.getElementById('allColorEnabled').checked){
+    recolorCanvas(c,document.getElementById('allColor').value||'#222222');
+  }
+  invertCanvas(c);
+  return await canvasBlob(c);
+}
+
+async function invertPng(file){const c=await drawToCanvas(file);invertCanvas(c);return await canvasBlob(c)}
+let preparedZipBlob=null;
+function safeZipBaseName(v){
+  let base=(v||'').trim()||'优优LUI图标包';
+  base=base.replace(/[\/:*?"<>|]/g,'_').replace(/\.zip$/i,'');
+  return base||'优优LUI图标包';
+}
+function openShareModal(){
+  const m=document.getElementById('shareModal');
+  const input=document.getElementById('zipNameInput');
+  if(!input.value.trim())input.value='优优LUI图标包';
+  m.classList.add('show');
+  setTimeout(()=>{try{input.focus();input.select()}catch(e){}},80);
+}
+function closeShareModal(){document.getElementById('shareModal').classList.remove('show')}
+document.getElementById('shareModal').addEventListener('click',e=>{if(e.target.id==='shareModal')closeShareModal()});
+
+function findChosenForExtraRule(rule){
+  if(!rule.targetFile) return null;
+  for(const [i,f] of chosen){
+    const it=items[i];
+    const names=[...(it.files||[it.file]),...(it.selectedFiles||[])];
+    if(names.includes(rule.targetFile) && !excluded.has(i)) return {i,f};
+  }
+  return null;
+}
+function addDarkVariantForExtra(zip,name,blob){
+  if(!/@3x\.png$/i.test(name)) return;
+  if(/_dark@3x\.png$/i.test(name) || /darkmode@3x\.png$/i.test(name) || /_light@3x\.png$/i.test(name)) return;
+  const darkName=name.replace(/@3x\.png$/i,'_dark@3x.png');
+  zip.file(darkName,blob);
+}
+
+async function makeZip(btn){
+  if(!chosen.size){alert('请先上传至少一张图片');return}
+  if(!window.JSZip){alert('ZIP组件没有加载成功，请检查网络后刷新页面');return}
+  const oldText=btn?btn.textContent:'导出 ZIP';
+  if(btn){btn.disabled=true;btn.textContent='正在生成…'}
+  document.getElementById('status').textContent='正在生成 ZIP，请稍候…';
+  try{
+    const zip=new JSZip();
+    for(const [i,f] of chosen){
+      const it=items[i];
+      const b=await toPng(f),db=await toDarkPng(f,false);
+      const names=it.files||[it.file];
+      for(const name of names){
+        zip.file(name,b);
+        const darkName=name.replace(/@3x\.png$/i,'_dark@3x.png');
+        if(darkName!==name)zip.file(darkName,db)
+      }
+      if(it.selectedFiles&&it.selectedFiles.length){
+        const sb=await toSelectedPng(f),sdb=await toDarkPng(f,true);
+        for(const name of it.selectedFiles){
+          zip.file(name,sb);
+          const darkName=name.replace(/@3x\.png$/i,'_dark@3x.png');
+          if(darkName!==name)zip.file(darkName,sdb)
+        }
+      }
+    }
+    // 命名规则扩展：不新增上传卡片。能对应现有网页标题的规则复用该卡片图片；其余仅在“双分类补全”后用补全图片生成。
+    for(const rule of extraNamingRules){
+      let src=null;
+      const hit=findChosenForExtraRule(rule);
+      if(hit) src=hit.f;
+      else if(extraFillApplied && fillFile) src=fillFile;
+      if(!src) continue;
+      const selected=rule.mode==='selected';
+      const normalBlob=selected?await toSelectedPng(src):await toPng(src);
+      const darkBlob=selected?await toDarkPng(src,true):await toDarkPng(src,false);
+      zip.file(rule.file,normalBlob);
+      addDarkVariantForExtra(zip,rule.file,darkBlob);
+    }
+    const required=['location_filled@3x.png','location_filled_dark@3x.png','transfer_filled@3x.png','transfer_filled_dark@3x.png'];
+    const missing=required.filter(n=>!zip.file(n));
+    if(missing.length)console.warn('未生成（对应项目未上传/补全）：',missing);
+    preparedZipBlob=await zip.generateAsync({type:'blob'});
+    document.getElementById('status').textContent='ZIP 已生成，可以改名并分享';
+    openShareModal();
+  }catch(err){
+    console.error(err);
+    alert('ZIP 生成失败，请刷新页面后再试');
+    updateStatus();
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent=oldText}
+  }
+}
+async function sharePreparedZip(){
+  if(!preparedZipBlob){alert('ZIP 还没有生成，请先点“导出 ZIP”');return}
+  const base=safeZipBaseName(document.getElementById('zipNameInput').value);
+  const fileName=base+'.zip';
+  const file=new File([preparedZipBlob],fileName,{type:'application/zip'});
+  // IPA 内优先交给原生 iOS 分享菜单，网页版本继续使用 Web Share。
+  if(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.shareZip){
+    try{
+      const reader=new FileReader();
+      reader.onload=function(){
+        const dataUrl=String(reader.result||'');
+        const base64=dataUrl.includes(',')?dataUrl.split(',')[1]:dataUrl;
+        window.webkit.messageHandlers.shareZip.postMessage({fileName:fileName,base64:base64});
+        closeShareModal();
+        document.getElementById('status').textContent='已打开系统分享';
+      };
+      reader.onerror=function(){alert('ZIP 分享准备失败，请重新生成');};
+      reader.readAsDataURL(preparedZipBlob);
+      return;
+    }catch(err){console.warn('原生分享失败，尝试网页分享',err);}
+  }
+  // 第二次点击“分享 ZIP”直接调用系统分享，避免 iPhone 的用户手势权限过期。
+  if(navigator.share && (!navigator.canShare || navigator.canShare({files:[file]}))){
+    try{
+      await navigator.share({files:[file],title:base});
+      closeShareModal();
+      document.getElementById('status').textContent='已打开系统分享';
+      return;
+    }catch(err){
+      if(err && err.name==='AbortError')return;
+      console.warn('系统分享失败，改用保存 ZIP',err);
+    }
+  }
+  const url=URL.createObjectURL(preparedZipBlob);
+  const a=document.createElement('a');
+  a.href=url;a.download=fileName;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1500);
+  closeShareModal();
+  alert('当前浏览器不能直接打开系统分享，已改为保存 ZIP 文件。');
+  document.getElementById('status').textContent='ZIP 已保存';
+}
+</script>
+<script>
+// iPhone/Safari：禁止双击页面内容触发放大，同时保留正常单击操作。
+let __lastTouchEnd=0;
+document.addEventListener('touchend',function(e){
+  const now=Date.now();
+  if(now-__lastTouchEnd<320){e.preventDefault();}
+  __lastTouchEnd=now;
+},{passive:false});
+document.addEventListener('dblclick',function(e){e.preventDefault();},{passive:false});
+
+// App 悬浮底栏导航：三个真正独立页面
+function setAppNavActive(name){
+  document.querySelectorAll('#appBottomNav button').forEach(btn=>btn.classList.toggle('active',btn.dataset.nav===name));
+}
+function escapeRuleHtml(v){
+  return String(v??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+}
+function ruleDescription(it){
+  const places=[...(it.aliases||[]),...(it.sections||[])].map(x=>String(x).trim()).filter(Boolean);
+  const own=String(it.title||'').replace(/^LiquidUI\s*/i,'').trim();
+  const uniq=[...new Set(places.filter(x=>x!==own && x!==it.file))];
+  if(uniq.length) return uniq.join(' · ');
+  return it.section ? '位置：'+it.section : '对应图标位置：'+own;
+}
+function renderRuleReference(){
+  const box=document.getElementById('ruleList'); if(!box)return;
+  const q=document.getElementById('ruleSearch')?.value||'';
+  const source=items.map((it,i)=>({it,i})).filter(x=>!x.it.hiddenFromUI);
+  const filtered=source.filter(({it})=>itemMatchesQuery(it,q));
+  box.innerHTML='';
+  filtered.forEach(({it})=>{
+    const files=[it.file,...(it.files||[]),...(it.selectedFiles||[])].filter(Boolean);
+    const card=document.createElement('div');card.className='ruleCard';
+    card.innerHTML=`<div class="ruleIcon"><span>◫</span></div><div class="ruleText"><div class="ruleName">${escapeRuleHtml(String(it.title||'').replace(/^LiquidUI\\s*/i,''))}</div><div class="ruleFile">${escapeRuleHtml(files.join(' / '))}</div></div>`;
+    box.appendChild(card);
+  });
+}
+document.getElementById('ruleSearch')?.addEventListener('input',renderRuleReference);
+
+function appNavTo(name){
+  document.body.classList.remove('nav-rules','nav-settings');
+  if(name==='rules'){
+    document.body.classList.add('nav-rules');
+    renderRuleReference();
+  }else if(name==='settings'){
+    document.body.classList.add('nav-settings');
+    window.__resetSettingsFolds?.();
+  }
+  setAppNavActive(name);
+  window.__refreshBottomSearch?.();
+  window.scrollTo({top:0,behavior:'instant'});
+}
+renderRuleReference();
+</script>
+
+<div class="nativeInfoPage" id="guideInfoPage" aria-hidden="true">
+  <div class="nativeInfoHeader"><h2>使用说明</h2><button type="button" onclick="closeInfoPage('guide')" aria-label="关闭">×</button></div>
+  <div class="guideCards">
+    <article class="guideCard"><span class="guideIcon">▣</span><div><h3>这个工具有什么用？</h3><p>用于快速制作 LiquidUI / 微信图标替换包。只需按网页标题上传图片，管理器会自动处理对应命名、同名同步、补全、颜色和 ZIP 打包，不需要自己逐个查内部文件名。</p></div></article>
+    <article class="guideCard"><span class="guideIcon">⌕</span><div><h3>关键词批量导入</h3><p>图片文件名使用网页标题中的关键词即可模糊匹配，关键词至少 2 个字。</p></div></article>
+    <article class="guideCard"><span class="guideIcon">◇</span><div><h3>双分类补全</h3><p>用一张补全图片同时填充 LiquidUI 与原版微信中还没有图片的项目。</p></div></article>
+    <article class="guideCard"><span class="guideIcon">↗</span><div><h3>自动联动</h3><p>同一图标对应多个内部命名时，上传一次即可在导出时自动生成相关文件。</p></div></article>
+    <article class="guideCard"><span class="guideIcon">◉</span><div><h3>颜色修改</h3><p>可分别设置浅色选中、深色选中和全部图标颜色；不开启时保留默认处理。</p></div></article>
+    <article class="guideCard"><span class="guideIcon">×</span><div><h3>排除图标</h3><p>补全后不想更换的项目可以点卡片右上角 ×，该项目不会进入本次 ZIP。</p></div></article>
+    <article class="guideCard"><span class="guideIcon">⇧</span><div><h3>导出</h3><p>生成 ZIP 后可改名，再通过 iPhone 系统分享菜单保存或分享。</p></div></article>
+  </div>
+</div>
+<div class="nativeInfoPage" id="logInfoPage" aria-hidden="true">
+  <div class="nativeInfoHeader"><h2>更新日志</h2><button type="button" onclick="closeInfoPage('log')" aria-label="关闭">×</button></div>
+  <div class="logCards">
+    <article class="logCard"><div class="logTitle">Version 1.0.1 <span>当前版本</span></div>
+      <p><b class="add">新增</b> LiquidUI 全局换图标规则页，可按名称、文件名和详细位置查找并上传。</p>
+      <p><b class="add">新增</b> 关键词批量导入、双分类补全、同名项目自动联动与 ZIP 自定义名称分享。</p>
+      <p><b class="add">新增</b> 浅色选中、深色选中及全部图标颜色自定义。</p>
+      <p><b class="opt">优化</b> 设置页仅保留使用说明与更新日志。</p>
+      <p><b class="opt">优化</b> iOS 26+ 使用 UIKit 系统原生 Liquid Glass；不使用 CSS 自绘玻璃。</p>
+      <p><b class="opt">优化</b> iOS 25 及以下自动回退 UIKit 原生 systemMaterial 磨砂。</p>
+      <p><b class="fix">修复</b> 更新日志恢复为独立版本卡片样式，并统一使用说明页面视觉。</p>
+    </article>
+    <article class="logCard"><div class="logTitle">Version 1.0.0</div>
+      <p><b class="add">新增</b> 优优 LUI 图标补全基础功能。</p>
+      <p><b class="add">新增</b> LiquidUI / 原版微信图标上传、补全与 ZIP 导出。</p>
+    </article>
+  </div>
+</div>
+<script>
+function openInfoPage(kind){
+  var el=document.getElementById(kind==='guide'?'guideInfoPage':'logInfoPage');
+  if(!el)return;
+  el.classList.add('show'); el.setAttribute('aria-hidden','false');
+  document.body.classList.add('info-open');
+  try{ window.webkit?.messageHandlers?.infoPage?.postMessage({open:true}); }catch(e){}
+}
+function closeInfoPage(kind){
+  var el=document.getElementById(kind==='guide'?'guideInfoPage':'logInfoPage');
+  if(!el)return;
+  el.classList.remove('show'); el.setAttribute('aria-hidden','true');
+  document.body.classList.remove('info-open');
+  try{ window.webkit?.messageHandlers?.infoPage?.postMessage({open:false}); }catch(e){}
+}
+</script><script id="native-feel-settings-fold-v102">(function(){
+ window.__foldMotionChecks=[];
+ const states=new WeakMap();
+ function sync(){window.__syncNativeCardGlass?.()}
+ function setFold(details,expanded,animate=true){
+   const state=states.get(details);if(!state)return;
+   const from=details.getBoundingClientRect().height;
+   if(state.raf)cancelAnimationFrame(state.raf);
+   state.raf=0;state.expanded=expanded;
+   details.style.setProperty('height',from+'px','important');
+   details.open=true;
+   details.classList.toggle('is-expanded',expanded);
+   const to=state.summary.getBoundingClientRect().height+(expanded?state.body.getBoundingClientRect().height:0);
+   let previous=from,monotonic=true;
+   function finish(){
+     details.open=expanded;details.style.removeProperty('height');
+     details.classList.remove('is-animating');state.raf=0;
+     const finalHeight=details.getBoundingClientRect().height;
+     window.__foldMotionChecks.push({expanded,to,finalHeight,jump:Math.abs(finalHeight-to),monotonic});
+     sync();
+   }
+   if(!animate||matchMedia('(prefers-reduced-motion:reduce)').matches){finish();return}
+   details.classList.add('is-animating');
+   const start=performance.now(),duration=expanded?260:180;
+   function tick(now){
+     const progress=Math.min(1,(now-start)/duration),ease=1-Math.pow(1-progress,3);
+     const height=from+(to-from)*ease;
+     if(expanded?height<previous-0.5:height>previous+0.5)monotonic=false;
+     previous=height;details.style.setProperty('height',height+'px','important');sync();
+     if(progress<1)state.raf=requestAnimationFrame(tick);else finish();
+   }
+   state.raf=requestAnimationFrame(tick);
+ }
+ document.querySelectorAll('.settingsFold').forEach(details=>{
+   const summary=details.querySelector('summary'),body=details.querySelector('.settingsFoldBody');
+   if(!summary||!body)return;
+   states.set(details,{summary,body,expanded:details.open,raf:0});
+   details.classList.toggle('is-expanded',details.open);
+   summary.addEventListener('click',e=>{e.preventDefault();setFold(details,!states.get(details).expanded)});
+ });
+ window.__resetSettingsFolds=()=>document.querySelectorAll('.settingsFold').forEach(d=>setFold(d,false,false));
+ window.__settleSettingsFold=details=>{const state=states.get(details);if(state?.raf)setFold(details,state.expanded,false)};
+ window.__setNativeTabTop=y=>{document.documentElement.style.setProperty('--native-tab-top',y+'px');sync()};
+})();</script><script id="material-toggle-bridge-v102">
+(function(){
+  const key='youyou.cardMaterialMode';
+  const picker=document.getElementById('materialModePicker');
+  const hint=document.getElementById('cardMaterialHint');
+  if(!picker)return;
+  const buttons=[...picker.querySelectorAll('[data-material]')];
+  let mode='liquid';
+  try{
+    const saved=localStorage.getItem(key);
+    mode=saved==='blur'?'blur':'liquid';
+    localStorage.setItem(key,mode);
+    localStorage.removeItem('youyou.cardLiquidGlass');
+  }catch(e){}
+  function apply(value){
+    mode=value==='blur'?'blur':'liquid';
+    document.body.classList.remove('solid-card-mode');
+    document.body.classList.add('native-card-glass');
+    buttons.forEach(b=>{
+      const on=b.dataset.material===mode;
+      b.classList.toggle('active',on);
+      b.setAttribute('aria-checked',on?'true':'false');
+    });
+    if(hint) hint.textContent=mode==='liquid'?'液态玻璃：iOS 26+ UIKit 原生 Liquid Glass':'原生磨砂：UIKit systemMaterial';
+    try{localStorage.setItem(key,mode)}catch(e){}
+    try{window.webkit?.messageHandlers?.materialMode?.postMessage({mode})}catch(e){}
+    if(window.__syncNativeCardGlass)requestAnimationFrame(window.__syncNativeCardGlass);
+  }
+  buttons.forEach(b=>b.addEventListener('click',()=>apply(b.dataset.material)));
+  apply(mode);
+})();
+</script><script id="theme-settings-bridge-v102">(function(){
+ const root=document.documentElement,media=matchMedia('(prefers-color-scheme:dark)');
+ const bg=document.getElementById('appBackgroundColor'),reset=document.getElementById('resetBackgroundColor');
+ const card=document.getElementById('appCardColor'),resetCard=document.getElementById('resetCardColor');
+ const buttonColor=document.getElementById('appButtonColor'),resetButton=document.getElementById('resetButtonColor');
+ const buttons=[...document.querySelectorAll('[data-appearance-mode]')];
+ const key='youyou.theme.appearance';let mode='system';
+ function get(k,fallback){try{return localStorage.getItem(k)||fallback}catch(e){return fallback}}
+ function save(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+ mode=get(key,'system');if(!['system','light','dark'].includes(mode))mode='system';
+ // Migrate former default fills once; retain deliberately customized colors.
+ if(get('youyou.theme.whiteButtonDefaults.v104','')!=='1'){
+   for(const [appearance,oldDefault] of [['light','#F4F2EE'],['dark','#2C2C2E']]){
+     const key='youyou.theme.buttonColor.'+appearance,value=get(key,'');
+     if(value.toUpperCase()===oldDefault)save(key,'#FFFFFF');
+   }
+   save('youyou.theme.whiteButtonDefaults.v104','1');
+ }
+ // Keep existing light customization; dark backgrounds have their own color.
+ const colors={light:{bg:get('youyou.theme.background.light',get('youyou.theme.background','#F4F2EE')),card:get('youyou.theme.cardColor.light',get('youyou.theme.cardColor','#FFFFFF')),button:get('youyou.theme.buttonColor.light','#FFFFFF')},dark:{bg:get('youyou.theme.background.dark','#121214'),card:get('youyou.theme.cardColor.dark','#1C1C1E'),button:get('youyou.theme.buttonColor.dark','#FFFFFF')}};
+ for(const appearance of ['light','dark']){
+   colors[appearance].custom=get('youyou.theme.buttonColor.custom.'+appearance,colors[appearance].button.toUpperCase()==='#FFFFFF'?'0':'1')==='1';
+ }
+ function actionText(hex){const rgb=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255);return rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722>.5?'#202832':'#F2F2F7'}
+ function effective(){return mode==='dark'||(mode==='system'&&media.matches)?'dark':'light'}
+ function send(name,payload){try{window.webkit?.messageHandlers?.[name]?.postMessage(payload)}catch(e){}}
+ function applyColors(){
+   const appearance=effective(),values=colors[appearance];
+   root.dataset.appearance=appearance;root.style.colorScheme=appearance;
+   root.style.setProperty('--app-bg',values.bg,'important');root.style.setProperty('--yy-page',values.bg,'important');
+   root.style.setProperty('--card-color',values.card,'important');root.style.setProperty('--surface',values.card,'important');
+   bg.value=values.bg;card.value=values.card;buttonColor.value=values.button;
+   root.style.setProperty('--home-action-fill',values.button,'important');
+   root.style.setProperty('--home-action-text',actionText(values.button),'important');
+   const blue=values.custom?values.button:'#007AFE',green=values.custom?values.button:'#46D86A';
+   root.style.setProperty('--home-blue-fill',blue,'important');root.style.setProperty('--home-blue-text',actionText(blue),'important');
+   root.style.setProperty('--home-green-fill',green,'important');root.style.setProperty('--home-green-text',actionText(green),'important');
+   document.getElementById('backgroundHint').textContent=appearance==='dark'?'深色背景':'浅色背景';
+   document.getElementById('appearanceHint').textContent={system:'跟随系统外观',light:'始终使用浅色外观',dark:'始终使用深色外观'}[mode];
+   send('themeBackground',{color:values.bg,appearance});send('cardColor',{color:values.card,appearance});send('buttonColor',{color:values.button,appearance});
+   window.__syncNativeCardGlass?.();
+ }
+ function applyMode(value){
+   mode=['light','dark'].includes(value)?value:'system';save(key,mode);
+   buttons.forEach(b=>{const selected=b.dataset.appearanceMode===mode;b.classList.toggle('active',selected);b.setAttribute('aria-checked',String(selected))});
+   send('appearanceMode',{mode});applyColors();
+ }
+ buttons.forEach(b=>b.addEventListener('click',()=>applyMode(b.dataset.appearanceMode)));
+ media.addEventListener('change',()=>{if(mode==='system')applyColors()});
+ bg.addEventListener('input',()=>{const a=effective();colors[a].bg=bg.value;save('youyou.theme.background.'+a,bg.value);applyColors()});
+ card.addEventListener('input',()=>{const a=effective();colors[a].card=card.value;save('youyou.theme.cardColor.'+a,card.value);applyColors()});
+ buttonColor.addEventListener('input',()=>{const a=effective();colors[a].button=buttonColor.value;colors[a].custom=true;save('youyou.theme.buttonColor.custom.'+a,'1');save('youyou.theme.buttonColor.'+a,buttonColor.value);applyColors()});
+ resetButton.addEventListener('click',()=>{const a=effective();colors[a].button='#FFFFFF';colors[a].custom=false;save('youyou.theme.buttonColor.custom.'+a,'0');save('youyou.theme.buttonColor.'+a,colors[a].button);applyColors()});
+ reset.addEventListener('click',()=>{const a=effective();colors[a].bg=a==='dark'?'#121214':'#F4F2EE';save('youyou.theme.background.'+a,colors[a].bg);applyColors()});
+ resetCard.addEventListener('click',()=>{const a=effective();colors[a].card=a==='dark'?'#1C1C1E':'#FFFFFF';save('youyou.theme.cardColor.'+a,colors[a].card);applyColors()});
+ root.style.setProperty('--surface-border','transparent','important');root.style.setProperty('--yy-card-border','transparent','important');
+ try{localStorage.removeItem('youyou.theme.border.enabled');localStorage.removeItem('youyou.theme.border.color')}catch(e){}
+ applyMode(mode);
+})();</script><script id="true-native-card-glass-bridge-v103">
+(function(){
+ const handler=window.webkit?.messageHandlers?.cardGlassRects;if(!handler)return;
+ document.body.classList.add("native-segment-controls");
+ const selector=".inlineVersion,.card,.ruleCard,.settingsFold,.infobox,.ruleSearch,.uploadbox,.modeTabs,.settingsToggleCard,.homePill,.categorytabs,#materialModePicker,#appearanceModePicker,#bottomSearchModePicker,#searchInput,#homeTools .colorrow,.pick";
+ let raf=0,lastPayload="";
+ const nodeKeys=new WeakMap();let nextKey=0;
+ function stableKey(el){
+   if(el.id)return "id:"+el.id;
+   if(el.classList.contains("card")&&el.dataset.i!=null)return "card:"+el.dataset.i;
+   if(el.classList.contains("pick"))return "pick:"+(el.closest(".card")?.dataset.i??nextKey++);
+   if(!nodeKeys.has(el))nodeKeys.set(el,"node:"+nextKey++);
+   return nodeKeys.get(el);
+ }
+ function visibleClip(el,r){
+   const clip={left:r.left,top:r.top,right:r.left+r.width,bottom:r.top+r.height};
+   for(let p=el.parentElement;p&&p!==document.body;p=p.parentElement){
+     // Closed <details> descendants may still report nonzero WebKit rectangles.
+     // A closing animated fold also keeps "open" briefly, but its body is hidden.
+     if(p.tagName==="DETAILS"&&(!p.open||(p.classList.contains("settingsFold")&&!p.classList.contains("is-expanded"))))return null;
+     const cs=getComputedStyle(p);
+     if(cs.display==="none"||cs.visibility==="hidden"||parseFloat(cs.opacity)===0)return null;
+     const pr=p.getBoundingClientRect();
+     if(/hidden|clip|auto|scroll/.test(cs.overflowX||cs.overflow||"")){
+       clip.left=Math.max(clip.left,pr.left);clip.right=Math.min(clip.right,pr.left+pr.width);
+     }
+     if(/hidden|clip|auto|scroll/.test(cs.overflowY||cs.overflow||"")){
+       clip.top=Math.max(clip.top,pr.top);clip.bottom=Math.min(clip.bottom,pr.top+pr.height);
+     }
+   }
+   return clip.right>clip.left&&clip.bottom>clip.top?clip:null;
+ }
+ function sync(){
+   raf=0;
+   const rects=[];
+   document.querySelectorAll(selector).forEach(function(el){
+     const cs=getComputedStyle(el);
+     if(cs.display==="none"||cs.visibility==="hidden"||parseFloat(cs.opacity)===0)return;
+     const r=el.getBoundingClientRect();if(r.width<2||r.height<2)return;
+     const clip=visibleClip(el,r);if(!clip)return;
+     const homeControl=el.matches("#homeTools .batch,#homeTools .fillpick,#homeTools .fill,#homeTools .colorfold,#homeTools .clear,#homeTools .zip");
+     if(homeControl)return; // These six actions are opaque CSS surfaces.
+     const segment=el.classList.contains("categorytabs")?"category":el.id==="materialModePicker"?"material":el.id==="appearanceModePicker"?"appearance":el.id==="bottomSearchModePicker"?"search":null;
+     const buttons=segment?[...el.querySelectorAll("button")]:[];
+     rects.push({
+       key:stableKey(el),x:r.left+scrollX,y:r.top+scrollY,width:r.width,height:r.height,
+       radius:Math.min(parseFloat(cs.borderTopLeftRadius)||0,r.width/2,r.height/2),
+       clipX:clip.left+scrollX,clipY:clip.top+scrollY,clipWidth:clip.right-clip.left,clipHeight:clip.bottom-clip.top,
+       forceLiquid:false,homeControl,segment,
+       selected:segment?Math.max(0,buttons.findIndex(b=>b.classList.contains("active"))):0
+     });
+   });
+   const payload=JSON.stringify(rects);if(payload===lastPayload)return;
+   lastPayload=payload;try{handler.postMessage(rects)}catch(e){}
+ }
+ function req(){if(!raf)raf=requestAnimationFrame(sync)}
+ window.__syncNativeCardGlass=req;
+ // Document coordinates are stable during scroll. UIScrollView moves both layers.
+ addEventListener("resize",req,{passive:true});
+ document.addEventListener("input",req,true);document.addEventListener("change",req,true);
+ document.addEventListener("click",function(){req();setTimeout(req,90);setTimeout(req,220)},true);
+ new MutationObserver(req).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:["class","style","open","hidden"]});
+ if(window.ResizeObserver)new ResizeObserver(req).observe(document.body);
+ if(document.fonts)document.fonts.ready.then(req);
+ req();setTimeout(req,100);setTimeout(req,320);
+})();
+</script><script id="custom-font-import-v102">
+(function(){
+ const input=document.getElementById('customFontFile');
+ const choose=document.getElementById('chooseCustomFont');
+ const reset=document.getElementById('resetCustomFont');
+ const label=document.getElementById('customFontName');
+ if(!input||!choose||!reset||!label||!window.FontFace)return;
+
+ const DB='YouYouLUITheme', STORE='assets', KEY='customFont';
+ function dbOpen(){return new Promise((resolve,reject)=>{const r=indexedDB.open(DB,1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains(STORE))r.result.createObjectStore(STORE)};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
+ async function saveFont(record){const db=await dbOpen();return new Promise((resolve,reject)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).put(record,KEY);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)})}
+ async function loadSaved(){const db=await dbOpen();return new Promise((resolve,reject)=>{const r=db.transaction(STORE).objectStore(STORE).get(KEY);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
+ async function clearSaved(){const db=await dbOpen();return new Promise((resolve,reject)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).delete(KEY);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)})}
+ async function applyFont(buffer,name){
+   try{
+     const old=[...document.fonts].find(f=>f.family==='YouYouCustomFont');if(old)document.fonts.delete(old);
+     const face=new FontFace('YouYouCustomFont',buffer);
+     await face.load();document.fonts.add(face);
+     document.body.classList.add('custom-font-active');
+     label.textContent=name||'已导入自定义字体';
+     const bytes=new Uint8Array(buffer);let raw='';
+     for(let i=0;i<bytes.length;i+=32768)raw+=String.fromCharCode(...bytes.subarray(i,i+32768));
+     window.webkit?.messageHandlers?.themeFont?.postMessage({data:btoa(raw),name:name||''});
+     window.__syncNativeCardGlass?.();
+     return true;
+   }catch(e){alert('字体文件无法读取，请使用 TTF、OTF、WOFF 或 WOFF2 文件。');return false}
+ }
+ choose.addEventListener('click',()=>input.click());
+ input.addEventListener('change',async()=>{
+   const file=input.files&&input.files[0];if(!file)return;
+   const buffer=await file.arrayBuffer();
+   if(await applyFont(buffer,file.name)){
+     try{await saveFont({name:file.name,blob:new Blob([buffer],{type:file.type||'application/octet-stream'})})}catch(e){}
+   }
+   input.value='';
+ });
+ reset.addEventListener('click',async()=>{
+   document.body.classList.remove('custom-font-active');
+   const old=[...document.fonts].find(f=>f.family==='YouYouCustomFont');if(old)document.fonts.delete(old);
+   label.textContent='使用默认字体';
+   window.webkit?.messageHandlers?.themeFont?.postMessage({reset:true});
+   window.__syncNativeCardGlass?.();
+   try{await clearSaved()}catch(e){}
+ });
+ window.__importThemeFontForTest=async(buffer,name)=>{if(await applyFont(buffer,name))await saveFont({name,blob:new Blob([buffer])})};
+ loadSaved().then(async rec=>{if(rec&&rec.blob){const b=await rec.blob.arrayBuffer();await applyFont(b,rec.name)}}).catch(()=>{});
+})();
+</script><script id="bottom-search-bridge-build13">(function(){
+ const key='youyou.theme.bottomSearchEnabled',layoutKey='youyou.theme.bottomSearchLayout',modeKey='youyou.theme.bottomSearchMode';
+ const picker=document.getElementById('bottomSearchModePicker');
+ let mode='off';
+ try{const saved=localStorage.getItem(modeKey);mode=['off','merged','separate'].includes(saved)?saved:localStorage.getItem(key)==='1'?(localStorage.getItem(layoutKey)==='separate'?'separate':'merged'):'off'}catch(e){}
+ const home=document.getElementById('searchInput'),rules=document.getElementById('ruleSearch');
+ const fallback=document.querySelector('#appBottomNav [data-nav="search"]');
+ let enabled=false,settingsQuery='';
+
+ function page(){return document.body.classList.contains('nav-settings')?'settings':document.body.classList.contains('nav-rules')?'rules':'home'}
+ function query(which){return which==='settings'?settingsQuery:(which==='rules'?rules:home).value}
+ function refresh(){
+   const which=page(),q=query(which).trim();
+   document.querySelectorAll('#settingsTarget .settingsFold:not([hidden])').forEach(fold=>{
+     const hide=enabled&&which==='settings'&&q&&!fold.textContent.toLowerCase().includes(q.toLowerCase());
+     if(hide&&!fold.classList.contains('search-hidden'))window.__settleSettingsFold?.(fold);
+     fold.classList.toggle('search-hidden',Boolean(hide));
+   });
+   window.__syncNativeCardGlass?.();
+ }
+ function apply(value){
+   mode=['off','merged','separate'].includes(value)?value:'off';enabled=mode!=='off';
+   picker.querySelectorAll('button').forEach(button=>{const active=button.dataset.bottomSearchMode===mode;button.classList.toggle('active',active);button.setAttribute('aria-checked',String(active))});
+   document.getElementById('bottomSearchModeHint').textContent=mode==='off'?'关闭后使用顶部搜索框':mode==='merged'?'搜索按钮合并到悬浮底栏':'搜索按钮与悬浮底栏分开显示';
+   document.body.classList.toggle('bottom-search-enabled',enabled);
+   fallback.hidden=!enabled;
+   if(!enabled)settingsQuery='';
+   try{localStorage.setItem(modeKey,mode);localStorage.setItem(key,enabled?'1':'0');localStorage.setItem(layoutKey,mode==='separate'?'separate':'merged')}catch(e){}
+   try{window.webkit?.messageHandlers?.bottomSearch?.postMessage({enabled,layout:mode==='separate'?'separate':'merged'})}catch(e){}
+   refresh();
+ }
+ window.__bottomSearchState=()=>{const which=page();return {page:which,query:query(which),placeholder:which==='settings'?'搜索主题、字体或更新日志':which==='rules'?rules.placeholder:home.placeholder}};
+ window.__applyBottomSearch=(value,which=page())=>{
+   if(!enabled)return;
+   const q=String(value??'');
+   if(which==='settings')settingsQuery=q;
+   else{const input=which==='rules'?rules:home;input.value=q;input.dispatchEvent(new Event('input',{bubbles:true}))}
+   refresh();
+   // Remain on current page.
+ };
+ window.__refreshBottomSearch=refresh;
+ window.__openBottomSearch=()=>{
+   const handler=window.webkit?.messageHandlers?.bottomSearch;
+   if(handler)handler.postMessage({open:true});
+   else{const state=window.__bottomSearchState(),q=prompt(state.placeholder,state.query);if(q!==null)window.__applyBottomSearch(q,state.page)}
+ };
+ picker.querySelectorAll('button').forEach(button=>button.addEventListener('click',()=>apply(button.dataset.bottomSearchMode)));
+ window.__setBottomSearchMode=apply;
+ home.addEventListener('input',refresh);rules.addEventListener('input',refresh);
+ apply(mode);
+})();</script></body></html>
+

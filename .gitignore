@@ -1,0 +1,9 @@
+build/
+sim-build/
+output/
+native-check/
+*.p12
+*.mobileprovision
+*.pem
+*.key
+.DS_Store

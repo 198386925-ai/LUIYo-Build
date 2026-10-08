@@ -1,0 +1,871 @@
+import UIKit
+import WebKit
+import CoreText
+
+/// Native material shell.
+/// iOS 26+ uses UIKit Liquid Glass; older systems use UIKit systemMaterial blur.
+/// HTML is content-only and never draws blur/glass itself.
+final class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler, UITabBarDelegate, UITextFieldDelegate {
+    private var webView: WKWebView!
+    private let tabBar = UITabBar()
+    private var pageItems: [UITabBarItem] = []
+    private var bottomSearchEnabled = false
+    private var activePageTag = 0
+    private var separateSearch = false
+    private let separateSearchButton = UIButton(type: .system)
+    private var tabTrailingConstraint: NSLayoutConstraint?
+    private weak var activeSearchAlert: UIAlertController?
+    private var activeSearchPage = "home"
+    private var themeFont: UIFont?
+    private var themeFontData: Data?
+    private var restoredNativeFont = false
+    private var defaultTabAppearance: UITabBarAppearance?
+    private var defaultScrollEdgeAppearance: UITabBarAppearance?
+    private var reportedTabTop: CGFloat = -1
+    private let glassContainer = UIView()
+    private var cardMaterialViews: [String: UIVisualEffectView] = [:]
+    private var cardMaterialHosts: [String: UIView] = [:]
+    private var cardDocumentFrames: [String: CGRect] = [:]
+    private var cardSpecs: [String: [String: Any]] = [:]
+    private var cardOrder: [String] = []
+    private var nativeSegments: [String: UISegmentedControl] = [:]
+    private var nativeSegmentStyles: [String: UIUserInterfaceStyle] = [:]
+    private var nativeSelectedCapsules: [String: UIView] = [:]
+    private var scrollOffsetObservation: NSKeyValueObservation?
+    private enum CardMaterialMode { case liquid, blur }
+    private var cardMaterialMode: CardMaterialMode = .liquid
+    private var cardTintColor: UIColor = .secondarySystemGroupedBackground
+    static let adaptiveBackground = UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 18.0/255.0, green: 18.0/255.0, blue: 20.0/255.0, alpha: 1)
+            : UIColor(red: 244.0/255.0, green: 242.0/255.0, blue: 238.0/255.0, alpha: 1)
+    }
+
+    override func loadView() {
+        let rootView = UIView()
+        // Global default app background: #F4F2EE on every page.
+        rootView.backgroundColor = Self.adaptiveBackground
+
+        // Native host for per-card materials. HTML supplies content only.
+        glassContainer.backgroundColor = .clear
+        glassContainer.isUserInteractionEnabled = false
+        glassContainer.accessibilityElementsHidden = true
+
+        let configuration = WKWebViewConfiguration()
+        configuration.websiteDataStore = .default()
+        configuration.defaultWebpagePreferences.allowsContentJavaScript = true
+        configuration.userContentController.add(self, name: "shareZip")
+        configuration.userContentController.add(self, name: "infoPage")
+        configuration.userContentController.add(self, name: "materialMode")
+        configuration.userContentController.add(self, name: "cardGlassRects")
+        configuration.userContentController.add(self, name: "themeBackground")
+        configuration.userContentController.add(self, name: "cardColor")
+        configuration.userContentController.add(self, name: "buttonColor")
+        configuration.userContentController.add(self, name: "appearanceMode")
+        configuration.userContentController.add(self, name: "themeFont")
+        configuration.userContentController.add(self, name: "bottomSearch")
+
+        let webView = WKWebView(frame: .zero, configuration: configuration)
+        webView.navigationDelegate = self
+        webView.uiDelegate = self
+        webView.allowsBackForwardNavigationGestures = false
+        webView.scrollView.contentInsetAdjustmentBehavior = .never
+        webView.scrollView.keyboardDismissMode = .interactive
+        webView.isOpaque = false
+        webView.backgroundColor = .clear
+        webView.scrollView.backgroundColor = .clear
+        webView.translatesAutoresizingMaskIntoConstraints = false
+        self.webView = webView
+        // Put materials in the SAME scrolling coordinate space as WebKit content.
+        // UIScrollView moves both together, including momentum and rubber-banding.
+        // No per-frame JS/native offset reconciliation is needed.
+        webView.scrollView.insertSubview(glassContainer, at: 0)
+        scrollOffsetObservation = webView.scrollView.observe(\.contentOffset, options: [.new]) { [weak self] _, _ in
+            self?.renderVisibleNativeMaterials()
+        }
+
+        // Standard UIKit UITabBar: when built with the iOS 26 SDK and run on
+        // iOS 26+, the system supplies Liquid Glass. Do not set a custom
+        // background, blur, material or shadow here. Font changes preserve the system appearance.
+        tabBar.delegate = self
+        tabBar.translatesAutoresizingMaskIntoConstraints = false
+        let home = UITabBarItem(title: "首页", image: UIImage(systemName: "house"), selectedImage: UIImage(systemName: "house.fill"))
+        home.tag = 0
+        let rules = UITabBarItem(title: "规则", image: UIImage(systemName: "list.bullet.rectangle"), selectedImage: UIImage(systemName: "list.bullet.rectangle.fill"))
+        rules.tag = 1
+        let settings = UITabBarItem(title: "设置", image: UIImage(systemName: "gearshape"), selectedImage: UIImage(systemName: "gearshape.fill"))
+        settings.tag = 2
+        pageItems = [home, rules, settings]
+        tabBar.items = pageItems
+        tabBar.selectedItem = home
+        defaultTabAppearance = tabBar.standardAppearance.copy() as? UITabBarAppearance
+        defaultScrollEdgeAppearance = tabBar.scrollEdgeAppearance?.copy() as? UITabBarAppearance
+        if let data = try? Data(contentsOf: nativeFontURL), setNativeFont(data) {
+            restoredNativeFont = true
+        }
+
+        rootView.addSubview(webView)
+        rootView.addSubview(tabBar)
+        separateSearchButton.setImage(UIImage(systemName: "magnifyingglass"), for: .normal)
+        separateSearchButton.accessibilityLabel = "搜索当前页面"
+        separateSearchButton.addTarget(self, action: #selector(openSeparateSearch), for: .touchUpInside)
+        separateSearchButton.translatesAutoresizingMaskIntoConstraints = false
+        separateSearchButton.isHidden = true
+        if #available(iOS 26.0, *) {
+            separateSearchButton.configuration = .glass()
+        } else {
+            separateSearchButton.configuration = .tinted()
+        }
+        rootView.addSubview(separateSearchButton)
+        let trailing = tabBar.trailingAnchor.constraint(equalTo: rootView.trailingAnchor)
+        tabTrailingConstraint = trailing
+        NSLayoutConstraint.activate([
+            webView.topAnchor.constraint(equalTo: rootView.topAnchor),
+            webView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor),
+            webView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor),
+            webView.bottomAnchor.constraint(equalTo: rootView.bottomAnchor),
+
+            tabBar.leadingAnchor.constraint(equalTo: rootView.leadingAnchor),
+            trailing,
+            separateSearchButton.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -12),
+            separateSearchButton.bottomAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.bottomAnchor, constant: -3),
+            separateSearchButton.widthAnchor.constraint(equalToConstant: 58),
+            separateSearchButton.heightAnchor.constraint(equalToConstant: 52),
+            tabBar.bottomAnchor.constraint(equalTo: rootView.bottomAnchor)
+        ])
+
+        self.view = rootView
+        separateSearch = UserDefaults.standard.string(forKey: "youyou.bottomSearchLayout") == "separate"
+        setBottomSearchEnabled(UserDefaults.standard.bool(forKey: "youyou.bottomSearchEnabled"))
+        applyAppearance(UserDefaults.standard.string(forKey: "youyou.appearanceMode") ?? "system")
+    }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        guard let webRoot = Bundle.main.url(forResource: "Web", withExtension: nil),
+              let indexURL = Bundle.main.url(forResource: "index", withExtension: "html", subdirectory: "Web") else {
+            showError("内置网页资源缺失")
+            return
+        }
+        webView.loadFileURL(indexURL, allowingReadAccessTo: webRoot)
+    }
+
+    deinit {
+        scrollOffsetObservation?.invalidate()
+        webView?.configuration.userContentController.removeScriptMessageHandler(forName: "shareZip")
+        webView?.configuration.userContentController.removeScriptMessageHandler(forName: "infoPage")
+        webView?.configuration.userContentController.removeScriptMessageHandler(forName: "materialMode")
+        webView?.configuration.userContentController.removeScriptMessageHandler(forName: "cardGlassRects")
+        webView?.configuration.userContentController.removeScriptMessageHandler(forName: "themeBackground")
+        webView?.configuration.userContentController.removeScriptMessageHandler(forName: "cardColor")
+        webView?.configuration.userContentController.removeScriptMessageHandler(forName: "buttonColor")
+        webView?.configuration.userContentController.removeScriptMessageHandler(forName: "appearanceMode")
+        webView?.configuration.userContentController.removeScriptMessageHandler(forName: "themeFont")
+        webView?.configuration.userContentController.removeScriptMessageHandler(forName: "bottomSearch")
+    }
+
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        updateLayoutMetrics(force: true)
+        // CI exercises the same taps, native traits and saved appearance as users.
+        guard let rawScenario = ProcessInfo.processInfo.environment["LUI_SNAPSHOT"] else { return }
+        var scenario = rawScenario.hasPrefix("dark-") ? String(rawScenario.dropFirst(5)) : rawScenario
+        let appearance = scenario.contains("forced-dark-") ? "dark" : (scenario.contains("forced-light-") ? "light" : "system")
+        scenario = scenario.replacingOccurrences(of: "forced-dark-", with: "").replacingOccurrences(of: "forced-light-", with: "")
+        let mode = scenario.contains("blur") ? "blur" : "liquid"
+        let page = scenario.contains("settings") ? "settings" : (scenario.contains("rules") ? "rules" : "home")
+        let log = scenario.contains("log")
+        let folded = scenario.contains("folded")
+        let foldSelector = log ? ".changelogInline" : ".themeBody"
+        var fontTestJS = ""
+        if rawScenario.contains("font-") && !rawScenario.contains("restored") && !rawScenario.contains("reset"),
+           let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first,
+           let data = try? Data(contentsOf: documents.appendingPathComponent("ThemeFontTest.ttf")) {
+            fontTestJS = "setTimeout(()=>window.__importThemeFontForTest(Uint8Array.from(atob('\(data.base64EncodedString())'),c=>c.charCodeAt(0)).buffer,'Arial.ttf'),300);"
+        } else if rawScenario.contains("font-reset") {
+            fontTestJS = "setTimeout(()=>document.getElementById('resetCustomFont').click(),300);"
+        }
+        let js = """
+        \(fontTestJS)
+        document.querySelector('[data-appearance-mode="\(appearance)"]').click();
+        document.querySelector('[data-material="\(mode)"]').click();
+        appNavTo('\(page)');
+        if ('\(page)' === 'settings') {
+            document.querySelector('\(foldSelector)').closest('details').querySelector('summary').click();
+        }
+        if (\(folded)) setTimeout(function(){document.querySelector('.themeFold summary').click();},500);
+        if (\(rawScenario.contains("custom"))) {
+            const bg=document.getElementById('appBackgroundColor');bg.value='#325A70';bg.dispatchEvent(new Event('input'));
+            const card=document.getElementById('appCardColor');card.value=\(rawScenario.hasPrefix("dark-") ? "'#503B48'" : "'#F2C9B0'");card.dispatchEvent(new Event('input'));
+            const color=document.getElementById('appButtonColor');color.value=\(rawScenario.hasPrefix("dark-") ? "'#446078'" : "'#C58C48'");color.dispatchEvent(new Event('input'));
+            if ('\(page)' === 'home') document.querySelectorAll('.categorytabs button')[1].click();
+        }
+        if (\(rawScenario.contains("buttons-reset"))) {
+            const color=document.getElementById('appButtonColor');color.value='#446078';color.dispatchEvent(new Event('input'));
+            document.getElementById('resetButtonColor').click();
+        }
+        if (\(rawScenario.contains("bottom-"))) {
+            setTimeout(()=>{
+                const setSearch=window.__setBottomSearchMode;
+                if (!\(rawScenario.contains("restored"))) {
+                    setSearch('merged');
+                }
+                window.__applyBottomSearch('\(page == "settings" ? "更新日志" : "底栏微信")');
+                if (\(rawScenario.contains("bottom-off-"))) {
+                    window.__applyBottomSearch('');setSearch('off');
+                }
+            },350);
+        }
+        setTimeout(function(){window.__syncNativeCardGlass();},800);
+        if (\(rawScenario.contains("bottom-dialog"))) setTimeout(()=>window.__openBottomSearch(),1400);
+        """
+        webView.evaluateJavaScript(js)
+        tabBar.selectedItem = tabBar.items?[page == "settings" ? 2 : (page == "rules" ? 1 : 0)]
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
+            guard let self else { return }
+            let dark = self.traitCollection.userInterfaceStyle == .dark
+            let expectedDark = appearance == "dark" || (appearance == "system" && rawScenario.hasPrefix("dark-"))
+            let hasPicker = self.cardSpecs["id:materialModePicker"] != nil
+            let styleJS = """
+            (()=>{
+              const rect=id=>document.getElementById(id).getBoundingClientRect();
+              const credits=document.getElementById('settingsCredits'), c=rect('settingsCredits');
+              const folds=[...document.querySelectorAll('.settingsFold:not([hidden])')];
+              const last=folds.at(-1).getBoundingClientRect();
+              return {bottomSearchEnabled:document.body.classList.contains('bottom-search-enabled'),homeSearchHidden:getComputedStyle(document.getElementById('searchInput')).display==='none',ruleSearchHidden:getComputedStyle(document.getElementById('ruleSearch')).display==='none',searchState:window.__bottomSearchState(),resultCount:document.querySelectorAll(document.body.classList.contains('nav-rules')?'.ruleCard':'.card').length,settingsSearchCount:folds.filter(f=>!f.classList.contains('search-hidden')).length,toolsFill:getComputedStyle(document.getElementById('homeTools')).backgroundColor,toolsShadow:getComputedStyle(document.getElementById('homeTools')).boxShadow,actionShadows:[...document.querySelectorAll('#homeTools .batch,#homeTools .fillpick,#homeTools .fill,#homeTools .colorfold,#homeTools .clear,#homeTools .zip')].map(el=>getComputedStyle(el).boxShadow),creditFontSize:parseFloat(getComputedStyle(credits).fontSize),actionHeights:[...document.querySelectorAll('#homeTools .batch,#homeTools .fillpick,#homeTools .fill,#homeTools .colorfold,#homeTools .clear,#homeTools .zip')].map(el=>el.getBoundingClientRect().height),actions:[...document.querySelectorAll('#homeTools .batch,#homeTools .fillpick,#homeTools .fill,#homeTools .colorfold,#homeTools .clear,#homeTools .zip')].map(el=>getComputedStyle(el).color),category:[...document.querySelectorAll('.categorytabs button')].map(el=>getComputedStyle(el).color),dark:document.documentElement.dataset.appearance==='dark',mode:localStorage.getItem('youyou.theme.appearance'),categoryHeight:document.querySelector('.categorytabs').getBoundingClientRect().height,materialHeight:rect('materialModePicker').height,appearanceHeight:rect('appearanceModePicker').height,creditVisible:c.width>0&&c.height>0,creditTop:c.top,creditBottom:c.bottom,logBottom:last.bottom,cardHeights:folds.filter(d=>!d.open).map(d=>d.getBoundingClientRect().height),cardBorders:folds.map(d=>getComputedStyle(d).borderTopWidth),surfaceBackgrounds:[...document.querySelectorAll(".inlineVersion,.card,.ruleCard,.settingsFold,.categorytabs,#materialModePicker,#appearanceModePicker")].map(el=>getComputedStyle(el).backgroundColor),searchBelowFeedback:(()=>{const q=rect('searchInput'),f=document.querySelector('.homeFeedback').getBoundingClientRect(),t=rect('homeTools');return q.top>=f.bottom&&q.bottom<t.top&&document.getElementById('searchInput').parentElement.id==='homeTarget'})(),actionFills:[...document.querySelectorAll('#homeTools .batch,#homeTools .fillpick,#homeTools .fill,#homeTools .colorfold,#homeTools .clear,#homeTools .zip')].map(el=>getComputedStyle(el).backgroundColor),motion:window.__foldMotionChecks||[]};
+            })()
+            """
+            self.webView.evaluateJavaScript(styleJS) { value, _ in
+                let styles = value as? [String: Any] ?? [:]
+                let actionColors = styles["actions"] as? [String] ?? []
+                let categoryColors = styles["category"] as? [String] ?? []
+                let home = page == "home"
+                let expectedText = rawScenario.contains("custom") && dark ? "rgb(242, 242, 247)" : "rgb(32, 40, 50)"
+                let defaultText = ["rgb(242, 242, 247)", "rgb(32, 40, 50)", "rgb(32, 40, 50)", "rgb(32, 40, 50)", "rgb(255, 255, 255)", "rgb(255, 255, 255)"]
+                let expectedTexts = rawScenario.contains("custom") ? [expectedText, expectedText, expectedText, expectedText, "rgb(255, 255, 255)", "rgb(255, 255, 255)"] : defaultText
+                let readable = !home || actionColors == expectedTexts
+                let nativeTitlesOnly = !home || (categoryColors.count == 2 && categoryColors.allSatisfy { $0 == "rgba(0, 0, 0, 0)" })
+                let compactCategory = home ? abs((styles["categoryHeight"] as? Double ?? 0) - 32) < 0.5
+                    : (styles["categoryHeight"] as? Double ?? 999) < 0.5
+                let compactMaterial = page != "settings" || folded || log || rawScenario.contains("bottom-") || (abs((styles["materialHeight"] as? Double ?? 0) - 32) < 0.5 && abs((styles["appearanceHeight"] as? Double ?? 0) - 32) < 0.5)
+                let creditCorrect = (styles["creditVisible"] as? Bool) == (page == "settings")
+                    && (!log || (styles["creditTop"] as? Double ?? 0) >= (styles["logBottom"] as? Double ?? 0))
+                let checks = styles["motion"] as? [[String: Any]] ?? []
+                let surfaceColors = styles["surfaceBackgrounds"] as? [String] ?? []
+                let nativeSurfacesVisible = !surfaceColors.isEmpty && surfaceColors.allSatisfy { $0 == "rgba(0, 0, 0, 0)" }
+                let fills = styles["actionFills"] as? [String] ?? []
+                let expectedFill = rawScenario.contains("custom") ? (dark ? "rgb(68, 96, 120)" : "rgb(197, 140, 72)")
+                    : "rgb(255, 255, 255)"
+                let expectedFills = rawScenario.contains("custom") ? Array(repeating: expectedFill, count: 4) + ["rgb(0, 122, 254)", "rgb(70, 216, 106)"]
+                    : ["rgb(0, 122, 254)", "rgb(255, 255, 255)", "rgb(70, 216, 106)", "rgb(255, 255, 255)", "rgb(0, 122, 254)", "rgb(70, 216, 106)"]
+                let solidActions = fills == expectedFills
+                let searchSurface = self.cardMaterialViews["id:searchInput"]
+                let searchPresent = self.cardSpecs["id:searchInput"] != nil
+                var searchLiquid = false
+                if #available(iOS 26.0, *) { searchLiquid = searchSurface?.effect is UIGlassEffect }
+                let searchBlur = searchSurface?.effect is UIBlurEffect
+                let noNativeActions = !self.cardSpecs.values.contains { ($0["homeControl"] as? Bool) == true }
+                let bottomEnabled = rawScenario.contains("bottom-") && !rawScenario.contains("bottom-off-")
+                let searchCorrect = !home || (bottomEnabled ? (!searchPresent && (styles["homeSearchHidden"] as? Bool) == true) : (searchPresent && (mode == "blur" ? searchBlur : searchLiquid) && (styles["searchBelowFeedback"] as? Bool) == true))
+                let toolsExpected = rawScenario.contains("custom") ? (dark ? "rgb(80, 59, 72)" : "rgb(242, 201, 176)") : (dark ? "rgb(28, 28, 30)" : "rgb(255, 255, 255)")
+                let solidToolCard = self.cardSpecs["id:homeTools"] == nil && (styles["toolsFill"] as? String) == toolsExpected && (styles["toolsShadow"] as? String) == "none"
+                let bottomCorrect = self.bottomSearchEnabled == bottomEnabled && (self.tabBar.items?.count ?? 0) == (bottomEnabled ? 4 : 3) && (styles["bottomSearchEnabled"] as? Bool) == bottomEnabled
+                let searchDialogCorrect = !rawScenario.contains("bottom-dialog") || (self.activeSearchAlert?.presentingViewController != nil && self.tabBar.selectedItem?.tag == 0)
+                let categorySegment = self.nativeSegments.first { self.cardSpecs[$0.key]?["segment"] as? String == "category" }?.value
+                let track = categorySegment?.superview?.backgroundColor?.resolvedColor(with: self.traitCollection).cgColor.components ?? []
+                let smooth = checks.allSatisfy { ($0["jump"] as? Double ?? 999) < 0.5 && ($0["monotonic"] as? Bool) == true }
+                let bg = self.view.backgroundColor?.resolvedColor(with: self.traitCollection).cgColor.components ?? []
+                var result = styles
+                result["scenario"] = rawScenario
+                result["passed"] = (!folded || !hasPicker) && readable && nativeTitlesOnly && compactCategory && compactMaterial && creditCorrect && smooth && nativeSurfacesVisible && solidActions && solidToolCard && bottomCorrect && searchDialogCorrect && noNativeActions && searchCorrect && dark == expectedDark && (styles["dark"] as? Bool) == dark
+                result["selectedCapsuleAlphas"] = self.nativeSelectedCapsules.values.map { Double($0.backgroundColor?.cgColor.alpha ?? 1) }
+                result["pickerStyles"] = self.nativeSegments.map { key, segment -> [String: Any] in
+                    let attributes = segment.titleTextAttributes(for: .selected) ?? [:]
+                    let text = attributes[.foregroundColor] as? UIColor
+                    return ["kind": self.cardSpecs[key]?["segment"] as? String ?? "", "selected": segment.selectedSegmentIndex,
+                        "track": segment.superview?.backgroundColor?.cgColor.components?.map { Double($0) } ?? [],
+                        "capsule": self.nativeSelectedCapsules[key]?.backgroundColor?.cgColor.components?.map { Double($0) } ?? [],
+                        "selectedText": text?.resolvedColor(with: self.traitCollection).cgColor.components?.map { Double($0) } ?? []]
+                }
+                result["nativeFontRestoredOnLoad"] = self.restoredNativeFont
+                result["nativeTabFonts"] = (self.tabBar.items ?? []).map { ($0.titleTextAttributes(for: .normal)?[.font] as? UIFont)?.fontName ?? "system" }
+                result["nativeSelectedTabFonts"] = (self.tabBar.items ?? []).map { ($0.titleTextAttributes(for: .selected)?[.font] as? UIFont)?.fontName ?? "system" }
+                result["appName"] = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? ""
+                result["appVersion"] = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
+                result["categoryTrack"] = track.map { Double($0) }
+                result["nativeSearchEnabled"] = self.bottomSearchEnabled
+                result["nativeSearchDialogVisible"] = self.activeSearchAlert?.presentingViewController != nil
+                result["nativeSearchDialogQuery"] = self.activeSearchAlert?.textFields?.first?.text ?? ""
+                result["nativeSelectedTab"] = self.tabBar.selectedItem?.tag ?? -1
+                result["nativeToolsPresent"] = self.cardSpecs["id:homeTools"] != nil
+                result["searchLiquid"] = searchLiquid
+                result["searchBlur"] = searchBlur
+                result["nativeCardColor"] = UserDefaults.standard.string(forKey: "youyou.cardColor." + (dark ? "dark" : "light")) ?? ""
+                result["nativeButtonColor"] = UserDefaults.standard.string(forKey: "youyou.buttonColor." + (dark ? "dark" : "light")) ?? ""
+                result["logNativeCards"] = self.cardSpecs.values.filter { ($0["key"] as? String)?.hasPrefix("node:") == true }.count
+                result["nativeActionCount"] = self.cardSpecs.values.filter { ($0["homeControl"] as? Bool) == true }.count
+                result["materialPickerPresent"] = hasPicker
+                result["nativeDark"] = dark
+                result["background"] = bg.map { Double($0) }
+                result["nativeTabTop"] = Double(self.tabBar.frame.minY)
+                result["nativeMode"] = UserDefaults.standard.string(forKey: "youyou.appearanceMode") ?? "system"
+                if let data = try? JSONSerialization.data(withJSONObject: result),
+                   let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
+                    try? data.write(to: documents.appendingPathComponent("ui-layout-verification.json"), options: .atomic)
+                }
+            }
+        }
+    }
+
+    @objc private func openSeparateSearch() { presentBottomSearch() }
+
+    private func setBottomSearchLayout(_ value: String) {
+        separateSearch = value == "separate"
+        UserDefaults.standard.set(separateSearch ? "separate" : "merged", forKey: "youyou.bottomSearchLayout")
+        refreshSearchTabItems()
+    }
+
+    private func refreshSearchTabItems() {
+        let standalone = bottomSearchEnabled && separateSearch
+        separateSearchButton.isHidden = !standalone
+        separateSearchButton.isEnabled = standalone
+        tabTrailingConstraint?.constant = standalone ? -78 : 0
+        if standalone { view.bringSubviewToFront(separateSearchButton) }
+        var items = pageItems
+        if bottomSearchEnabled && !separateSearch {
+            let search = UITabBarItem(title: "搜索", image: UIImage(systemName: "magnifyingglass"), selectedImage: nil)
+            search.tag = 3
+            items.append(search)
+        }
+        tabBar.setItems(items, animated: false)
+        tabBar.selectedItem = pageItems.first(where: { $0.tag == activePageTag }) ?? pageItems[0]
+        applyTabFont()
+        view.setNeedsLayout()
+        updateLayoutMetrics(force: true)
+    }
+
+    private func setBottomSearchEnabled(_ enabled: Bool) {
+        UserDefaults.standard.set(enabled, forKey: "youyou.bottomSearchEnabled")
+        bottomSearchEnabled = enabled
+        refreshSearchTabItems()
+    }
+
+    func tabBar(_ tabBar: UITabBar, shouldSelect item: UITabBarItem) -> Bool {
+        if item.tag == 3 {
+            // Action-only item: keep the currently selected page.
+            presentBottomSearch()
+            return false
+        }
+        return true
+    }
+
+    private func presentBottomSearch() {
+        guard bottomSearchEnabled, presentedViewController == nil else { return }
+        webView.evaluateJavaScript("window.__bottomSearchState?.()") { [weak self] value, _ in
+            guard let self, self.bottomSearchEnabled, self.presentedViewController == nil,
+                  let state = value as? [String: Any] else { return }
+            self.activeSearchPage = state["page"] as? String ?? "home"
+            let alert = UIAlertController(title: "搜索", message: nil, preferredStyle: .alert)
+            alert.addTextField { field in
+                field.placeholder = state["placeholder"] as? String
+                field.text = state["query"] as? String
+                field.returnKeyType = .search
+                field.clearButtonMode = .whileEditing
+                field.autocorrectionType = .no
+                field.delegate = self
+                if let font = self.themeFont { field.font = font.withSize(16) }
+            }
+            alert.addAction(UIAlertAction(title: "取消", style: .cancel))
+            alert.addAction(UIAlertAction(title: "清除", style: .default) { [weak self] _ in
+                self?.applyBottomSearch("")
+            })
+            let search = UIAlertAction(title: "搜索", style: .default) { [weak self, weak alert] _ in
+                self?.applyBottomSearch(alert?.textFields?.first?.text ?? "")
+            }
+            alert.addAction(search); alert.preferredAction = search
+            self.activeSearchAlert = alert
+            self.present(alert, animated: true)
+        }
+    }
+
+    private func applyBottomSearch(_ query: String) {
+        guard let data = try? JSONSerialization.data(withJSONObject: [query, activeSearchPage]),
+              let arguments = String(data: data, encoding: .utf8) else { return }
+        webView.evaluateJavaScript("window.__applyBottomSearch?.(..." + arguments + ")")
+    }
+
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        guard let alert = activeSearchAlert, alert.textFields?.first === textField else { return true }
+        applyBottomSearch(textField.text ?? "")
+        alert.dismiss(animated: true)
+        return false
+    }
+
+    func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
+        // UIKit may deliver didSelect for an action item even when shouldSelect
+        // returned false. Search must NEVER change the active content page.
+        if item.tag == 3 {
+            if let existingPage = pageItems.first(where: { $0.tag == activePageTag }) {
+                tabBar.selectedItem = existingPage
+            }
+            presentBottomSearch()
+            return
+        }
+        activePageTag = item.tag
+        let page: String
+        switch item.tag {
+        case 1: page = "rules"
+        case 2: page = "settings"
+        default: page = "home"
+        }
+        webView.evaluateJavaScript("appNavTo(\'" + page + "\')")
+    }
+
+    static var savedAppearanceStyle: UIUserInterfaceStyle {
+        switch UserDefaults.standard.string(forKey: "youyou.appearanceMode") {
+        case "light": return .light
+        case "dark": return .dark
+        default: return .unspecified
+        }
+    }
+
+    private func applyAppearance(_ rawMode: String) {
+        let mode = ["light", "dark"].contains(rawMode) ? rawMode : "system"
+        UserDefaults.standard.set(mode, forKey: "youyou.appearanceMode")
+        let style = Self.savedAppearanceStyle
+        overrideUserInterfaceStyle = style
+        view.window?.overrideUserInterfaceStyle = style
+        webView.overrideUserInterfaceStyle = style
+        applyStoredPalette()
+        setNeedsStatusBarAppearanceUpdate()
+    }
+
+    private func storedColor(_ kind: String, lightDefault: String, darkDefault: String) -> UIColor {
+        let defaults = UserDefaults.standard
+        let light = color(fromHex: defaults.string(forKey: "youyou.\(kind).light") ?? lightDefault) ?? .white
+        let dark = color(fromHex: defaults.string(forKey: "youyou.\(kind).dark") ?? darkDefault) ?? .black
+        return UIColor { traits in traits.userInterfaceStyle == .dark ? dark : light }
+    }
+
+    private func applyStoredPalette() {
+        view.backgroundColor = storedColor("background", lightDefault: "#F4F2EE", darkDefault: "#121214")
+        cardTintColor = storedColor("cardColor", lightDefault: "#FFFFFF", darkDefault: "#1C1C1E")
+        updateNativeCardTint()
+        renderVisibleNativeMaterials()
+    }
+
+    private func updateLayoutMetrics(force: Bool = false) {
+        guard let webView, tabBar.frame.minY > 0 else { return }
+        let top = tabBar.frame.minY
+        guard force || abs(top - reportedTabTop) > 0.5 else { return }
+        reportedTabTop = top
+        webView.evaluateJavaScript("window.__setNativeTabTop?.(\(top))")
+    }
+
+    private func nativeCardEffect() -> UIVisualEffect {
+        switch cardMaterialMode {
+        case .liquid:
+            if #available(iOS 26.0, *) {
+                return UIGlassEffect()
+            }
+            return UIBlurEffect(style: .systemMaterial)
+        case .blur:
+            return UIBlurEffect(style: .systemMaterial)
+        }
+    }
+
+    private func setCardMaterialMode(_ rawMode: String) {
+        cardMaterialMode = rawMode == "blur" ? .blur : .liquid
+        UIView.performWithoutAnimation {
+            for (key, surface) in cardMaterialViews {
+                surface.effect = effect(for: cardSpecs[key] ?? [:])
+            }
+            updateNativeCardTint()
+        }
+    }
+
+    private func color(fromHex hex: String) -> UIColor? {
+        var value = hex.trimmingCharacters(in: .whitespacesAndNewlines)
+        if value.hasPrefix("#") { value.removeFirst() }
+        guard value.count == 6, let rgb = Int(value, radix: 16) else { return nil }
+        return UIColor(
+            red: CGFloat((rgb >> 16) & 0xFF) / 255.0,
+            green: CGFloat((rgb >> 8) & 0xFF) / 255.0,
+            blue: CGFloat(rgb & 0xFF) / 255.0,
+            alpha: 1
+        )
+    }
+
+    private func setCardTintColor(_ color: UIColor) {
+        cardTintColor = color
+        updateNativeCardTint()
+    }
+
+    private func effect(for spec: [String: Any]) -> UIVisualEffect {
+        if (spec["forceLiquid"] as? Bool) == true, #available(iOS 26.0, *) {
+            return UIGlassEffect()
+        }
+        return nativeCardEffect()
+    }
+
+    private func applyTint(to surface: UIVisualEffectView, spec: [String: Any]) {
+        let isSegment = (spec["segment"] as? String) != nil
+        let isAction = (spec["homeControl"] as? Bool) == true
+        let alpha: CGFloat = isAction ? (cardMaterialMode == .blur ? 0.70 : 0.22)
+            : (cardMaterialMode == .blur ? 0.24 : 0.10)
+        surface.contentView.backgroundColor = isSegment ? .clear : cardTintColor.withAlphaComponent(alpha)
+    }
+
+    private func updateNativeCardTint() {
+        for (key, surface) in cardMaterialViews {
+            applyTint(to: surface, spec: cardSpecs[key] ?? [:])
+        }
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        updateLayoutMetrics()
+        renderVisibleNativeMaterials()
+    }
+
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        guard isViewLoaded, previousTraitCollection?.userInterfaceStyle != traitCollection.userInterfaceStyle else { return }
+        applyStoredPalette()
+        setNeedsStatusBarAppearanceUpdate()
+    }
+
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        traitCollection.userInterfaceStyle == .dark ? .lightContent : .darkContent
+    }
+
+    private var nativeFontURL: URL {
+        FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("ThemeFont.data")
+    }
+
+    @discardableResult private func setNativeFont(_ data: Data) -> Bool {
+        if themeFontData == data { return true }
+        guard let descriptors = CTFontManagerCreateFontDescriptorsFromData(data as CFData) as? [CTFontDescriptor],
+              let descriptor = descriptors.first else { return false }
+        themeFont = CTFontCreateWithFontDescriptor(descriptor, 10, nil) as UIFont
+        themeFontData = data
+        applyTabFont()
+        return true
+    }
+
+    private func applyTabFont() {
+        // Change title fonts only; retain all UIKit Liquid Glass/background settings.
+        if let base = defaultTabAppearance?.copy() as? UITabBarAppearance {
+            if let font = themeFont {
+                for layout in [base.stackedLayoutAppearance, base.inlineLayoutAppearance, base.compactInlineLayoutAppearance] {
+                    var normal = layout.normal.titleTextAttributes
+                    var selected = layout.selected.titleTextAttributes
+                    normal[.font] = font; selected[.font] = font
+                    layout.normal.titleTextAttributes = normal
+                    layout.selected.titleTextAttributes = selected
+                }
+            }
+            tabBar.standardAppearance = base
+            if let edge = defaultScrollEdgeAppearance?.copy() as? UITabBarAppearance {
+                if let font = themeFont {
+                    for layout in [edge.stackedLayoutAppearance, edge.inlineLayoutAppearance, edge.compactInlineLayoutAppearance] {
+                        var normal = layout.normal.titleTextAttributes
+                        var selected = layout.selected.titleTextAttributes
+                        normal[.font] = font; selected[.font] = font
+                        layout.normal.titleTextAttributes = normal
+                        layout.selected.titleTextAttributes = selected
+                    }
+                }
+                tabBar.scrollEdgeAppearance = edge
+            }
+        }
+        for item in tabBar.items ?? [] {
+            let attributes: [NSAttributedString.Key: Any]? = themeFont.map { [.font: $0] }
+            item.setTitleTextAttributes(attributes, for: .normal)
+            item.setTitleTextAttributes(attributes, for: .selected)
+        }
+        renderVisibleNativeMaterials()
+    }
+
+    private func configureSegment(in surface: UIVisualEffectView, key: String, spec: [String: Any]) {
+        guard let kind = spec["segment"] as? String else { return }
+        let titles = kind == "category" ? ["LiquidUI", "原版微信"]
+            : (kind == "appearance" ? ["跟随系统", "浅色", "深色"] : kind == "search" ? ["关闭", "合并", "分开"] : ["液态玻璃", "原生磨砂"])
+        let segment: UISegmentedControl
+        if let existing = nativeSegments[key] {
+            segment = existing
+        } else {
+            segment = UISegmentedControl(items: titles)
+            // WebKit retains the transparent hit targets, file import handlers,
+            // accessibility labels and scrolling gestures. UIKit draws the control.
+            segment.isUserInteractionEnabled = false
+            segment.selectedSegmentTintColor = .secondarySystemGroupedBackground
+            let font = UIFont.systemFont(ofSize: 12, weight: .semibold)
+            segment.setTitleTextAttributes([.font: font, .foregroundColor: UIColor.label], for: .normal)
+            segment.setTitleTextAttributes([.font: font, .foregroundColor: UIColor.label], for: .selected)
+            surface.contentView.addSubview(segment)
+            nativeSegments[key] = segment
+        }
+        // The track follows the card tint with a slight tonal adjustment so
+        // the selected capsule remains distinct even when both colors are white.
+        segment.backgroundColor = .clear
+        let dark = traitCollection.userInterfaceStyle == .dark
+        let card = storedColor("cardColor", lightDefault: "#FFFFFF", darkDefault: "#1C1C1E").resolvedColor(with: traitCollection)
+        var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
+        card.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+        let tone: CGFloat = dark ? 1.4 : 0.9
+        surface.contentView.backgroundColor = UIColor(red: min(1, red * tone), green: min(1, green * tone), blue: min(1, blue * tone), alpha: 0.6)
+        // All three pickers share one translucent track and selected capsule.
+        // Clear the built-in background so UIKit doesn't stack a darker pill.
+        if nativeSegmentStyles[key] != traitCollection.userInterfaceStyle {
+            let clear = UIGraphicsImageRenderer(size: CGSize(width: 1, height: 1)).image { _ in }
+            segment.setBackgroundImage(clear, for: .normal, barMetrics: .default)
+            segment.setBackgroundImage(clear, for: .selected, barMetrics: .default)
+            segment.setDividerImage(clear, forLeftSegmentState: .normal, rightSegmentState: .normal, barMetrics: .default)
+            nativeSegmentStyles[key] = traitCollection.userInterfaceStyle
+        }
+        if nativeSelectedCapsules[key] == nil {
+            let capsule = UIView()
+            capsule.isUserInteractionEnabled = false
+            surface.contentView.insertSubview(capsule, belowSubview: segment)
+            nativeSelectedCapsules[key] = capsule
+        }
+        let selectedColor = storedColor("buttonColor", lightDefault: "#FFFFFF", darkDefault: "#FFFFFF").resolvedColor(with: traitCollection)
+        nativeSelectedCapsules[key]?.backgroundColor = selectedColor
+        let font = themeFont?.withSize(12) ?? UIFont.systemFont(ofSize: 12, weight: .semibold)
+        segment.setTitleTextAttributes([.font: font, .foregroundColor: UIColor.label], for: .normal)
+        selectedColor.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+        let selectedText = red * 0.2126 + green * 0.7152 + blue * 0.0722 > 0.5
+            ? UIColor(red: 32.0/255, green: 40.0/255, blue: 50.0/255, alpha: 1)
+            : UIColor(red: 242.0/255, green: 242.0/255, blue: 247.0/255, alpha: 1)
+        segment.setTitleTextAttributes([.font: font, .foregroundColor: selectedText], for: .selected)
+        segment.frame = surface.bounds
+        segment.layer.cornerRadius = surface.bounds.height / 2
+        segment.clipsToBounds = true
+        let selected = (spec["selected"] as? NSNumber)?.intValue ?? 0
+        if segment.selectedSegmentIndex != selected {
+            segment.selectedSegmentIndex = selected
+        }
+        if let capsule = nativeSelectedCapsules[key] {
+            let width = surface.bounds.width / CGFloat(segment.numberOfSegments)
+            capsule.frame = CGRect(x: CGFloat(selected) * width + 2, y: 2,
+                width: width - 4, height: surface.bounds.height - 4)
+            capsule.layer.cornerRadius = capsule.bounds.height / 2
+            capsule.clipsToBounds = true
+        }
+    }
+
+    private func renderVisibleNativeMaterials() {
+        guard let webView else { return }
+        let scroll = webView.scrollView
+        // This observer only manages visibility. It NEVER moves a card with an
+        // asynchronously sampled scroll offset.
+        glassContainer.frame = CGRect(origin: .zero, size: CGSize(
+            width: max(scroll.contentSize.width, scroll.bounds.width),
+            height: max(scroll.contentSize.height, scroll.bounds.height)
+        ))
+        let visible = scroll.bounds.insetBy(dx: 0, dy: -scroll.bounds.height)
+        UIView.performWithoutAnimation {
+            for key in cardOrder {
+                guard let frame = cardDocumentFrames[key], let spec = cardSpecs[key] else { continue }
+                let clip = CGRect(
+                    x: (spec["clipX"] as? NSNumber)?.doubleValue ?? Double(frame.minX),
+                    y: (spec["clipY"] as? NSNumber)?.doubleValue ?? Double(frame.minY),
+                    width: (spec["clipWidth"] as? NSNumber)?.doubleValue ?? Double(frame.width),
+                    height: (spec["clipHeight"] as? NSNumber)?.doubleValue ?? Double(frame.height)
+                ).intersection(frame)
+                guard !clip.isNull, clip.width > 0, clip.height > 0, clip.intersects(visible) else {
+                    cardMaterialHosts[key]?.isHidden = true
+                    continue
+                }
+                let surface: UIVisualEffectView
+                if let existing = cardMaterialViews[key] {
+                    surface = existing
+                } else {
+                    surface = UIVisualEffectView(effect: effect(for: spec))
+                    surface.isUserInteractionEnabled = false
+                    surface.clipsToBounds = true
+                    let host = UIView()
+                    host.isUserInteractionEnabled = false
+                    host.clipsToBounds = false
+                    glassContainer.addSubview(host)
+                    host.addSubview(surface)
+                    cardMaterialHosts[key] = host
+                    cardMaterialViews[key] = surface
+                }
+                cardMaterialHosts[key]?.isHidden = false
+                cardMaterialHosts[key]?.frame = clip
+                // Full-size glass must keep an unclipped ancestor for native refraction.
+                // Clip only while an expanding fold actually crops its child.
+                cardMaterialHosts[key]?.clipsToBounds = clip.minX > frame.minX + 0.5 || clip.minY > frame.minY + 0.5
+                    || clip.maxX < frame.maxX - 0.5 || clip.maxY < frame.maxY - 0.5
+                surface.frame = CGRect(x: frame.minX - clip.minX, y: frame.minY - clip.minY, width: frame.width, height: frame.height)
+                let requested = CGFloat((spec["radius"] as? NSNumber)?.doubleValue ?? 24)
+                // CSS uses 999px for pills; CALayer needs the actual finite radius.
+                surface.layer.cornerRadius = min(max(0, requested), min(frame.width, frame.height) / 2)
+                applyTint(to: surface, spec: spec)
+                configureSegment(in: surface, key: key, spec: spec)
+            }
+        }
+    }
+
+    private func updateNativeCardRects(_ rects: [[String: Any]]) {
+        var frames: [String: CGRect] = [:]
+        var specs: [String: [String: Any]] = [:]
+        var order: [String] = []
+        for (index, item) in rects.enumerated() {
+            let key = (item["key"] as? String) ?? "legacy:\(index)"
+            let x = (item["x"] as? NSNumber)?.doubleValue ?? 0
+            let y = (item["y"] as? NSNumber)?.doubleValue ?? 0
+            let width = (item["width"] as? NSNumber)?.doubleValue ?? 0
+            let height = (item["height"] as? NSNumber)?.doubleValue ?? 0
+            guard x.isFinite, y.isFinite, width.isFinite, height.isFinite, width > 0, height > 0 else { continue }
+            // Incoming coordinates are DOCUMENT coordinates, never viewport ones.
+            frames[key] = CGRect(x: x, y: y, width: width, height: height)
+            specs[key] = item
+            order.append(key)
+        }
+        for key in Array(cardMaterialViews.keys) where frames[key] == nil {
+            cardMaterialViews.removeValue(forKey: key)?.removeFromSuperview()
+            cardMaterialHosts.removeValue(forKey: key)?.removeFromSuperview()
+            nativeSegments.removeValue(forKey: key)
+            nativeSegmentStyles.removeValue(forKey: key)
+            nativeSelectedCapsules.removeValue(forKey: key)?.removeFromSuperview()
+        }
+        cardDocumentFrames = frames
+        cardSpecs = specs
+        cardOrder = order
+        renderVisibleNativeMaterials()
+    }
+
+    private func showError(_ message: String) {
+        let label = UILabel()
+        label.text = message
+        label.textAlignment = .center
+        label.numberOfLines = 0
+        label.frame = view.bounds.insetBy(dx: 24, dy: 24)
+        label.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.addSubview(label)
+    }
+
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        if message.name == "bottomSearch" {
+            guard let payload = message.body as? [String: Any] else { return }
+            if let layout = payload["layout"] as? String { setBottomSearchLayout(layout) }
+            if let enabled = payload["enabled"] as? Bool { setBottomSearchEnabled(enabled) }
+            if payload["open"] as? Bool == true { presentBottomSearch() }
+            return
+        }
+        if message.name == "themeFont" {
+            guard let payload = message.body as? [String: Any] else { return }
+            if payload["reset"] as? Bool == true {
+                themeFont = nil; themeFontData = nil
+                try? FileManager.default.removeItem(at: nativeFontURL)
+                applyTabFont()
+            } else if let base64 = payload["data"] as? String,
+                      let data = Data(base64Encoded: base64), setNativeFont(data) {
+                try? FileManager.default.createDirectory(at: nativeFontURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+                try? data.write(to: nativeFontURL, options: .atomic)
+            }
+            return
+        }
+        if message.name == "appearanceMode" {
+            let payload = message.body as? [String: Any]
+            applyAppearance(payload?["mode"] as? String ?? "system")
+            return
+        }
+
+        if message.name == "themeBackground" || message.name == "cardColor" || message.name == "buttonColor" {
+            if let payload = message.body as? [String: Any],
+               let hex = payload["color"] as? String, color(fromHex: hex) != nil {
+                let appearance = payload["appearance"] as? String == "dark" ? "dark" : "light"
+                let kind = message.name == "themeBackground" ? "background" : (message.name == "buttonColor" ? "buttonColor" : "cardColor")
+                UserDefaults.standard.set(hex, forKey: "youyou.\(kind).\(appearance)")
+                applyStoredPalette()
+            }
+            return
+        }
+
+        if message.name == "materialMode" {
+            let payload = message.body as? [String: Any]
+            let mode = (payload?["mode"] as? String) ?? "liquid"
+            setCardMaterialMode(mode)
+            return
+        }
+
+        if message.name == "cardGlassRects" {
+            guard let rects = message.body as? [[String: Any]] else { return }
+            updateNativeCardRects(rects)
+            return
+        }
+
+        if message.name == "infoPage" {
+            let payload = message.body as? [String: Any]
+            let isOpen = (payload?["open"] as? Bool) ?? false
+            tabBar.isHidden = isOpen
+            return
+        }
+
+        guard message.name == "shareZip",
+              let payload = message.body as? [String: Any],
+              let base64 = payload["base64"] as? String,
+              let data = Data(base64Encoded: base64) else { return }
+
+        let rawName = (payload["fileName"] as? String) ?? "优优LUI图标包.zip"
+        let safeName = rawName
+            .replacingOccurrences(of: "/", with: "_")
+            .replacingOccurrences(of: ":", with: "_")
+        let fileName = safeName.lowercased().hasSuffix(".zip") ? safeName : safeName + ".zip"
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+
+        do {
+            try data.write(to: url, options: .atomic)
+            presentShareSheet(fileURL: url)
+        } catch {
+            let alert = UIAlertController(title: "分享失败", message: error.localizedDescription, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "好", style: .default))
+            present(alert, animated: true)
+        }
+    }
+
+    private func presentShareSheet(fileURL: URL) {
+        let activity = UIActivityViewController(activityItems: [fileURL], applicationActivities: nil)
+        if let popover = activity.popoverPresentationController {
+            popover.sourceView = view
+            popover.sourceRect = CGRect(x: view.bounds.midX, y: view.bounds.maxY - 40, width: 1, height: 1)
+        }
+        present(activity, animated: true)
+    }
+
+    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction,
+                 decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+        guard let url = navigationAction.request.url else {
+            decisionHandler(.allow)
+            return
+        }
+
+        if url.isFileURL || url.scheme == "about" {
+            decisionHandler(.allow)
+            return
+        }
+
+        if let scheme = url.scheme?.lowercased(), ["http", "https", "mqq", "weixin"].contains(scheme) {
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+            decisionHandler(.cancel)
+            return
+        }
+
+        decisionHandler(.allow)
+    }
+
+    func webView(_ webView: WKWebView,
+                 createWebViewWith configuration: WKWebViewConfiguration,
+                 for navigationAction: WKNavigationAction,
+                 windowFeatures: WKWindowFeatures) -> WKWebView? {
+        if let url = navigationAction.request.url, !url.isFileURL {
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        }
+        return nil
+    }
+}
+
