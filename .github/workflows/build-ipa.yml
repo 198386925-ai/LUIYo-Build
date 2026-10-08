@@ -14,13 +14,13 @@ permissions:
 
 concurrency:
   group: luiyo-ipa-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   build:
     # Standard public runner: never consume private repository build minutes.
     if: github.event.repository.private == false
-    runs-on: macos-15
+    runs-on: macos-15-intel
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
@@ -34,16 +34,24 @@ jobs:
       - name: Build with iOS 26 SDK
         shell: bash
         run: bash scripts/build-ipa.sh
-      - name: Check native materials in iOS 26 simulator
-        shell: bash
-        run: bash scripts/check-native.sh
-      - name: Download IPA and native screenshots
+      - name: Save compiled IPA
         uses: actions/upload-artifact@v4
         with:
-          name: LUIYo-Build14-${{ github.run_number }}
+          name: LUIYo-Build14-${{ github.run_number }}-IPA
+          path: output/*.ipa
+          if-no-files-found: error
+          retention-days: 1
+      - name: Check native materials in iOS 26 simulator
+        timeout-minutes: 10
+        shell: bash
+        run: bash scripts/check-native.sh
+      - name: Save native check screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: LUIYo-Build14-${{ github.run_number }}-native-check
           path: |
-            output/*.ipa
             native-check/*.png
             native-check/*.json
-          if-no-files-found: error
+          if-no-files-found: ignore
           retention-days: 1
