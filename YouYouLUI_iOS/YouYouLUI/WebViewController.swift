@@ -96,7 +96,14 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         const box = document.createElement('section');
         box.className = 'luiyoActivationEntry';box.id='luiyoActivationCard';
         box.innerHTML = '<strong>激活授权</strong><small id="luiyoAuthState">未激活 · 仅可浏览</small><div class="luiyoUDIDAction" id="luiyoUDIDAction"><span id="luiyoUDIDStatus">请先获取并验证设备 UDID</span><button type="button" id="luiyoUDIDStart">获取 UDID</button></div><form class="luiyoActivationForm" id="luiyoActivationForm"><input id="luiyoLicenseCode" aria-label="卡密" placeholder="输入卡密" autocomplete="one-time-code" autocapitalize="characters" spellcheck="false"><button id="luiyoLicenseSubmit" type="submit">激活</button></form>';
-        box.querySelector("#luiyoUDIDStart").addEventListener("click", () => window.webkit?.messageHandlers?.udidStart?.postMessage({}));
+        box.querySelector("#luiyoUDIDStart").addEventListener("click", e => {
+          e.preventDefault();
+          const state=box.querySelector("#luiyoUDIDStatus");
+          if(state)state.textContent="正在连接设备识别服务…";
+          const bridge=window.webkit?.messageHandlers?.udidStart;
+          if(bridge?.postMessage)bridge.postMessage({});
+          else if(state)state.textContent="当前安装包不支持设备识别，请安装最新版 IPA";
+        });
         settings.querySelector('.settingsHead')?.insertAdjacentElement('afterend', box);
         box.querySelector('form').addEventListener('submit', e => {
           e.preventDefault();const code=box.querySelector('input').value.trim();
