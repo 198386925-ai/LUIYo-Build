@@ -60,6 +60,8 @@ private final class LUIYoActivationGate: UIViewController {
     private var currentPage = "home"
     private var verifiedUDID = false
     private var udidEnrollmentPending = false
+    private var udidAwaitingCallback = false
+    private var udidStartInFlight = false
     private var udidStatusInFlight = false
     private var udidPollTimer: Timer?
     private var deviceIdentifier: String {
@@ -105,7 +107,7 @@ private final class LUIYoActivationGate: UIViewController {
             self?.sendPresence()
         }
         udidPollTimer = Timer.scheduledTimer(withTimeInterval: 8, repeats: true) { [weak self] _ in
-            guard let self, self.udidEnrollmentPending, UIApplication.shared.applicationState == .active else { return }
+            guard let self, self.udidAwaitingCallback, UIApplication.shared.applicationState == .active else { return }
             self.refreshUDIDStatus()
         }
         foreground()
@@ -153,7 +155,12 @@ private final class LUIYoActivationGate: UIViewController {
 
     private func beginUDIDEnrollment() {
         udidEnrollmentPending = true
+        guard !udidStartInFlight else {
+            appController?.setUDIDState("设备识别请求正在处理中，请稍候", verified: false)
+            return
+        }
         guard registrationSecret.count == 64 else {
+            udidEnrollmentPending = false
             appController?.setUDIDState("设备登记信息初始化失败，请重新打开 APP", verified: false)
             return
         }
@@ -162,24 +169,36 @@ private final class LUIYoActivationGate: UIViewController {
             sendPresence()
             return
         }
+        udidStartInFlight = true
+        udidAwaitingCallback = false
         appController?.setUDIDState("正在创建设备识别请求…", verified: false)
         request(action: "udid-start", payload: [:], token: registrationSecret) { [weak self] code, body, diagnostic in
             guard let self else { return }
+            self.udidStartInFlight = false
             guard code == 200, let address = body?["profile_url"], let url = URL(string: address),
                   url.scheme == "https", url.host == self.endpoint.host,
                   url.path.hasSuffix("/profile.php") else {
-                self.appController?.setUDIDState(code == 404 ? "服务器尚未部署 UDID 接口，请先更新后台授权服务" : "无法开始设备识别：" + (body?["error"] ?? diagnostic), verified: false)
+                self.udidEnrollmentPending = false
+                self.udidAwaitingCallback = false
+                let message = code == 404 ? "服务器尚未部署 UDID 接口，请先更新后台授权服务" : code == 503 ? "设备识别服务尚未配置：请检查 HTTPS 地址、OpenSSL 和设备证书" : "无法开始设备识别：" + (body?["error"] ?? diagnostic)
+                self.appController?.setUDIDState(message, verified: false)
                 return
             }
-            self.appController?.setUDIDState("请在 Safari 下载并安装设备识别描述文件，完成后返回 APP", verified: false)
             UIApplication.shared.open(url, options: [:]) { [weak self] opened in
-                if !opened { self?.appController?.setUDIDState("Safari 打开失败，请检查系统浏览器设置", verified: false) }
+                guard let self else { return }
+                self.udidAwaitingCallback = opened
+                if opened {
+                    self.appController?.setUDIDState("请在 Safari 下载并安装设备识别描述文件，完成后返回 APP", verified: false)
+                } else {
+                    self.udidEnrollmentPending = false
+                    self.appController?.setUDIDState("Safari 打开失败，请检查系统浏览器设置", verified: false)
+                }
             }
         }
     }
 
     private func refreshUDIDStatus() {
-        guard registrationReady, registrationSecret.count == 64, !udidStatusInFlight else { return }
+        guard registrationReady, registrationSecret.count == 64, !udidStatusInFlight, !udidStartInFlight else { return }
         udidStatusInFlight = true
         request(action: "device-status", payload: [:], token: registrationSecret) { [weak self] code, body, _ in
             guard let self else { return }
@@ -189,8 +208,9 @@ private final class LUIYoActivationGate: UIViewController {
             self.verifiedUDID = verified
             if verified {
                 self.udidEnrollmentPending = false
+                self.udidAwaitingCallback = false
                 self.appController?.setUDIDState("真实 UDID 已验证，可以输入卡密激活", verified: true)
-            } else if self.udidEnrollmentPending {
+            } else if self.udidAwaitingCallback {
                 self.appController?.setUDIDState("等待系统完成设备识别；请返回 Safari/设置安装描述文件", verified: false)
             } else {
                 self.appController?.setUDIDState("请先获取并验证真实设备 UDID", verified: false)
@@ -297,7 +317,7 @@ private final class LUIYoActivationGate: UIViewController {
                 self.presenceInFlight = false
                 self.registrationReady = status == 200
                 self.registrationFailure = self.registrationReady ? "" : (status == 404 ? "服务器尚未部署设备登记接口" : (body?["error"] ?? diagnostic))
-                if self.registrationReady { self.refreshUDIDStatus(); if self.udidEnrollmentPending { self.beginUDIDEnrollment() } }
+                if self.registrationReady { if self.udidEnrollmentPending { self.beginUDIDEnrollment() } else { self.refreshUDIDStatus() } }
                 else if self.udidEnrollmentPending { self.appController?.setUDIDState("设备登记失败：" + self.registrationFailure, verified: false) }
             }
         } else {
