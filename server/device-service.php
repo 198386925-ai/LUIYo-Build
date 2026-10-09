@@ -105,6 +105,7 @@ function luiyo_admin_snapshot(PDO $db): array {
         if($key!==null)$groupIndex[$key]=count($visible);
         $visible[]=$r;
     }
+    foreach($visible as &$r){unset($r['udid'],$r['udid_verified_at'],$r['signing_udid'],$r['group_unverified_signing_udid']);}unset($r);
     $total=count($visible);
     $online=count(array_filter($visible,static fn(array $r):bool=>(bool)$r['online']));
     $unlicensed=count(array_filter($visible,static fn(array $r):bool=>$r['status']==='未授权'));
