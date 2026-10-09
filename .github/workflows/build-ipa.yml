@@ -54,6 +54,7 @@ jobs:
         run: |
           npm install --prefix "$RUNNER_TEMP/luiyo-dom" jsdom@26 --no-audit --no-fund
           NODE_PATH="$RUNNER_TEMP/luiyo-dom/node_modules" node scripts/check-activation-export.js
+          NODE_PATH="$RUNNER_TEMP/luiyo-dom/node_modules" node scripts/check-admin-cards.js
       - name: Build with iOS 26 SDK
         shell: bash
         run: bash scripts/build-ipa.sh

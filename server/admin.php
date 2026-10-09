@@ -407,5 +407,5 @@ section h2{font-size:15px;margin:0 0 10px}.screen-title{padding:7px 2px 13px}.sc
 <button type="button" data-nav="devices"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 9h8M8 13h8M8 17h4"/></svg>设备管理</button>
 <button type="button" data-nav="licenses"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>卡密管理</button>
 </nav>
-<script src="admin-devices.js?v=1.0.5" defer></script><script src="admin-ui.js?v=1.0.5" defer></script>
+<script src="admin-devices.js?v=1.0.5-layout2" defer></script><script src="admin-ui.js?v=1.0.5-layout2" defer></script>
 </body></html>

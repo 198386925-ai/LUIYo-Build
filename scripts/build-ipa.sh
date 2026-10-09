@@ -36,7 +36,7 @@ BUILD=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP/Info.plist")
 BUILT_SDK=$(/usr/libexec/PlistBuddy -c 'Print :DTSDKName' "$APP/Info.plist")
 case "$BUILT_SDK" in iphoneos26.*) ;; *) echo "ERROR: Incorrect built SDK: $BUILT_SDK"; exit 1 ;; esac
 test "$VERSION" = '1.0.5'
-test "$BUILD" = '25'
+test "$BUILD" = '26'
 STAGE=$(mktemp -d "$ROOT/build/package.XXXXXX")
 mkdir -p "$STAGE/Payload"
 cp -R "$APP" "$STAGE/Payload/"

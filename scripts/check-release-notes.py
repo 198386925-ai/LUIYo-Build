@@ -9,7 +9,8 @@ current=module.render('1.0.5',notes)
 assert 'Version 1.0.5 <span>正式版</span>' in current
 assert '该版本为首发测试。' in current and '修复已知问题。' in current
 assert 'Build' not in current
-assert current.count('class="inlineVersion"')==7
+assert current.count('Version 1.0.4</div>')==1
+assert current.count('class="inlineVersion"')==6
 for section in notes['exclusive_history_by_version']['1.0.5']:
  for entry in section['entries']:assert entry['text'] in current
 future=module.render('1.0.6',notes)
