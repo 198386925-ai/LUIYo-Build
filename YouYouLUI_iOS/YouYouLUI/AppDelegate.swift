@@ -56,6 +56,7 @@ private final class LUIYoActivationGate: UIViewController {
     private var presenceTimer: Timer?
     private var presenceInFlight = false
     private var registrationReady = false
+    private var registrationFailure = ""
     private var currentPage = "home"
     private var verifiedUDID = false
     private var udidEnrollmentPending = false
@@ -157,7 +158,7 @@ private final class LUIYoActivationGate: UIViewController {
             return
         }
         guard registrationReady else {
-            appController?.setUDIDState("正在登记设备，请稍后再点获取 UDID", verified: false)
+            appController?.setUDIDState(registrationFailure.isEmpty ? "正在登记设备，请稍候…" : "设备登记失败：" + registrationFailure, verified: false)
             sendPresence()
             return
         }
@@ -167,11 +168,13 @@ private final class LUIYoActivationGate: UIViewController {
             guard code == 200, let address = body?["profile_url"], let url = URL(string: address),
                   url.scheme == "https", url.host == self.endpoint.host,
                   url.path.hasSuffix("/profile.php") else {
-                self.appController?.setUDIDState("无法开始设备识别：" + (body?["error"] ?? diagnostic), verified: false)
+                self.appController?.setUDIDState(code == 404 ? "服务器尚未部署 UDID 接口，请先更新后台授权服务" : "无法开始设备识别：" + (body?["error"] ?? diagnostic), verified: false)
                 return
             }
             self.appController?.setUDIDState("请在 Safari 下载并安装设备识别描述文件，完成后返回 APP", verified: false)
-            UIApplication.shared.open(url, options: [:])
+            UIApplication.shared.open(url, options: [:]) { [weak self] opened in
+                if !opened { self?.appController?.setUDIDState("Safari 打开失败，请检查系统浏览器设置", verified: false) }
+            }
         }
     }
 
@@ -289,11 +292,13 @@ private final class LUIYoActivationGate: UIViewController {
             var payload = presencePayload()
             payload["device_id"] = deviceIdentifier
             payload["registration_secret"] = secret
-            request(action: "register", payload: payload, token: nil) { [weak self] status, _, _ in
+            request(action: "register", payload: payload, token: nil) { [weak self] status, body, diagnostic in
                 guard let self else { return }
                 self.presenceInFlight = false
                 self.registrationReady = status == 200
+                self.registrationFailure = self.registrationReady ? "" : (status == 404 ? "服务器尚未部署设备登记接口" : (body?["error"] ?? diagnostic))
                 if self.registrationReady { self.refreshUDIDStatus(); if self.udidEnrollmentPending { self.beginUDIDEnrollment() } }
+                else if self.udidEnrollmentPending { self.appController?.setUDIDState("设备登记失败：" + self.registrationFailure, verified: false) }
             }
         } else {
             request(action: "heartbeat", payload: presencePayload(), token: secret) { [weak self] status, _, _ in
