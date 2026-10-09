@@ -107,6 +107,7 @@ private final class LUIYoActivationGate: UIViewController {
         guard !checkInFlight else { return }
         guard let token = SecretStore.get("token") else {
             invalidateAccess(message: "请输入激活码以继续使用")
+            claimDeviceGrant()
             return
         }
         // Always recheck on foreground, even if previously allowed.
@@ -138,6 +139,19 @@ private final class LUIYoActivationGate: UIViewController {
             else { diagnostic = "HTTP " + String(code) + "，返回字段：" + (json?.keys.sorted().joined(separator: ",") ?? "none") }
             DispatchQueue.main.async { completion(code, obj, diagnostic) }
         }.resume()
+    }
+
+    private func claimDeviceGrant() {
+        guard registrationReady, !checkInFlight, SecretStore.get("token") == nil else { return }
+        checkInFlight = true
+        request(action: "manual-claim", payload: nil, token: registrationSecret) { [weak self] status, body, _ in
+            guard let self else { return }
+            self.checkInFlight = false
+            if status == 200, let token = body?["token"], token.count == 64 {
+                SecretStore.put(token, key: "token")
+                self.allowAccess()
+            }
+        }
     }
 
     private func redeem(code submittedCode: String) {
@@ -195,9 +209,8 @@ private final class LUIYoActivationGate: UIViewController {
             pointer.withMemoryRebound(to: CChar.self, capacity: capacity) { String(cString: $0) }
         }
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
-        let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? ""
         return ["page": currentPage, "foreground": foreground ? "yes" : "no", "model": model,
-                "os_version": UIDevice.current.systemVersion, "app_version": version + " (" + build + ")"]
+                "os_version": UIDevice.current.systemVersion, "app_version": version]
     }
 
     @objc private func background() {
@@ -218,12 +231,14 @@ private final class LUIYoActivationGate: UIViewController {
                 guard let self else { return }
                 self.presenceInFlight = false
                 self.registrationReady = status == 200
+                if self.registrationReady { self.claimDeviceGrant() }
             }
         } else {
             request(action: "heartbeat", payload: presencePayload(), token: secret) { [weak self] status, _, _ in
                 guard let self else { return }
                 self.presenceInFlight = false
                 if status == 401 { self.registrationReady = false }
+                if status == 200 { self.claimDeviceGrant() }
             }
         }
     }

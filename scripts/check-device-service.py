@@ -2,6 +2,7 @@
 """HTTP regression for additive migration, registration, card-key licensing without UDID.
 Uses an isolated DB. Never connects to a real backend.
 """
+import re
 import hashlib
 import http.client
 import json
@@ -100,7 +101,7 @@ with tempfile.TemporaryDirectory(prefix='luiyo-service-test-') as tmp:
         snapshot = request('/admin.php?snapshot=1', method='GET', cookie=cookie)[1]
         assert snapshot['devices'][0]['status'] == '已授权' and snapshot['unlicensed'] == 0
         assert not any('udid' in k for k in snapshot['devices'][0])
-        for action in ('udid-start', 'device-status', 'manual-claim'):
+        for action in ('udid-start', 'device-status'):
             assert api(action, token=secret)[0] == 410
         assert request('/profile.php?action=download&ticket=old', method='GET')[0] == 410
         assert request('/profile.php?action=callback&ticket=old', raw=b'old')[0] == 410
@@ -122,6 +123,35 @@ with tempfile.TemporaryDirectory(prefix='luiyo-service-test-') as tmp:
         assert request('/admin.php?snapshot=1', method='GET', cookie=cookie)[1]['devices'][0]['status'] == '已封禁'
         assert api('check', token=legacy_token)[0] == 200
         assert db.execute('SELECT code_hash,label FROM licenses').fetchone() == (sha(code), '历史卡密')
-        print('Passed: card-key activation without registration/UDID, existing tokens/data, credential separation, presence, limits/expiry/bans, removed UDID routes and admin UI.')
+        # Device-code authorization uses authenticated registration, never UDID.
+        granted_uuid=str(uuid.uuid4());grant_secret='e'*64
+        registration=api('register',{'device_id':granted_uuid,'registration_secret':grant_secret,'model':'iPhone17,4'})
+        device_code=registration[1]['device_code']
+        assert api('manual-claim',token=grant_secret)[0]==404
+        assert api('manual-claim',token='f'*64)[0]==401
+        page=request('/admin.php?panel=devices',method='GET',cookie=cookie)[1].decode()
+        csrf=re.search(r'name="csrf" value="([a-f0-9]+)"',page)[1]
+        assert request('/admin.php',form={'action':'grant_device','device_code':device_code,'csrf':'invalid'},cookie=cookie)[0]==403
+        grant_form={'action':'grant_device','device_code':device_code,'csrf':csrf,'return_panel':'devices'}
+        assert request('/admin.php',form=grant_form,cookie=cookie)[0]==200
+        claimed=api('manual-claim',token=grant_secret);assert claimed[0]==200,claimed
+        grant_token=claimed[1]['token']
+        assert api('check',token=grant_token)[0]==200
+        assert api('check',token=grant_secret)[0]==401
+        page=request('/admin.php?panel=devices',method='GET',cookie=cookie)[1].decode()
+        assert page.count(device_code)>=1,'Legacy authorized list must display complete installation device code'
+        assert 'UDID' not in page
+        revoke=dict(grant_form,action='revoke_device')
+        assert request('/admin.php',form=revoke,cookie=cookie)[0]==200
+        assert api('manual-claim',token=grant_secret)[0]==404
+        assert api('check',token=grant_token)[0]==403
+        request('/admin.php',form=grant_form,cookie=cookie)
+        assert api('manual-claim',token=grant_secret)[0]==200
+        db.execute('UPDATE devices SET banned=1 WHERE device_hash=?',(sha(granted_uuid),));db.commit()
+        assert api('manual-claim',token=grant_secret)[0]==403
+        original_license=db.execute('SELECT license_id FROM devices WHERE device_hash=?',(sha(device),)).fetchone()[0]
+        request('/admin.php',form=dict(grant_form,device_code='D-000001'),cookie=cookie)
+        assert db.execute('SELECT license_id FROM devices WHERE device_hash=?',(sha(device),)).fetchone()[0]==original_license
+        print('Passed: device-code grant/claim/revoke, CSRF, credential separation, full device code, ban enforcement; card-key activation without registration/UDID, existing tokens/data, credential separation, presence, limits/expiry/bans, removed UDID routes and admin UI.')
     finally:
         process.terminate(); process.wait(timeout=5); server_log.close()

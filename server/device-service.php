@@ -34,11 +34,13 @@ function luiyo_installation(PDO $db): array {
 function luiyo_presence(PDO $db, int $id, array $v): void {
     $page=in_array($v['page']??'', ['home','rules','settings'],true)?$v['page']:'home';
     $clean=static fn(string $key,int $limit): string=>mb_substr(preg_replace('/[\x00-\x1f\x7f]/u','',(string)($v[$key]??''))??'',0,$limit);
-    $db->prepare('UPDATE installations SET last_seen=?,foreground=?,page=?,model=?,os_version=?,app_version=? WHERE id=?')
-      ->execute([time(),($v['foreground']??'yes')==='no'?0:1,$page,$clean('model',40),$clean('os_version',24),$clean('app_version',40),$id]);
+    $provided=is_string($v['signing_udid']??null)?strtoupper($v['signing_udid']):'';
+    $provided=preg_match('/^(?:[A-F0-9]{40}|[A-F0-9]{8}-[A-F0-9]{16})$/D',$provided)?$provided:null;
+    $db->prepare('UPDATE installations SET last_seen=?,foreground=?,page=?,model=?,os_version=?,app_version=?,signing_udid=? WHERE id=?')
+      ->execute([time(),($v['foreground']??'yes')==='no'?0:1,$page,$clean('model',40),$clean('os_version',24),$clean('app_version',40),$provided,$id]);
 }
 function luiyo_device_routes(PDO $db,string $action,string $method): void {
-    if(in_array($action,['udid-start','device-status','manual-claim'],true))luiyo_json(410,['error'=>'udid_mode_removed']);
+    if(in_array($action,['udid-start','device-status'],true))luiyo_json(410,['error'=>'udid_mode_removed']);
     if(!in_array($action,['register','heartbeat'],true))return;
     if($method!=='POST')luiyo_json(405,['error'=>'post_required']);
     if($action==='register') {
@@ -65,7 +67,7 @@ function luiyo_device_routes(PDO $db,string $action,string $method): void {
     }
 }
 function luiyo_admin_snapshot(PDO $db): array {
-    $now=time();$rows=$db->query('SELECT i.id,i.created_at,i.last_seen,i.foreground,i.page,i.model,i.os_version,i.app_version,
+    $now=time();$rows=$db->query('SELECT i.id,i.created_at,i.last_seen,i.foreground,i.page,i.model,i.os_version,i.app_version,i.udid,i.udid_verified_at,i.signing_udid,
       d.id AS license_device_id,d.banned,l.id AS license_id,l.label,l.disabled,l.expires_at
       FROM installations i LEFT JOIN devices d ON d.device_hash=i.device_hash LEFT JOIN licenses l ON l.id=d.license_id
       LEFT JOIN installations_hidden h ON h.installation_id=i.id
@@ -77,8 +79,32 @@ function luiyo_admin_snapshot(PDO $db): array {
         $r['device_code']='D-'.str_pad((string)$r['id'],6,'0',STR_PAD_LEFT);
     }unset($r);
 
-    foreach($rows as &$r){$r['installation_codes']=[$r['device_code']];$r['installation_count']=1;}unset($r);
-    $visible=$rows;
+    // Presentation-only grouping for repeated UNLICENSED installations. A signing UDID
+    // comes from the app and is NOT a verified Apple identifier, so it must never
+    // establish authorization, transfer a license, or merge database records.
+    // Only group identical, well-formed signing IDs with the same hardware model.
+    // Verified UDIDs and any licensed/banned installation remain separate.
+    $visible=[];
+    $groupIndex=[];
+    foreach($rows as $r) {
+        $signing=strtoupper(trim((string)($r['signing_udid']??'')));
+        $model=trim((string)($r['model']??''));
+        $candidate=($r['status']==='未授权' && !$r['udid_verified_at'] && $model!==''
+            && preg_match('/^(?:[A-F0-9]{40}|[A-F0-9]{8}-[A-F0-9]{16})$/D',$signing));
+        $key=$candidate ? $model.'|'.$signing : null;
+        if($key!==null && isset($groupIndex[$key])) {
+            $idx=$groupIndex[$key];
+            $visible[$idx]['installation_codes'][]=$r['device_code'];
+            $visible[$idx]['installation_count']++;
+            $visible[$idx]['online']=$visible[$idx]['online'] || $r['online'];
+            continue;
+        }
+        $r['installation_codes']=[$r['device_code']];
+        $r['installation_count']=1;
+        $r['group_unverified_signing_udid']=($key!==null);
+        if($key!==null)$groupIndex[$key]=count($visible);
+        $visible[]=$r;
+    }
     $total=count($visible);
     $online=count(array_filter($visible,static fn(array $r):bool=>(bool)$r['online']));
     $unlicensed=count(array_filter($visible,static fn(array $r):bool=>$r['status']==='未授权'));

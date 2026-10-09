@@ -26,7 +26,7 @@
         pages[d.page] || '—', format(d.last_seen)].entries()) {
         const cell = document.createElement('td'); cell.dataset.label = labels[i]; cell.textContent = value; row.appendChild(cell);
       }
-      row.title = '首次登记：' + format(d.created_at);
+      row.title = '首次登记：' + format(d.created_at) + (d.installation_count > 1 ? '\n安装记录：' + d.installation_codes.join('、') : '');
       const cell = document.createElement('td'); cell.dataset.label = '操作';
       const button = document.createElement('button');
       button.type = 'button'; button.className = 'danger';

@@ -1,13 +1,13 @@
-# LUIYo Build24 后台更新
+# LUIYo 1.0.5 后台更新
 
-此版删除 UDID 授权模式，仅保留卡密授权。新安装用户输入卡密即可激活，不需要获取 UDID、安装描述文件或先登记设备。授权成功只显示“已授权”。
+保留原后台布局，增加设备码授权；不使用 UDID。设备管理页输入 D-000001 这类已登记的完整设备码，点击“授权 SVIP 3”。1.0.5 App 联网登记后自动领取授权，不需要用户输入卡密。未给予设备码授权的用户仍可用原有卡密激活。
 
-App 和后台必须一起更新。覆盖 api.php、bootstrap.php、device-service.php、admin.php、admin-devices.js、admin-ui.js、profile.php。保留原有数据库路径、管理员密码、HTTPS 和反向代理配置；不要删除数据库或重新建库。旧卡密、授权令牌、封禁状态、到期时间和设备数量上限继续生效。
+授权只针对设备码对应的安装记录；不会覆盖已有卡密授权。撤销仅作用于设备码手动授权。封禁、卡密停用和到期限制仍然有效。授权列表使用与在线列表相同的设备码；没有安装登记记录的旧设备明确标记“未登记设备（记录 #…）”，不伪造设备码。
 
-后台保留已确认的紧凑布局，删除 UDID 手动授权区、列和筛选。在线状态、未授权登记、卡密生成管理、设备封禁、移出列表以及重新打开 App 后恢复显示均保留。
+先备份后台文件和数据库，再将 luiyo/ 内文件覆盖到原后台目录。必须一并上传 device-grants.php、bootstrap.php、api.php、admin.php 和配套脚本。保留现有数据库、数据库路径、管理员密码和 HTTPS 配置；首次请求自动增加 device_grants 表，不删除旧记录。
 
-profile.php 为停用入口（HTTP 410），不会生成描述文件或接受回调。如果另外部署过 https://aistoto.cc.cd/udid/profile.php，请用包内 disable-udid/profile.php 覆盖这个独立入口，停止旧链接。历史数据保留，不再参与授权和列表分组。旧 manual-auth.php 不再被引用。
+App 使用新 1.0.5 IPA，自行签名安装。App 与后台须一起更新才能自动领取设备码授权。保持原签名和标识更新安装可保留原安装登记；若安装标识变化，则按新设备码授权，不自动转移其他设备授权。
 
-先备份后台文件和数据库，再覆盖后台代码，最后签名安装 Build24 IPA。IPA 是未签名编译产物，需要自行签名安装。PHP 8.3 或以上，需 PDO SQLite、mbstring；无需 UDID 的 XML/CMS 证书配置。
+profile.php 为停用入口（HTTP 410）。以前单独部署过 /udid/profile.php 的，将这个停用文件覆盖该入口。可删除原目录下的 device-service.php.bak、manual-auth.php（旧 UDID 文件）、udid-verifier.php、check-udid-cli.php、apple-device-ca.pem、UPGRADE-BUILD22.md 和旧部署样例 new-site/、existing-backend/。不要删除数据库和服务器配置。
 
-验证：有效卡密直接激活；已授权用户没有 UDID 入口；后台在线列表正常更新；封禁后下一次授权校验拒绝访问。
+后台设备卡片已压缩空白，设备码完整显示。1.0.5 正式版在界面中不显示 Build；底层安装构建号保留以便系统识别更新。1.0.5 展示本次给定历史日志；之后版本只使用当次版本的日志，不显示这批历史日志。

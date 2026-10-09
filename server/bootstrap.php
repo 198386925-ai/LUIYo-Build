@@ -33,3 +33,6 @@ $db->exec('CREATE INDEX IF NOT EXISTS idx_devices_license ON devices(license_id)
 $db->exec('CREATE INDEX IF NOT EXISTS idx_events_day ON events(day)');
 require_once __DIR__.'/device-service.php';
 luiyo_device_schema($db);
+
+require_once __DIR__.'/device-grants.php';
+luiyo_grant_schema($db);

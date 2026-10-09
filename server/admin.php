@@ -22,6 +22,8 @@ $db=new PDO('sqlite:'.$dbPath,null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTI
 $db->exec('PRAGMA busy_timeout=5000');
 require_once __DIR__.'/device-service.php';
 luiyo_device_schema($db);
+require_once __DIR__.'/device-grants.php';
+luiyo_grant_schema($db);
 function e(string $s): string{return htmlspecialchars($s,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');}
 function redirectHome(): never {header('Location: admin.php');exit;}
 if (isset($_GET['logout'])) {$_SESSION=[];session_destroy();redirectHome();}
@@ -42,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD']==='POST') {
  if (!hash_equals($_SESSION['csrf']??'',(string)($_POST['csrf']??''))) {http_response_code(403);exit('CSRF check failed');}
  $action=(string)($_POST['action']??'');
  if($action==='create')$requestedPanel='codes';
- elseif(in_array($action,['ban','unban','hide_installations'],true))$requestedPanel='devices';
+ elseif(in_array($action,['ban','unban','hide_installations','grant_device','revoke_device'],true))$requestedPanel='devices';
  elseif(in_array($action,['delete_license','disable','enable'],true))$requestedPanel='licenses';
  $id=filter_var($_POST['id']??null,FILTER_VALIDATE_INT);
  if ($action==='hide_installations') {
@@ -74,6 +76,12 @@ if ($_SERVER['REQUEST_METHOD']==='POST') {
     }
    }
   }
+ } elseif(in_array($action,['grant_device','revoke_device'],true)) {
+  try {
+   $code=(string)($_POST['device_code']??'');
+   $problem=$action==='grant_device'?luiyo_grant_device($db,$code):luiyo_revoke_grant($db,$code);
+   if($problem)$error=$problem;else $notice=$action==='grant_device'?'设备码授权成功；新版 App 联网后自动领取':'设备码授权已撤销';
+  }catch(Throwable $e){$error='操作失败，请查看服务器日志';}
  } elseif ($action==='create') {
   $label=mb_substr(trim((string)($_POST['label']??'')),0,80);
   $max=max(1,min(100,(int)($_POST['max_devices']??1)));
@@ -136,7 +144,7 @@ $stats=[
  '已封禁设备'=>(int)$db->query('SELECT COUNT(*) FROM devices WHERE banned=1')->fetchColumn(),
  '激活码总数'=>(int)$db->query('SELECT COUNT(*) FROM licenses')->fetchColumn()
 ];
-$devices=$db->query('SELECT d.id,d.created_at,d.last_seen,d.banned,d.ban_reason,l.label,l.id AS license_id FROM devices d JOIN licenses l ON l.id=d.license_id ORDER BY d.last_seen DESC LIMIT 200')->fetchAll(PDO::FETCH_ASSOC);
+$devices=$db->query('SELECT d.id,d.created_at,d.last_seen,d.banned,d.ban_reason,i.id AS installation_id,l.label,l.id AS license_id FROM devices d JOIN licenses l ON l.id=d.license_id LEFT JOIN installations i ON i.device_hash=d.device_hash ORDER BY d.last_seen DESC LIMIT 200')->fetchAll(PDO::FETCH_ASSOC);
 $licenses=$db->query('SELECT l.id,l.code_hash,l.label,l.max_devices,l.expires_at,l.disabled,COUNT(d.id) AS device_count FROM licenses l LEFT JOIN devices d ON d.license_id=l.id GROUP BY l.id ORDER BY l.id DESC LIMIT 200')->fetchAll(PDO::FETCH_ASSOC);
 $recentPlainByHash=[];foreach(($_SESSION['luiyo_recent_batches']??[]) as $recentBatch){foreach(($recentBatch['codes']??[]) as $recentCode){$recentPlainByHash[hash('sha256',$recentCode)]=$recentCode;}}
 
@@ -345,6 +353,26 @@ section h2{font-size:15px;margin:0 0 10px}.screen-title{padding:7px 2px 13px}.sc
  #device-overview .presence-scroll tr:not(:has(td[colspan])) td:nth-child(7){grid-column:span 2!important;text-align:right!important;overflow:visible!important}
  #device-overview .presence-scroll tr:not(:has(td[colspan])) td:nth-child(7) button{min-height:27px!important;padding:5px 7px!important;font-size:10px!important;white-space:nowrap!important}
 }
+
+/* Compact device rows: preserve the existing admin theme and navigation. */
+.device-grant-section{padding:14px 16px!important}
+.device-grant-section h2{margin:0 0 10px!important}
+.device-grant-form{display:flex;align-items:center;gap:8px;margin:0 0 7px!important}
+.device-grant-form label{flex:0 0 auto}.device-grant-form input{flex:1;min-width:0;margin:0!important}
+.device-grant-form button{flex:0 0 auto;margin:0!important;white-space:nowrap;padding:10px!important}
+.legacy-devices td[data-label="设备码"]{overflow:visible!important;text-overflow:clip!important;white-space:normal!important;word-break:normal!important;min-width:0}
+@media(max-width:650px){
+ #device-overview .presence-scroll tr:not(:has(td[colspan])){gap:3px 6px!important;padding:9px!important;min-height:0!important;grid-template-columns:repeat(12,minmax(0,1fr))!important}
+ #device-overview .presence-scroll tr:not(:has(td[colspan])) td:nth-child(1){grid-column:span 4!important;grid-row:1!important;overflow:visible!important;white-space:nowrap!important}
+ #device-overview .presence-scroll tr:not(:has(td[colspan])) td:nth-child(2){grid-column:span 2!important;grid-row:1!important;text-align:center!important}
+ #device-overview .presence-scroll tr:not(:has(td[colspan])) td:nth-child(3){grid-column:span 6!important;grid-row:1!important;text-align:right!important}
+ #device-overview .presence-scroll tr:not(:has(td[colspan])) td:nth-child(4){grid-column:span 9!important;grid-row:2!important}
+ #device-overview .presence-scroll tr:not(:has(td[colspan])) td:nth-child(5){grid-column:span 3!important;grid-row:2!important;text-align:right!important}
+ #device-overview .presence-scroll tr:not(:has(td[colspan])) td:nth-child(6){grid-column:span 9!important;grid-row:3!important;text-align:left!important}
+ #device-overview .presence-scroll tr:not(:has(td[colspan])) td:nth-child(7){grid-column:span 3!important;grid-row:3!important;text-align:right!important}
+ .device-grant-form{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:6px}
+ .legacy-devices tr{padding:10px!important;gap:7px 10px!important}
+}
 </style></head><body data-server-panel="<?=e($requestedPanel)?>">
 <header><div><h1>LUIYo 用户管理</h1><small>统计按设备计数；每日活跃按 UTC 日期；新版 App 每 30 秒上报；90 秒未上报即显示离线。时间按北京时间显示。</small></div><a href="?logout=1">退出</a></header>
 <?php if($notice||$error):?><section class="notice" role="status" id="admin-flash"><?=e($notice?:$error)?></section><?php endif;?>
@@ -364,8 +392,9 @@ section h2{font-size:15px;margin:0 0 10px}.screen-title{padding:7px 2px 13px}.sc
 <?php endif; ?><p class="history-warning">安全提示：旧卡密数据库只保存不可逆哈希，无法恢复明文。近期记录保存在当前管理员会话中，会话结束后可能丢失；请及时复制到安全位置。</p></section>
 </main>
 <main data-panel="devices"><div class="screen-title"><span class="title-icon" aria-hidden="true">▣</span><h1>设备与在线用户</h1></div>
-<section id="device-overview"><div class="between"><h2>设备与在线用户</h2><small id="presence-update">正在更新…</small></div><div class="stats"><div class="stat"><small>新版登记设备</small><b id="presence-total">—</b></div><div class="stat"><small>当前在线</small><b id="presence-online">—</b></div><div class="stat"><small>未授权设备</small><b id="presence-unlicensed">—</b></div></div><p><label>筛选 <select id="presence-filter"><option value="all">全部设备</option><option value="online">在线设备</option><option value="licensed">已授权</option><option value="unlicensed">未授权</option></select></label><input id="presence-query" placeholder="搜索设备码或备注" aria-label="搜索设备"><button id="presence-refresh" type="button">刷新</button></p><small>设备码为安装标识；用户输入卡密即可激活。旧版 App 记录在下方授权设备列表保留。列表显示服务器已登记的全部设备；每 10 秒刷新一次。</small><input type="hidden" id="presence-csrf" value="<?=e($_SESSION['csrf'])?>"><div class="presence-list-count" id="presence-list-count" aria-live="polite">正在获取设备列表…</div><div class="scroll presence-scroll"><table><thead><tr><th>设备码</th><th>在线</th><th>授权</th><th>设备 / 版本</th><th>当前页面</th><th>最近使用</th><th>操作</th></tr></thead><tbody id="presence-rows"><tr><td colspan="7">正在载入设备…</td></tr></tbody></table></div></section><section class="legacy-devices"><h2>原有授权设备管理（最近 200 条）</h2><div class="legacy-search"><input type="search" id="legacy-search" placeholder="搜索设备码、卡密备注或时间" aria-label="搜索原有授权设备"><button type="button" id="legacy-search-clear">清空</button></div><div class="scroll"><table><thead><tr><th>设备码</th><th>激活码备注</th><th>最近活跃（北京）</th><th>状态</th><th>操作</th></tr></thead><tbody>
-<?php foreach($devices as $d):?><tr><td data-label="设备码">#<?= (int)$d['id'] ?></td><td data-label="卡密备注"><?=e($d['label'])?></td><td data-label="最近活跃"><?=e(gmdate('Y-m-d H:i',(int)$d['last_seen']+28800))?></td><td data-label="状态"><?= $d['banned']?'已封禁':'正常' ?></td><td data-label="操作"><form method="post" action="admin.php?panel=devices" class="inline"><input type="hidden" name="csrf" value="<?=e($_SESSION['csrf'])?>"><input type="hidden" name="id" value="<?=(int)$d['id']?>"><input type="hidden" name="action" value="<?=$d['banned']?'unban':'ban'?>"><?php if(!$d['banned']):?><input name="reason" maxlength="120" placeholder="封禁原因"><?php endif;?><button class="<?=$d['banned']?'':'danger'?>"><?=$d['banned']?'解除封禁':'封禁'?></button></form></td></tr><?php endforeach;?></tbody></table></div></section></main>
+<section class="device-grant-section"><h2>设备码授权</h2><form method="post" action="admin.php?panel=devices" class="device-grant-form"><input type="hidden" name="csrf" value="<?=e($_SESSION['csrf'])?>"><label for="grant-device-code">设备码</label><input id="grant-device-code" name="device_code" placeholder="D-000001" pattern="D-[0-9]{6,9}" required autocapitalize="characters"><button name="action" value="grant_device">授权 SVIP 3</button><button name="action" value="revoke_device" class="danger">撤销</button></form><small>输入已登记设备的完整编号；新版 App 联网后自动领取，不会覆盖已有卡密授权。</small></section>
+<section id="device-overview"><div class="between"><h2>设备与在线用户</h2><small id="presence-update">正在更新…</small></div><div class="stats"><div class="stat"><small>新版登记设备</small><b id="presence-total">—</b></div><div class="stat"><small>当前在线</small><b id="presence-online">—</b></div><div class="stat"><small>未授权设备</small><b id="presence-unlicensed">—</b></div></div><p><label>筛选 <select id="presence-filter"><option value="all">全部设备</option><option value="online">在线设备</option><option value="licensed">已授权</option><option value="unlicensed">未授权</option></select></label><input id="presence-query" placeholder="搜索设备码或备注" aria-label="搜索设备"><button id="presence-refresh" type="button">刷新</button></p><small>未授权可登记设备，首页功能仍需激活。设备码为安装标识。旧版 App 记录在下方授权设备列表保留。列表显示服务器已登记的全部设备；每 10 秒刷新一次。</small><input type="hidden" id="presence-csrf" value="<?=e($_SESSION['csrf'])?>"><div class="presence-list-count" id="presence-list-count" aria-live="polite">正在获取设备列表…</div><div class="scroll presence-scroll"><table><thead><tr><th>设备码</th><th>在线</th><th>授权</th><th>设备 / 版本</th><th>当前页面</th><th>最近使用</th><th>操作</th></tr></thead><tbody id="presence-rows"><tr><td colspan="7">正在载入设备…</td></tr></tbody></table></div></section><section class="legacy-devices"><h2>原有授权设备管理（最近 200 条）</h2><div class="legacy-search"><input type="search" id="legacy-search" placeholder="搜索设备码、卡密备注或时间" aria-label="搜索原有授权设备"><button type="button" id="legacy-search-clear">清空</button></div><div class="scroll"><table><thead><tr><th>设备码</th><th>激活码备注</th><th>最近活跃（北京）</th><th>状态</th><th>操作</th></tr></thead><tbody>
+<?php foreach($devices as $d):?><tr><td data-label="设备码"><?= !empty($d['installation_id'])?e('D-'.str_pad((string)$d['installation_id'],6,'0',STR_PAD_LEFT)):e('未登记设备（记录 #'.$d['id'].'）') ?></td><td data-label="卡密备注"><?=e($d['label'])?></td><td data-label="最近活跃"><?=e(gmdate('Y-m-d H:i',(int)$d['last_seen']+28800))?></td><td data-label="状态"><?= $d['banned']?'已封禁':'正常' ?></td><td data-label="操作"><form method="post" action="admin.php?panel=devices" class="inline"><input type="hidden" name="csrf" value="<?=e($_SESSION['csrf'])?>"><input type="hidden" name="id" value="<?=(int)$d['id']?>"><input type="hidden" name="action" value="<?=$d['banned']?'unban':'ban'?>"><?php if(!$d['banned']):?><input name="reason" maxlength="120" placeholder="封禁原因"><?php endif;?><button class="<?=$d['banned']?'':'danger'?>"><?=$d['banned']?'解除封禁':'封禁'?></button></form></td></tr><?php endforeach;?></tbody></table></div></section></main>
 <main data-panel="licenses"><div class="screen-title"><span class="title-icon" aria-hidden="true">⚿</span><h1>卡密管理</h1><small>最近 200 条</small></div>
 <section class="license-section"><div class="between"><h2>激活码列表</h2><small>点击编号查看授权信息</small></div><input type="search" id="license-search" placeholder="搜索卡密编号或备注" aria-label="搜索卡密记录">
 <p class="license-disclaimer">旧卡密仅存哈希，无法显示明文。新生成的卡密请在「生成卡密 → 近期生成记录」中复制。</p>
@@ -378,5 +407,5 @@ section h2{font-size:15px;margin:0 0 10px}.screen-title{padding:7px 2px 13px}.sc
 <button type="button" data-nav="devices"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 9h8M8 13h8M8 17h4"/></svg>设备管理</button>
 <button type="button" data-nav="licenses"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>卡密管理</button>
 </nav>
-<script src="admin-devices.js?v=build24" defer></script><script src="admin-ui.js?v=build24" defer></script>
+<script src="admin-devices.js?v=1.0.5" defer></script><script src="admin-ui.js?v=1.0.5" defer></script>
 </body></html>

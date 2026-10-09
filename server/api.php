@@ -41,6 +41,7 @@ $script = trim($_SERVER['SCRIPT_NAME'] ?? '', '/');
 if (str_ends_with($route, basename($script))) $route='';
 $route = preg_replace('~^.*?/api\.php/?~', '', $route);
 $method=$_SERVER['REQUEST_METHOD'] ?? 'GET';
+if(($_GET['action']??$route)==='manual-claim'){if($method!=='POST')response(405,['error'=>'post_required']);luiyo_claim_grant($db);}
 luiyo_device_routes($db, (string)($_GET['action'] ?? $route), $method);
 if ($method==='POST' && ($route==='activate' || ($_GET['action'] ?? '')==='activate')) {
     $v=body(); $code=strtoupper(trim((string)($v['code']??'')));
@@ -82,4 +83,3 @@ if ($method==='POST' && ($route==='check' || ($_GET['action']??'')==='check')) {
     response(200,['status'=>'active']);
 }
 response(404,['error'=>'not_found']);
-
