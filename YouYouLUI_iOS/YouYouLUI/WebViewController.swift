@@ -126,18 +126,29 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         const udidAction=document.getElementById("luiyoUDIDAction");if(udidAction)udidAction.hidden=authorized;
         window.__syncNativeCardGlass?.();
       };
-      function allowedTarget(t) {
-        if (!(t instanceof Element)) return false;
-        return !!t.closest('#luiyoActivationCard, .appBottomNav, summary, .categorytabs, .nativeInfoHeader');
+      function showLicenseNotice() {
+        let el=document.getElementById('luiyoLicenseNotice');
+        if(!el) {
+          el=document.createElement('div');
+          el.id='luiyoLicenseNotice';
+          el.setAttribute('role','status');
+          el.style.cssText='position:fixed;z-index:2147483647;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 94px);transform:translateX(-50%);max-width:calc(100vw - 36px);box-sizing:border-box;padding:13px 20px;border-radius:16px;color:#fff;background:rgba(35,36,44,.92);font-size:14px;font-weight:600;text-align:center;box-shadow:0 5px 24px rgba(0,0,0,.18);pointer-events:none';
+          document.body.appendChild(el);
+        }
+        el.textContent='未授权用户，请授权后使用';
+        el.hidden=false;
+        clearTimeout(window.__luiyoNoticeTimeout);
+        window.__luiyoNoticeTimeout=setTimeout(()=>{el.hidden=true},2300);
       }
       function protect(e) {
-        if (authorized || allowedTarget(e.target)) return;
-        const t = e.target;
-        const interactive = t instanceof Element && t.closest('button,input,textarea,select,label,a,[contenteditable],[role="button"]');
-        if (!interactive) return;
+        if(authorized) return;
+        const t=e.target;
+        if(!(t instanceof Element) || !t.closest('#homeTools'))return;
+        if(!t.closest('button,input,textarea,select,label,a,[contenteditable],[role="button"]'))return;
         e.preventDefault();e.stopImmediatePropagation();
+        if(e.type==='click')showLicenseNotice();
       }
-      ['click','change','input','submit','keydown','drop','paste'].forEach(t => document.addEventListener(t, protect, true));
+      ['click','change','input','submit','keydown','drop','paste'].forEach(t=>document.addEventListener(t,protect,true));
       window.__luiyoSetAuthorized(false);
     })();
     """#
@@ -589,10 +600,6 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     }
 
     private func presentBottomSearch() {
-        guard isAuthorized else {
-            showAuthorizationRequired()
-            return
-        }
         guard bottomSearchEnabled, !openingSearch, presentedViewController == nil else { return }
         openingSearch = true
         webView.evaluateJavaScript("window.__bottomSearchState?.()") { [weak self] value, _ in
@@ -1058,7 +1065,6 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             onActivationRequested?()
             return
         }
-        if !isAuthorized && !["pageState", "infoPage", "cardGlassRects"].contains(message.name) { return }
         if message.name == "pageState" {
             if let payload = message.body as? [String: Any] {
                 let page = payload["page"] as? String ?? "home"
