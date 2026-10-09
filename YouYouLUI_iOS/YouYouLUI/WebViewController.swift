@@ -15,12 +15,14 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     private var authorizationMessage = "未激活 · 仅可浏览"
     private var udidState = "请先获取并验证设备 UDID"
     private var udidReady = false
+    private var udidInteractionCounter = 0
 
     func setUDIDState(_ message: String, verified: Bool) {
         udidState = message
         udidReady = verified
         guard isViewLoaded, let webView else { return }
         guard let data = try? JSONSerialization.data(withJSONObject: [message, verified]), let args = String(data: data, encoding: .utf8) else { return }
+        udidInteractionCounter += 1
         webView.evaluateJavaScript("window.__luiyoSetUDID?.(..." + args + ")")
     }
     private var authorizationBusy = false
@@ -101,8 +103,15 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
           const state=box.querySelector("#luiyoUDIDStatus");
           if(state)state.textContent="正在连接设备识别服务…";
           const bridge=window.webkit?.messageHandlers?.udidStart;
-          if(bridge?.postMessage)bridge.postMessage({});
-          else if(state)state.textContent="当前安装包不支持设备识别，请安装最新版 IPA";
+          if(bridge?.postMessage) {
+            let acked=false;
+            window.__luiyoUDIDAck=()=>{acked=true};
+            bridge.postMessage({});
+            setTimeout(()=>{
+              if(!acked && state && state.textContent==="正在连接设备识别服务…")
+                state.textContent="未收到 APP 原生响应。请重启 APP 后重试；仍失败请反馈此提示";
+            },8000);
+          } else if(state)state.textContent="当前安装包不支持设备识别，请安装最新版 IPA";
         });
         settings.querySelector('.settingsHead')?.insertAdjacentElement('afterend', box);
         box.querySelector('form').addEventListener('submit', e => {
@@ -113,6 +122,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
       let udidVerified = false;
       window.__luiyoSetUDID = (message, verified) => {
         udidVerified=!!verified;
+        window.__luiyoUDIDAck?.();
         const el=document.getElementById("luiyoUDIDStatus"), b=document.getElementById("luiyoUDIDStart");
         if(el)el.textContent=message;
         if(b)b.textContent=udidVerified?"重新获取":"获取 UDID";
@@ -1053,7 +1063,13 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         guard message.frameInfo.isMainFrame else { return }
         if message.name == "udidStart" {
             guard !isAuthorized else { return }
-            onUDIDRequested?()
+            // Acknowledge the WKScriptMessage bridge immediately, even when enrollment is not ready.
+            webView.evaluateJavaScript("window.__luiyoUDIDAck?.()")
+            if let onUDIDRequested {
+                onUDIDRequested()
+            } else {
+                setUDIDState("设备识别组件未初始化，请完全关闭并重启 APP", verified: false)
+            }
             return
         }
         if message.name == "activationSubmit" {
