@@ -10,21 +10,8 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     private var isAuthorized = false
     var onActivationRequested: (() -> Void)?
     var onLicenseSubmitted: ((String) -> Void)?
-    var onUDIDRequested: (() -> Void)?
     var onPageChanged: ((String) -> Void)?
     private var authorizationMessage = "未激活 · 仅可浏览"
-    private var udidState = "请先获取并验证设备 UDID"
-    private var udidReady = false
-    private var udidInteractionCounter = 0
-
-    func setUDIDState(_ message: String, verified: Bool) {
-        udidState = message
-        udidReady = verified
-        guard isViewLoaded, let webView else { return }
-        guard let data = try? JSONSerialization.data(withJSONObject: [message, verified]), let args = String(data: data, encoding: .utf8) else { return }
-        udidInteractionCounter += 1
-        webView.evaluateJavaScript("window.__luiyoSetUDID?.(..." + args + ")")
-    }
     private var authorizationBusy = false
 
     func setAuthorization(_ allowed: Bool, message: String? = nil, busy: Bool = false) {
@@ -39,7 +26,6 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         guard let data = try? JSONSerialization.data(withJSONObject: [isAuthorized, authorizationMessage, authorizationBusy]),
               let args = String(data: data, encoding: .utf8) else { return }
         webView.evaluateJavaScript("window.__luiyoSetAuthorized?.(..." + args + ")")
-        setUDIDState(udidState, verified: udidReady)
     }
     private var pageItems: [UITabBarItem] = []
     private var pageControllers: [UIViewController] = []
@@ -88,52 +74,25 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         .luiyoActivationEntry strong{display:block;font-size:15px}.luiyoActivationEntry small{display:block;margin-top:5px;color:var(--muted,#8b8f98);font-size:12px}
         .luiyoActivationForm{display:flex;gap:8px;margin-top:14px;align-items:center}.luiyoActivationForm[hidden]{display:none!important}
         #luiyoLicenseCode{flex:1;min-width:0;height:44px;box-sizing:border-box;padding:0 12px;border:1px solid rgba(130,130,140,.25);border-radius:14px;background:transparent;color:inherit;font-size:14px}
-        #luiyoLicenseSubmit{height:44px;border:0;border-radius:14px;padding:0 14px;background:#6968e8;color:white;font-weight:600;white-space:nowrap}
-        .luiyoUDIDAction{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px}
-        #luiyoUDIDStatus{font-size:12px;color:var(--muted,#747a86);flex:1;line-height:1.55}
-        #luiyoUDIDStart{flex-shrink:0;border:0;background:rgba(92,112,219,.12);color:#5266cf;border-radius:12px;padding:10px 12px;font-size:12px;font-weight:600}`;
+        #luiyoLicenseSubmit{height:44px;border:0;border-radius:14px;padding:0 14px;background:#6968e8;color:white;font-weight:600;white-space:nowrap}`;
       document.head.appendChild(css);
       const settings = document.getElementById('settingsTarget');
       if (settings) {
         const box = document.createElement('section');
         box.className = 'luiyoActivationEntry';box.id='luiyoActivationCard';
-        box.innerHTML = '<strong>激活授权</strong><small id="luiyoAuthState">未激活 · 仅可浏览</small><div class="luiyoUDIDAction" id="luiyoUDIDAction"><span id="luiyoUDIDStatus">请先获取并验证设备 UDID</span><button type="button" id="luiyoUDIDStart">获取 UDID</button></div><form class="luiyoActivationForm" id="luiyoActivationForm"><input id="luiyoLicenseCode" aria-label="卡密" placeholder="输入卡密" autocomplete="one-time-code" autocapitalize="characters" spellcheck="false"><button id="luiyoLicenseSubmit" type="submit">激活</button></form>';
-        box.querySelector("#luiyoUDIDStart").addEventListener("click", e => {
-          e.preventDefault();
-          const state=box.querySelector("#luiyoUDIDStatus");
-          if(state)state.textContent="正在连接设备识别服务…";
-          const bridge=window.webkit?.messageHandlers?.udidStart;
-          if(bridge?.postMessage) {
-            let acked=false;
-            window.__luiyoUDIDAck=()=>{acked=true};
-            bridge.postMessage({});
-            setTimeout(()=>{
-              if(!acked && state && state.textContent==="正在连接设备识别服务…")
-                state.textContent="未收到 APP 原生响应。请重启 APP 后重试；仍失败请反馈此提示";
-            },8000);
-          } else if(state)state.textContent="当前安装包不支持设备识别，请安装最新版 IPA";
-        });
+        box.innerHTML = '<strong>激活授权</strong><small id="luiyoAuthState">未激活 · 仅可浏览</small><form class="luiyoActivationForm" id="luiyoActivationForm"><input id="luiyoLicenseCode" aria-label="卡密" placeholder="输入卡密" autocomplete="one-time-code" autocapitalize="characters" spellcheck="false"><button id="luiyoLicenseSubmit" type="submit">激活</button></form>';
         settings.querySelector('.settingsHead')?.insertAdjacentElement('afterend', box);
         box.querySelector('form').addEventListener('submit', e => {
           e.preventDefault();const code=box.querySelector('input').value.trim();
           if(code)window.webkit?.messageHandlers?.activationSubmit?.postMessage({code});
         });
       }
-      let udidVerified = false;
-      window.__luiyoSetUDID = (message, verified) => {
-        udidVerified=!!verified;
-        window.__luiyoUDIDAck?.();
-        const el=document.getElementById("luiyoUDIDStatus"), b=document.getElementById("luiyoUDIDStart");
-        if(el)el.textContent=message;
-        if(b)b.textContent=udidVerified?"重新获取":"获取 UDID";
-      };
       window.__luiyoSetAuthorized = (enabled,message,busy=false) => {
         authorized = !!enabled;
         document.documentElement.dataset.luiyoAuthorized = authorized ? 'yes' : 'no';
         const state=document.getElementById('luiyoAuthState'), form=document.getElementById('luiyoActivationForm');
         if(state)state.textContent=message||(authorized?'已授权':'未激活 · 仅可浏览');
         if(form){form.hidden=authorized;const field=form.querySelector('input'),button=form.querySelector('button');field.disabled=busy;button.disabled=busy;button.textContent=busy?'验证中…':'激活';if(authorized){field.blur();field.value=''}}
-        const udidAction=document.getElementById("luiyoUDIDAction");if(udidAction)udidAction.hidden=false;
         window.__syncNativeCardGlass?.();
       };
       function showLicenseNotice() {
@@ -206,7 +165,6 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         configuration.userContentController.add(self, name: "bottomSearch")
         configuration.userContentController.add(self, name: "activationOpen")
         configuration.userContentController.add(self, name: "activationSubmit")
-        configuration.userContentController.add(self, name: "udidStart")
         configuration.userContentController.addUserScript(WKUserScript(source: Self.activationPreviewScript,
             injectionTime: .atDocumentEnd, forMainFrameOnly: true))
 
@@ -299,7 +257,6 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "bottomSearch")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "activationOpen")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "activationSubmit")
-        webView?.configuration.userContentController.removeScriptMessageHandler(forName: "udidStart")
     }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
@@ -1061,18 +1018,6 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         guard message.frameInfo.isMainFrame else { return }
-        if message.name == "udidStart" {
-            // UDID enrollment is allowed both before and after license activation.
-            // Do not silently drop taps by already-authorized users.
-            // Acknowledge the WKScriptMessage bridge immediately, even when enrollment is not ready.
-            webView.evaluateJavaScript("window.__luiyoUDIDAck?.()")
-            if let onUDIDRequested {
-                onUDIDRequested()
-            } else {
-                setUDIDState("设备识别组件未初始化，请完全关闭并重启 APP", verified: false)
-            }
-            return
-        }
         if message.name == "activationSubmit" {
             guard !isAuthorized, let payload = message.body as? [String: Any], let code = payload["code"] as? String else { return }
             onLicenseSubmitted?(code)
@@ -1366,4 +1311,5 @@ private final class LUIYoSearchViewController: UIViewController, UITextFieldDele
         return true
     }
 }
+
 

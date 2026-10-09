@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""HTTP regression for additive migration, registration, licensing and UDID replay.
-Uses an isolated DB and a disposable test CA. Never connects to a real backend.
+"""HTTP regression for additive migration, registration, card-key licensing without UDID.
+Uses an isolated DB. Never connects to a real backend.
 """
 import hashlib
 import http.client
@@ -75,13 +75,7 @@ with tempfile.TemporaryDirectory(prefix='luiyo-service-test-') as tmp:
         assert api('register', dict(registration, registration_secret='c' * 64))[0] == 409
         assert api('heartbeat', {'page': 'settings'}, token='d' * 64)[0] == 401
         assert api('check', token=secret)[0] == 401, 'Presence credential must not activate the app'
-        assert api('device-status', token=secret)[1]['udid_status'] == 'not_collected'
-        assert db.execute('SELECT COUNT(*) FROM devices').fetchone()[0] == 1, 'Unlicensed registration must not create a license'
-        hint='00008130-ABCDEF0123456789'
-        assert api('heartbeat', {'signing_udid':hint}, token=secret)[0] == 200
-        hinted=api('device-status', token=secret)[1]
-        assert hinted['udid_status']=='signing_profile' and hinted['udid']==hint
-        assert db.execute('SELECT udid_verified_at FROM installations').fetchone()[0] is None, 'Signing-file hint must never be called verified'
+        assert db.execute('SELECT COUNT(*) FROM devices').fetchone()[0] == 1
         assert api('heartbeat', {'page': 'rules', 'foreground': 'no'}, token=secret)[0] == 200
         assert db.execute('SELECT foreground,page FROM installations').fetchone() == (0, 'rules')
         assert request('/admin.php?snapshot=1', method='GET')[2]['content-type'].startswith('text/html'), 'Snapshot must require admin login'
@@ -95,51 +89,39 @@ with tempfile.TemporaryDirectory(prefix='luiyo-service-test-') as tmp:
         assert request('/admin.php?snapshot=1', method='GET', cookie=cookie)[1]['online'] == 1
         db.execute('UPDATE installations SET last_seen=?', (now - 91,)); db.commit()
         assert request('/admin.php?snapshot=1', method='GET', cookie=cookie)[1]['online'] == 0
-        # New installations MUST complete signed UDID enrollment before their first activation.
-        assert api('activate', {'device_id': device, 'code': code})[0] == 428
-        assert api('activate', {'device_id': device, 'code': code, 'registration_secret': secret})[0] == 428
-        assert api('check', token=legacy_token)[0] == 200
-        assert api('udid-start', token='f' * 64)[0] == 401
-        started = api('udid-start', token=secret); assert started[0] == 200
-        ticket = urllib.parse.parse_qs(urllib.parse.urlparse(started[1]['profile_url']).query)['ticket'][0]
-        downloaded = request('/profile.php?action=download&ticket=' + ticket, method='GET')
-        profile = plistlib.loads(downloaded[1]); assert profile['PayloadType'] == 'Profile Service'
-        assert profile['PayloadContent']['DeviceAttributes'] == ['UDID']
-        assert profile['PayloadContent']['URL'] == 'https://devices.example.test/luiyo/profile.php?action=callback&ticket=' + ticket
-        assert request('/profile.php?action=callback&ticket=' + ticket, raw=b'unsigned payload')[0] == 400
-        assert api('device-status', token=secret)[1]['udid_status'] == 'not_collected'
-
-        # A self-signed spoof remains rejected with the production trust pin.
-        key, cert, content, cms = [work / name for name in ('ca.key', 'ca.pem', 'payload.plist', 'payload.der')]
-        subprocess.run(['openssl', 'req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-subj', '/CN=Test Device CA/O=Test Only', '-keyout', str(key), '-out', str(cert), '-days', '1'], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        udid = '00008130-0123456789ABCDEF'
-        content.write_bytes(plistlib.dumps({'UDID': udid, 'CHALLENGE': ticket}))
-        subprocess.run(['openssl', 'cms', '-sign', '-binary', '-nodetach', '-in', str(content), '-signer', str(cert), '-inkey', str(key), '-outform', 'DER', '-out', str(cms)], check=True)
-        callback = '/profile.php?action=callback&ticket=' + ticket
-        assert request(callback, raw=cms.read_bytes())[0] == 400, 'Self-signed certificate must be rejected'
-        assert api('device-status', token=secret)[1]['udid_status'] == 'not_collected'
-        # Positive cryptographic/lifecycle test in the temporary server copy only.
-        shutil.copyfile(cert, work / 'server/apple-device-ca.pem')
-        altered = bytearray(cms.read_bytes()); altered[-1] ^= 1
-        assert request(callback, raw=bytes(altered))[0] == 400, 'Tampered CMS must be rejected'
-        assert request(callback, raw=cms.read_bytes())[0] == 303
-        assert api('device-status', token=secret)[1]['udid'] == udid
-        assert request(callback, raw=cms.read_bytes())[0] == 410, 'Completed challenge must not replay'
-        activate = api('activate', {'device_id': device, 'code': code, 'registration_secret': secret})
-        assert activate[0] == 200
+        # No registration or UDID is required for card-key activation.
+        fresh = str(uuid.uuid4())
+        activated = api('activate', {'device_id': fresh, 'code': code})
+        assert activated[0] == 200, activated
+        assert api('check', token=activated[1]['token'])[0] == 200
+        activate = api('activate', {'device_id': device, 'code': code})
+        assert activate[0] == 200, activate
         assert api('check', token=activate[1]['token'])[0] == 200
         snapshot = request('/admin.php?snapshot=1', method='GET', cookie=cookie)[1]
         assert snapshot['devices'][0]['status'] == '已授权' and snapshot['unlicensed'] == 0
+        assert not any('udid' in k for k in snapshot['devices'][0])
+        for action in ('udid-start', 'device-status', 'manual-claim'):
+            assert api(action, token=secret)[0] == 410
+        assert request('/profile.php?action=download&ticket=old', method='GET')[0] == 410
+        assert request('/profile.php?action=callback&ticket=old', raw=b'old')[0] == 410
+        page=request('/admin.php?panel=devices', method='GET', cookie=cookie)[1].decode()
+        assert 'UDID' not in page and 'manual_grant' not in page
+        db.execute('UPDATE licenses SET max_devices=3 WHERE id=1'); db.commit()
+        assert api('activate', {'device_id':str(uuid.uuid4()), 'code':code})[1]['error'] == 'device_limit'
+        db.execute('UPDATE licenses SET disabled=1 WHERE id=1'); db.commit()
+        assert api('check', token=activate[1]['token'])[0] == 403
+        assert api('activate', {'device_id':device, 'code':code})[0] == 403
+        db.execute('UPDATE licenses SET disabled=0,expires_at=? WHERE id=1',(now-1,));db.commit()
+        assert api('check', token=activate[1]['token'])[0] == 403
+        assert api('activate', {'device_id':device, 'code':code})[0] == 403
+        db.execute('UPDATE licenses SET expires_at=NULL WHERE id=1');db.commit()
         db.execute('UPDATE devices SET banned=1 WHERE device_hash=?', (sha(device),)); db.commit()
         assert api('check', token=activate[1]['token'])[0] == 403
+        assert api('activate', {'device_id':device, 'code':code})[0] == 403
         assert api('heartbeat', {'page': 'settings'}, token=secret)[0] == 200
         assert request('/admin.php?snapshot=1', method='GET', cookie=cookie)[1]['devices'][0]['status'] == '已封禁'
-        started=api('udid-start',token=secret); expired_ticket=urllib.parse.parse_qs(urllib.parse.urlparse(started[1]['profile_url']).query)['ticket'][0]
-        db.execute('UPDATE udid_challenges SET expires_at=? WHERE ticket_hash=?',(now-1,sha(expired_ticket)));db.commit()
-        assert request('/profile.php?action=download&ticket='+expired_ticket,method='GET')[0]==410, 'Expired challenge must be rejected'
-        assert api('check', token=activate[1]['token'])[0] == 403, 'UDID collection must not unban or activate'
         assert api('check', token=legacy_token)[0] == 200
         assert db.execute('SELECT code_hash,label FROM licenses').fetchone() == (sha(code), '历史卡密')
-        print('Passed: existing tokens/data, unlicensed registration, credential separation, online/offline, admin session, activation/revocation, profile URL, unsigned/self-signed/tampered rejection, signed callback and replay protection.')
+        print('Passed: card-key activation without registration/UDID, existing tokens/data, credential separation, presence, limits/expiry/bans, removed UDID routes and admin UI.')
     finally:
         process.terminate(); process.wait(timeout=5); server_log.close()

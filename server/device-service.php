@@ -12,10 +12,9 @@ function luiyo_device_schema(PDO $db): void {
     $columns=$db->query('PRAGMA table_info(installations)')->fetchAll(PDO::FETCH_COLUMN,1);
     if(!in_array('signing_udid',$columns,true))$db->exec('ALTER TABLE installations ADD COLUMN signing_udid TEXT');
     $db->exec('CREATE INDEX IF NOT EXISTS installations_seen ON installations(last_seen)');
-    $db->exec('CREATE TABLE IF NOT EXISTS udid_challenges (
-      ticket_hash TEXT PRIMARY KEY, installation_id INTEGER NOT NULL,
-      expires_at INTEGER NOT NULL, used_at INTEGER, created_at INTEGER NOT NULL)');
-    $db->exec('CREATE INDEX IF NOT EXISTS udid_installation ON udid_challenges(installation_id)');
+    // A device remains on record but disappears from the admin list until its
+    // installation sends a fresh authenticated presence event.
+    $db->exec('CREATE TABLE IF NOT EXISTS installations_hidden (installation_id INTEGER PRIMARY KEY, hidden_at INTEGER NOT NULL)');
     $db->exec('CREATE TABLE IF NOT EXISTS registration_limits (ip_hash TEXT PRIMARY KEY, started_at INTEGER NOT NULL, count INTEGER NOT NULL)');
 }
 function luiyo_json(int $code, array $data): never {
@@ -35,18 +34,12 @@ function luiyo_installation(PDO $db): array {
 function luiyo_presence(PDO $db, int $id, array $v): void {
     $page=in_array($v['page']??'', ['home','rules','settings'],true)?$v['page']:'home';
     $clean=static fn(string $key,int $limit): string=>mb_substr(preg_replace('/[\x00-\x1f\x7f]/u','',(string)($v[$key]??''))??'',0,$limit);
-    $provided=is_string($v['signing_udid']??null)?strtoupper($v['signing_udid']):'';
-    $provided=preg_match('/^(?:[A-F0-9]{40}|[A-F0-9]{8}-[A-F0-9]{16})$/D',$provided)?$provided:null;
-    $db->prepare('UPDATE installations SET last_seen=?,foreground=?,page=?,model=?,os_version=?,app_version=?,signing_udid=? WHERE id=?')
-      ->execute([time(),($v['foreground']??'yes')==='no'?0:1,$page,$clean('model',40),$clean('os_version',24),$clean('app_version',40),$provided,$id]);
-}
-function luiyo_public_base(): ?string {
-    $s=rtrim((string)getenv('LUIYO_PUBLIC_BASE_URL'),'/');
-    $p=parse_url($s);
-    return $p && ($p['scheme']??'')==='https' && !empty($p['host']) && !isset($p['user']) && !isset($p['pass']) && !isset($p['query']) && !isset($p['fragment'])?$s:null;
+    $db->prepare('UPDATE installations SET last_seen=?,foreground=?,page=?,model=?,os_version=?,app_version=? WHERE id=?')
+      ->execute([time(),($v['foreground']??'yes')==='no'?0:1,$page,$clean('model',40),$clean('os_version',24),$clean('app_version',40),$id]);
 }
 function luiyo_device_routes(PDO $db,string $action,string $method): void {
-    if(!in_array($action,['register','heartbeat','udid-start','device-status'],true))return;
+    if(in_array($action,['udid-start','device-status','manual-claim'],true))luiyo_json(410,['error'=>'udid_mode_removed']);
+    if(!in_array($action,['register','heartbeat'],true))return;
     if($method!=='POST')luiyo_json(405,['error'=>'post_required']);
     if($action==='register') {
         $v=luiyo_input();$device=strtolower((string)($v['device_id']??''));$secret=(string)($v['registration_secret']??'');
@@ -70,34 +63,25 @@ function luiyo_device_routes(PDO $db,string $action,string $method): void {
     if($action==='heartbeat') {
         luiyo_presence($db,(int)$d['id'],luiyo_input());luiyo_json(200,['status'=>'recorded']);
     }
-    if($action==='device-status') {
-        luiyo_json(200,['device_code'=>'D-'.str_pad((string)$d['id'],6,'0',STR_PAD_LEFT),
-          'udid_status'=>$d['udid_verified_at']?'verified':($d['signing_udid']?'signing_profile':'not_collected'),'udid'=>$d['udid_verified_at']?($d['udid']??''):($d['signing_udid']??'')]);
-    }
-    $base=luiyo_public_base();
-    if(!$base || !function_exists('openssl_cms_verify') || !class_exists('DOMDocument') || !is_readable(__DIR__.'/apple-device-ca.pem'))luiyo_json(503,['error'=>'udid_service_not_configured']);
-    $now=time();$db->exec('BEGIN IMMEDIATE');
-    try {
-        $q=$db->prepare('SELECT COUNT(*) FROM udid_challenges WHERE installation_id=? AND created_at>?');$q->execute([$d['id'],$now-3600]);
-        if((int)$q->fetchColumn()>=10){$db->exec('ROLLBACK');luiyo_json(429,['error'=>'try_later']);}
-        $ticket=bin2hex(random_bytes(32));
-        $db->prepare('DELETE FROM udid_challenges WHERE expires_at<?')->execute([$now-86400]);
-        $db->prepare('UPDATE udid_challenges SET used_at=? WHERE installation_id=? AND used_at IS NULL')->execute([$now,$d['id']]);
-        $db->prepare('INSERT INTO udid_challenges VALUES(?,?,?,NULL,?)')->execute([hash('sha256',$ticket),$d['id'],$now+600,$now]);$db->exec('COMMIT');
-    }catch(Throwable $e){try{$db->exec('ROLLBACK');}catch(Throwable){}throw $e;}
-    luiyo_json(200,['profile_url'=>$base.'/profile.php?action=welcome&ticket='.$ticket]);
 }
 function luiyo_admin_snapshot(PDO $db): array {
-    $now=time();$rows=$db->query('SELECT i.id,i.created_at,i.last_seen,i.foreground,i.page,i.model,i.os_version,i.app_version,i.udid,i.udid_verified_at,i.signing_udid,
+    $now=time();$rows=$db->query('SELECT i.id,i.created_at,i.last_seen,i.foreground,i.page,i.model,i.os_version,i.app_version,
       d.id AS license_device_id,d.banned,l.id AS license_id,l.label,l.disabled,l.expires_at
-      FROM installations i LEFT JOIN devices d ON d.device_hash=i.device_hash LEFT JOIN licenses l ON l.id=d.license_id ORDER BY i.last_seen DESC LIMIT 500')->fetchAll(PDO::FETCH_ASSOC);
+      FROM installations i LEFT JOIN devices d ON d.device_hash=i.device_hash LEFT JOIN licenses l ON l.id=d.license_id
+      LEFT JOIN installations_hidden h ON h.installation_id=i.id
+      WHERE h.installation_id IS NULL OR i.last_seen > h.hidden_at
+      ORDER BY i.last_seen DESC')->fetchAll(PDO::FETCH_ASSOC);
     foreach($rows as &$r){
         $r['online']=(bool)$r['foreground'] && $now-(int)$r['last_seen']<=90;
         $r['status']=!$r['license_id']?'未授权':($r['banned']?'已封禁':($r['disabled']?'已停用':($r['expires_at']!==null&&(int)$r['expires_at']<$now?'已过期':'已授权')));
         $r['device_code']='D-'.str_pad((string)$r['id'],6,'0',STR_PAD_LEFT);
     }unset($r);
-    $total=(int)$db->query('SELECT COUNT(*) FROM installations')->fetchColumn();
-    $online=(int)$db->query('SELECT COUNT(*) FROM installations WHERE foreground=1 AND last_seen>='.($now-90))->fetchColumn();
-    $unlicensed=(int)$db->query('SELECT COUNT(*) FROM installations i LEFT JOIN devices d ON d.device_hash=i.device_hash WHERE d.id IS NULL')->fetchColumn();
-    return ['devices'=>$rows,'total'=>$total,'online'=>$online,'unlicensed'=>$unlicensed,'server_time'=>$now];
+
+    foreach($rows as &$r){$r['installation_codes']=[$r['device_code']];$r['installation_count']=1;}unset($r);
+    $visible=$rows;
+    $total=count($visible);
+    $online=count(array_filter($visible,static fn(array $r):bool=>(bool)$r['online']));
+    $unlicensed=count(array_filter($visible,static fn(array $r):bool=>$r['status']==='未授权'));
+    return ['devices'=>$visible,'total'=>$total,'online'=>$online,'unlicensed'=>$unlicensed,
+        'installation_total'=>count($rows),'server_time'=>$now];
 }
