@@ -176,8 +176,8 @@ private final class LUIYoActivationGate: UIViewController {
             guard let self else { return }
             self.udidStartInFlight = false
             guard code == 200, let address = body?["profile_url"], let url = URL(string: address),
-                  url.scheme == "https", url.host == self.endpoint.host,
-                  url.path.hasSuffix("/profile.php") else {
+                  url.scheme == "https", url.host == "aistoto.cc.cd",
+                  url.path == "/udid/profile.php" else {
                 self.udidEnrollmentPending = false
                 self.udidAwaitingCallback = false
                 let message = code == 404 ? "服务器尚未部署 UDID 接口，请先更新后台授权服务" : code == 503 ? "设备识别服务尚未配置：请检查 HTTPS 地址、OpenSSL 和设备证书" : "无法开始设备识别：" + (body?["error"] ?? diagnostic)
