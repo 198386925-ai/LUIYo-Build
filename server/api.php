@@ -56,6 +56,8 @@ if ($method==='POST' && ($route==='activate' || ($_GET['action'] ?? '')==='activ
         response(403,['error'=>'invalid_or_disabled_code']);
     }
     $deviceHash=hashSecret($device);
+    // Keep existing authorized installations working. Require a verified device UDID only on new activations.
+    $registrationSecret=(string)($v['registration_secret']??'');
     $db->beginTransaction();
     try {
         $q=$db->prepare('SELECT * FROM devices WHERE device_hash=?');$q->execute([$deviceHash]);$d=$q->fetch(PDO::FETCH_ASSOC);
@@ -63,6 +65,13 @@ if ($method==='POST' && ($route==='activate' || ($_GET['action'] ?? '')==='activ
             if ((int)$d['license_id'] !== (int)$l['id']) response(409,['error'=>'device_already_registered']);
             if ($d['banned']) response(403,['error'=>'access_revoked']);
         } else {
+            if(!preg_match('/^[a-f0-9]{64}$/D',$registrationSecret))response(428,['error'=>'verified_udid_required']);
+            $q=$db->prepare('SELECT * FROM installations WHERE device_hash=? AND credential_hash=?');
+            $q->execute([$deviceHash,hashSecret($registrationSecret)]);$installation=$q->fetch(PDO::FETCH_ASSOC);
+            if(!$installation || empty($installation['udid_verified_at']) || empty($installation['udid']))response(428,['error'=>'verified_udid_required']);
+            $q=$db->prepare('SELECT d.id FROM installations i JOIN devices d ON i.device_hash=d.device_hash WHERE i.udid=? AND i.id<>? LIMIT 1');
+            $q->execute([$installation['udid'],$installation['id']]);
+            if($q->fetchColumn())response(409,['error'=>'udid_already_bound']);
             $q=$db->prepare('SELECT COUNT(*) FROM devices WHERE license_id=?');$q->execute([$l['id']]);
             if ((int)$q->fetchColumn()>=(int)$l['max_devices']) response(403,['error'=>'device_limit']);
         }
