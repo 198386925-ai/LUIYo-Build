@@ -133,7 +133,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         const state=document.getElementById('luiyoAuthState'), form=document.getElementById('luiyoActivationForm');
         if(state)state.textContent=message||(authorized?'已授权':'未激活 · 仅可浏览');
         if(form){form.hidden=authorized;const field=form.querySelector('input'),button=form.querySelector('button');field.disabled=busy;button.disabled=busy;button.textContent=busy?'验证中…':'激活';if(authorized){field.blur();field.value=''}}
-        const udidAction=document.getElementById("luiyoUDIDAction");if(udidAction)udidAction.hidden=authorized;
+        const udidAction=document.getElementById("luiyoUDIDAction");if(udidAction)udidAction.hidden=false;
         window.__syncNativeCardGlass?.();
       };
       function showLicenseNotice() {
@@ -1062,7 +1062,8 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         guard message.frameInfo.isMainFrame else { return }
         if message.name == "udidStart" {
-            guard !isAuthorized else { return }
+            // UDID enrollment is allowed both before and after license activation.
+            // Do not silently drop taps by already-authorized users.
             // Acknowledge the WKScriptMessage bridge immediately, even when enrollment is not ready.
             webView.evaluateJavaScript("window.__luiyoUDIDAck?.()")
             if let onUDIDRequested {
