@@ -10,6 +10,20 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     private var isAuthorized = false
     var onActivationRequested: (() -> Void)?
     var onLicenseSubmitted: ((String) -> Void)?
+    var onDeviceIdentificationRequested: (() -> Void)?
+    var onPageChanged: ((String) -> Void)?
+    private var deviceStatusMessage = "正在登记设备…"
+
+    func setDeviceInfo(_ message: String) {
+        deviceStatusMessage = message
+        syncDeviceInfo()
+    }
+
+    private func syncDeviceInfo() {
+        guard isViewLoaded, let webView, let data = try? JSONSerialization.data(withJSONObject: [deviceStatusMessage]),
+              let args = String(data: data, encoding: .utf8) else { return }
+        webView.evaluateJavaScript("window.__luiyoSetDeviceInfo?.(..." + args + ")")
+    }
     private var authorizationMessage = "未激活 · 仅可浏览"
     private var authorizationBusy = false
 
@@ -25,6 +39,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         guard let data = try? JSONSerialization.data(withJSONObject: [isAuthorized, authorizationMessage, authorizationBusy]),
               let args = String(data: data, encoding: .utf8) else { return }
         webView.evaluateJavaScript("window.__luiyoSetAuthorized?.(..." + args + ")")
+        syncDeviceInfo()
     }
     private var pageItems: [UITabBarItem] = []
     private var pageControllers: [UIViewController] = []
@@ -73,19 +88,22 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         .luiyoActivationEntry strong{display:block;font-size:15px}.luiyoActivationEntry small{display:block;margin-top:5px;color:var(--muted,#8b8f98);font-size:12px}
         .luiyoActivationForm{display:flex;gap:8px;margin-top:14px;align-items:center}.luiyoActivationForm[hidden]{display:none!important}
         #luiyoLicenseCode{flex:1;min-width:0;height:44px;box-sizing:border-box;padding:0 12px;border:1px solid rgba(130,130,140,.25);border-radius:14px;background:transparent;color:inherit;font-size:14px}
+        .luiyoDeviceInfo{margin-top:15px;padding-top:12px;border-top:1px solid rgba(130,130,140,.18)}.luiyoDeviceInfo p{font-size:11px;line-height:1.5;color:var(--muted,#8b8f98);margin:6px 0}.luiyoDeviceInfo button{font-size:12px;padding:8px 12px;border:1px solid rgba(130,130,140,.25);border-radius:12px;background:transparent;color:inherit}#luiyoDeviceState{word-break:break-all}
         #luiyoLicenseSubmit{height:44px;border:0;border-radius:14px;padding:0 14px;background:#6968e8;color:white;font-weight:600;white-space:nowrap}`;
       document.head.appendChild(css);
       const settings = document.getElementById('settingsTarget');
       if (settings) {
         const box = document.createElement('section');
         box.className = 'luiyoActivationEntry';box.id='luiyoActivationCard';
-        box.innerHTML = '<strong>激活授权</strong><small id="luiyoAuthState">未激活 · 仅可浏览</small><form class="luiyoActivationForm" id="luiyoActivationForm"><input id="luiyoLicenseCode" aria-label="卡密" placeholder="输入卡密" autocomplete="one-time-code" autocapitalize="characters" spellcheck="false"><button id="luiyoLicenseSubmit" type="submit">激活</button></form>';
+        box.innerHTML = '<strong>激活授权</strong><small id="luiyoAuthState">未激活 · 仅可浏览</small><form class="luiyoActivationForm" id="luiyoActivationForm"><input id="luiyoLicenseCode" aria-label="卡密" placeholder="输入卡密" autocomplete="one-time-code" autocapitalize="characters" spellcheck="false"><button id="luiyoLicenseSubmit" type="submit">激活</button></form><div class="luiyoDeviceInfo"><small id="luiyoDeviceState">正在登记设备…</small><p>打开 App 时会登记设备编号、系统版本和在线状态，不包含照片和卡密内容。UDID 优先读取签名文件中的唯一设备号码；无法确定时可选手动获取，和授权状态分开。</p><button type="button" id="luiyoGetUDID">获取设备 UDID</button></div>';
         settings.querySelector('.settingsHead')?.insertAdjacentElement('afterend', box);
+        box.querySelector('#luiyoGetUDID').addEventListener('click',()=>window.webkit?.messageHandlers?.deviceIdentification?.postMessage({}));
         box.querySelector('form').addEventListener('submit', e => {
           e.preventDefault();const code=box.querySelector('input').value.trim();
           if(code)window.webkit?.messageHandlers?.activationSubmit?.postMessage({code});
         });
       }
+      window.__luiyoSetDeviceInfo = message => {const state=document.getElementById('luiyoDeviceState');if(state)state.textContent=message};
       window.__luiyoSetAuthorized = (enabled,message,busy=false) => {
         authorized = !!enabled;
         document.documentElement.dataset.luiyoAuthorized = authorized ? 'yes' : 'no';
@@ -153,6 +171,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         configuration.userContentController.add(self, name: "bottomSearch")
         configuration.userContentController.add(self, name: "activationOpen")
         configuration.userContentController.add(self, name: "activationSubmit")
+        configuration.userContentController.add(self, name: "deviceIdentification")
         configuration.userContentController.addUserScript(WKUserScript(source: Self.activationPreviewScript,
             injectionTime: .atDocumentEnd, forMainFrameOnly: true))
 
@@ -245,6 +264,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "bottomSearch")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "activationOpen")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "activationSubmit")
+        webView?.configuration.userContentController.removeScriptMessageHandler(forName: "deviceIdentification")
     }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
@@ -1009,6 +1029,11 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     }
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        guard message.frameInfo.isMainFrame else { return }
+        if message.name == "deviceIdentification" {
+            onDeviceIdentificationRequested?()
+            return
+        }
         if message.name == "activationSubmit" {
             guard !isAuthorized, let payload = message.body as? [String: Any], let code = payload["code"] as? String else { return }
             onLicenseSubmitted?(code)
@@ -1020,7 +1045,11 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         }
         if !isAuthorized && !["pageState", "infoPage", "cardGlassRects"].contains(message.name) { return }
         if message.name == "pageState" {
-            if let payload = message.body as? [String: Any] { updatePageScroll(payload["page"] as? String ?? "home") }
+            if let payload = message.body as? [String: Any] {
+                let page = payload["page"] as? String ?? "home"
+                updatePageScroll(page)
+                if ["home", "rules", "settings"].contains(page) { onPageChanged?(page) }
+            }
             return
         }
         if message.name == "minimizeBottomBar" {

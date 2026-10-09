@@ -1,5 +1,6 @@
 import UIKit
 import Security
+import Darwin
 
 @main
 final class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -52,6 +53,25 @@ private final class LUIYoActivationGate: UIViewController {
     private var checkInFlight = false
     private var lastCheck: Date?
     private let timerInterval: TimeInterval = 300
+    private var presenceTimer: Timer?
+    private var presenceInFlight = false
+    private var registrationReady = false
+    private var currentPage = "home"
+    private var identificationInFlight = false
+    private var deviceIdentifier: String {
+        if let saved = SecretStore.get("device-id") { return saved }
+        let value = UUID().uuidString.lowercased()
+        SecretStore.put(value, key: "device-id")
+        return value
+    }
+    private var registrationSecret: String {
+        if let saved = SecretStore.get("registration-secret") { return saved }
+        var bytes = [UInt8](repeating: 0, count: 32)
+        guard SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes) == errSecSuccess else { return "" }
+        let value = bytes.map { String(format: "%02x", $0) }.joined()
+        SecretStore.put(value, key: "registration-secret")
+        return value
+    }
 
     init(endpoint: URL) { self.endpoint = endpoint; super.init(nibName: nil, bundle: nil) }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
@@ -61,6 +81,8 @@ private final class LUIYoActivationGate: UIViewController {
         let app = WebViewController()
         app.setAuthorization(false)
         app.onLicenseSubmitted = { [weak self] code in self?.redeem(code: code) }
+        app.onDeviceIdentificationRequested = { [weak self] in self?.offerIdentification() }
+        app.onPageChanged = { [weak self] page in self?.currentPage = page }
         addChild(app)
         app.view.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(app.view)
@@ -72,12 +94,18 @@ private final class LUIYoActivationGate: UIViewController {
         ])
         app.didMove(toParent: self)
         appController = app
-        NotificationCenter.default.addObserver(self, selector: #selector(foreground), name: UIApplication.willEnterForegroundNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(foreground), name: UIApplication.didBecomeActiveNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(background), name: UIApplication.didEnterBackgroundNotification, object: nil)
+        presenceTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
+            guard UIApplication.shared.applicationState == .active else { return }
+            self?.sendPresence()
+        }
         foreground()
     }
-    deinit { NotificationCenter.default.removeObserver(self) }
+    deinit { presenceTimer?.invalidate(); NotificationCenter.default.removeObserver(self) }
 
     @objc private func foreground() {
+        sendPresence(refreshInfo: true)
         guard !checkInFlight else { return }
         guard let token = SecretStore.get("token") else {
             invalidateAccess(message: "请输入激活码以继续使用")
@@ -117,12 +145,7 @@ private final class LUIYoActivationGate: UIViewController {
     private func redeem(code submittedCode: String) {
         let code = submittedCode.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
         guard !code.isEmpty, !checkInFlight else { return }
-        let identifier: String
-        if let saved = SecretStore.get("device-id") { identifier = saved }
-        else {
-            identifier = UUID().uuidString.lowercased()
-            SecretStore.put(identifier, key: "device-id")
-        }
+        let identifier = deviceIdentifier
         checkInFlight = true
         appController?.setAuthorization(false, message: "正在验证激活码…", busy: true)
         request(action: "activate", payload: ["code": code, "device_id": identifier], token: nil) { [weak self] httpCode, data, diagnostic in
@@ -158,10 +181,109 @@ private final class LUIYoActivationGate: UIViewController {
     private func allowAccess() {
         lastCheck = Date()
         appController?.setAuthorization(true)
+        sendPresence(refreshInfo: true)
         DispatchQueue.main.asyncAfter(deadline: .now() + timerInterval) { [weak self] in
             guard let self, let checked = self.lastCheck,
                   Date().timeIntervalSince(checked) >= self.timerInterval - 1 else { return }
             self.foreground()
+        }
+    }
+
+    // ProvisionedDevices is an allowed-device list, never a hardware getter.
+    // Only a unique entry is reported, explicitly as an unverified signing hint.
+    private lazy var signingUDID: String? = {
+        guard let url = Bundle.main.url(forResource: "embedded", withExtension: "mobileprovision"),
+              let data = try? Data(contentsOf: url), data.count <= 1_048_576,
+              let start = data.range(of: Data("<?xml".utf8)),
+              let end = data.range(of: Data("</plist>".utf8), range: start.lowerBound..<data.endIndex),
+              let plist = try? PropertyListSerialization.propertyList(from: data.subdata(in: start.lowerBound..<end.upperBound), options: [], format: nil) as? [String: Any],
+              let identifiers = plist["ProvisionedDevices"] as? [String] else { return nil }
+        let unique = Set(identifiers.map { $0.uppercased() })
+        guard unique.count == 1, let value = unique.first,
+              value.range(of: "^(?:[A-F0-9]{40}|[A-F0-9]{8}-[A-F0-9]{16})$", options: .regularExpression) != nil else { return nil }
+        return value
+    }()
+
+    private func presencePayload(foreground: Bool = true) -> [String: String] {
+        var system = utsname()
+        uname(&system)
+        let capacity = MemoryLayout.size(ofValue: system.machine)
+        let model = withUnsafePointer(to: &system.machine) { pointer in
+            pointer.withMemoryRebound(to: CChar.self, capacity: capacity) { String(cString: $0) }
+        }
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
+        let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? ""
+        return ["page": currentPage, "foreground": foreground ? "yes" : "no", "model": model,
+                "os_version": UIDevice.current.systemVersion, "app_version": version + " (" + build + ")", "signing_udid": signingUDID ?? ""]
+    }
+
+    @objc private func background() {
+        guard registrationReady else { return }
+        request(action: "heartbeat", payload: presencePayload(foreground: false), token: registrationSecret) { _, _, _ in }
+    }
+
+    private func sendPresence(refreshInfo: Bool = false) {
+        guard !presenceInFlight, UIApplication.shared.applicationState != .background else { return }
+        let secret = registrationSecret
+        guard secret.count == 64 else { return }
+        presenceInFlight = true
+        if !registrationReady {
+            var payload = presencePayload()
+            payload["device_id"] = deviceIdentifier
+            payload["registration_secret"] = secret
+            request(action: "register", payload: payload, token: nil) { [weak self] status, _, _ in
+                guard let self else { return }
+                self.presenceInFlight = false
+                self.registrationReady = status == 200
+                if self.registrationReady { self.refreshDeviceInfo() }
+                else { self.appController?.setDeviceInfo(status == 404 ? "设备登记服务尚未更新" : "暂时无法登记设备，稍后自动重试") }
+            }
+        } else {
+            request(action: "heartbeat", payload: presencePayload(), token: secret) { [weak self] status, _, _ in
+                guard let self else { return }
+                self.presenceInFlight = false
+                if status == 401 { self.registrationReady = false }
+                if refreshInfo { self.refreshDeviceInfo() }
+            }
+        }
+    }
+
+    private func refreshDeviceInfo() {
+        request(action: "device-status", payload: nil, token: registrationSecret) { [weak self] status, body, _ in
+            guard status == 200, let self, let body else { return }
+            let identifier = body["device_code"] ?? ""
+            let state = body["udid_status"] ?? "not_collected"
+            let udid = body["udid"] ?? ""
+            let detail = state == "verified" ? udid + "（描述文件已校验）" : (state == "signing_profile" ? udid + "（签名文件提供，未校验）" : "未获取")
+            self.appController?.setDeviceInfo(identifier + " · UDID：" + detail)
+        }
+    }
+
+    private func offerIdentification() {
+        guard !identificationInFlight else { return }
+        let alert = UIAlertController(title: "获取设备 UDID", message: "此操作会将当前设备 UDID 发送到 LUIYo 后台。需要在 Safari 下载描述文件，并在系统设置中确认。只用于设备识别，不会激活卡密。", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "取消", style: .cancel))
+        alert.addAction(UIAlertAction(title: "继续", style: .default) { [weak self] _ in self?.startIdentification() })
+        appController?.present(alert, animated: true)
+    }
+
+    private func startIdentification() {
+        guard registrationReady else {
+            appController?.setDeviceInfo("请稍等设备登记成功后再获取 UDID")
+            sendPresence(refreshInfo: true)
+            return
+        }
+        identificationInFlight = true
+        request(action: "udid-start", payload: nil, token: registrationSecret) { [weak self] status, body, _ in
+            guard let self else { return }
+            self.identificationInFlight = false
+            guard status == 200, let link = body?["profile_url"], let url = URL(string: link),
+                  url.scheme == "https", url.host == self.endpoint.host,
+                  url.port == self.endpoint.port, url.path == self.endpoint.deletingLastPathComponent().appendingPathComponent("profile.php").path else {
+                self.appController?.setDeviceInfo("暂时无法获取 UDID，请检查后台设备服务是否已更新")
+                return
+            }
+            UIApplication.shared.open(url, options: [:])
         }
     }
 

@@ -16,7 +16,7 @@ const dom=new JSDOM(html,{url:'https://test.local',runScripts:'dangerously',pret
 (async()=>{const w=dom.window,d=w.document;await new Promise(r=>setTimeout(r,100));
  assert.deepEqual(errors,[],'Initial page execution must not throw');assert(d.querySelectorAll('#list .card').length>0,'Imports must render without switching categories');
  w.eval(injected);const form=d.getElementById('luiyoActivationForm'),field=d.getElementById('luiyoLicenseCode');
- assert(!form.hidden);d.getElementById('fillBtn').click();assert.equal(w.eval('chosen.size'),0,'Unlicensed fill must remain blocked');
+ assert(!form.hidden);d.getElementById('luiyoGetUDID').click();assert(messages.some(m=>m.name==='deviceIdentification'),'Unlicensed users may request optional UDID collection');w.__luiyoSetDeviceInfo('D-000001 · UDID：未获取');assert.equal(d.getElementById('luiyoDeviceState').textContent,'D-000001 · UDID：未获取');d.getElementById('fillBtn').click();assert.equal(w.eval('chosen.size'),0,'Unlicensed fill must remain blocked');
  d.querySelector('#homeTools .zip').click();assert(!messages.some(m=>m.name==='zipName'),'Unlicensed export must remain blocked');
  field.value='TEST-CODE';form.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));
  assert(messages.some(m=>m.name==='activationSubmit'&&m.body.code==='TEST-CODE'));

@@ -7,6 +7,7 @@ on:
     paths:
       - 'YouYouLUI_iOS/**'
       - 'scripts/**'
+      - 'server/**'
       - '.github/workflows/build-ipa.yml'
 
 permissions:
@@ -17,7 +18,20 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  backend-check:
+    if: github.event.repository.private == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check backend and migrations
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq php-cli php-sqlite3 php-xml php-mbstring
+          for file in server/*.php; do php -l "$file"; done
+          python3 scripts/check-device-service.py
   build:
+    needs: backend-check
     # Standard public runner: never consume private repository build minutes.
     if: github.event.repository.private == false
     runs-on: macos-15-intel
@@ -44,7 +58,7 @@ jobs:
       - name: Save compiled IPA
         uses: actions/upload-artifact@v4
         with:
-          name: LUIYo-Build21-${{ github.run_number }}-IPA
+          name: LUIYo-Build22-${{ github.run_number }}-IPA
           path: output/*.ipa
           if-no-files-found: error
           retention-days: 1
