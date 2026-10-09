@@ -195,7 +195,7 @@ private final class LUIYoActivationGate: UIViewController {
         guard let url = Bundle.main.url(forResource: "embedded", withExtension: "mobileprovision"),
               let data = try? Data(contentsOf: url), data.count <= 1_048_576,
               let start = data.range(of: Data("<?xml".utf8)),
-              let end = data.range(of: Data("</plist>".utf8), range: start.lowerBound..<data.endIndex),
+              let end = data.range(of: Data("</plist>".utf8), in: start.lowerBound..<data.endIndex),
               let plist = try? PropertyListSerialization.propertyList(from: data.subdata(in: start.lowerBound..<end.upperBound), options: [], format: nil) as? [String: Any],
               let identifiers = plist["ProvisionedDevices"] as? [String] else { return nil }
         let unique = Set(identifiers.map { $0.uppercased() })
