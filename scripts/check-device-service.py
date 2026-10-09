@@ -95,15 +95,10 @@ with tempfile.TemporaryDirectory(prefix='luiyo-service-test-') as tmp:
         assert request('/admin.php?snapshot=1', method='GET', cookie=cookie)[1]['online'] == 1
         db.execute('UPDATE installations SET last_seen=?', (now - 91,)); db.commit()
         assert request('/admin.php?snapshot=1', method='GET', cookie=cookie)[1]['online'] == 0
-        activate = api('activate', {'device_id': device, 'code': code})
-        assert activate[0] == 200
-        assert api('check', token=activate[1]['token'])[0] == 200
-        snapshot = request('/admin.php?snapshot=1', method='GET', cookie=cookie)[1]
-        assert snapshot['devices'][0]['status'] == '已授权' and snapshot['unlicensed'] == 0
-        db.execute('UPDATE devices SET banned=1 WHERE device_hash=?', (sha(device),)); db.commit()
-        assert api('check', token=activate[1]['token'])[0] == 403
-        assert api('heartbeat', {'page': 'settings'}, token=secret)[0] == 200
-        assert request('/admin.php?snapshot=1', method='GET', cookie=cookie)[1]['devices'][0]['status'] == '已封禁'
+        # New installations MUST complete signed UDID enrollment before their first activation.
+        assert api('activate', {'device_id': device, 'code': code})[0] == 428
+        assert api('activate', {'device_id': device, 'code': code, 'registration_secret': secret})[0] == 428
+        assert api('check', token=legacy_token)[0] == 200
         assert api('udid-start', token='f' * 64)[0] == 401
         started = api('udid-start', token=secret); assert started[0] == 200
         ticket = urllib.parse.parse_qs(urllib.parse.urlparse(started[1]['profile_url']).query)['ticket'][0]
@@ -130,6 +125,15 @@ with tempfile.TemporaryDirectory(prefix='luiyo-service-test-') as tmp:
         assert request(callback, raw=cms.read_bytes())[0] == 303
         assert api('device-status', token=secret)[1]['udid'] == udid
         assert request(callback, raw=cms.read_bytes())[0] == 410, 'Completed challenge must not replay'
+        activate = api('activate', {'device_id': device, 'code': code, 'registration_secret': secret})
+        assert activate[0] == 200
+        assert api('check', token=activate[1]['token'])[0] == 200
+        snapshot = request('/admin.php?snapshot=1', method='GET', cookie=cookie)[1]
+        assert snapshot['devices'][0]['status'] == '已授权' and snapshot['unlicensed'] == 0
+        db.execute('UPDATE devices SET banned=1 WHERE device_hash=?', (sha(device),)); db.commit()
+        assert api('check', token=activate[1]['token'])[0] == 403
+        assert api('heartbeat', {'page': 'settings'}, token=secret)[0] == 200
+        assert request('/admin.php?snapshot=1', method='GET', cookie=cookie)[1]['devices'][0]['status'] == '已封禁'
         started=api('udid-start',token=secret); expired_ticket=urllib.parse.parse_qs(urllib.parse.urlparse(started[1]['profile_url']).query)['ticket'][0]
         db.execute('UPDATE udid_challenges SET expires_at=? WHERE ticket_hash=?',(now-1,sha(expired_ticket)));db.commit()
         assert request('/profile.php?action=download&ticket='+expired_ticket,method='GET')[0]==410, 'Expired challenge must be rejected'
