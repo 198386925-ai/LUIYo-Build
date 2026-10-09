@@ -16,14 +16,14 @@ const dom=new JSDOM(html,{url:'https://test.local',runScripts:'dangerously',pret
 (async()=>{const w=dom.window,d=w.document;await new Promise(r=>setTimeout(r,100));
  assert.deepEqual(errors,[],'Initial page execution must not throw');assert(d.querySelectorAll('#list .card').length>0,'Imports must render without switching categories');
  w.eval(injected);const form=d.getElementById('luiyoActivationForm'),field=d.getElementById('luiyoLicenseCode');
- assert(!form.hidden);d.getElementById('luiyoGetUDID').click();assert(messages.some(m=>m.name==='deviceIdentification'),'Unlicensed users may request optional UDID collection');w.__luiyoSetDeviceInfo('D-000001 · UDID：未获取');assert.equal(d.getElementById('luiyoDeviceState').textContent,'D-000001 · UDID：未获取');d.getElementById('fillBtn').click();assert.equal(w.eval('chosen.size'),0,'Unlicensed fill must remain blocked');
+ assert(!form.hidden);assert.equal(d.getElementById('luiyoGetUDID'),null);assert.equal(d.getElementById('luiyoDeviceState'),null);assert.equal(d.querySelector('.luiyoDeviceInfo'),null);d.getElementById('fillBtn').click();assert.equal(w.eval('chosen.size'),0,'Unlicensed fill must remain blocked');
  d.querySelector('#homeTools .zip').click();assert(!messages.some(m=>m.name==='zipName'),'Unlicensed export must remain blocked');
  field.value='TEST-CODE';form.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));
  assert(messages.some(m=>m.name==='activationSubmit'&&m.body.code==='TEST-CODE'));
  w.__luiyoSetAuthorized(false,'检查中',true);assert(field.disabled);assert(!form.hidden);
- w.__luiyoSetAuthorized(true);assert(form.hidden);assert.equal(field.value,'');
+ w.__luiyoSetAuthorized(true);assert(form.hidden);assert.equal(field.value,'');assert.equal(d.getElementById('luiyoAuthState').textContent,'已授权');
  assert(swift.includes('syncAuthorization()\n        updateLayoutMetrics'),'Native authorization must replay after document load');
- assert(!fs.readFileSync('YouYouLUI_iOS/YouYouLUI/AppDelegate.swift','utf8').includes('openActivation()'),'No activation overlay');
+ const gate=fs.readFileSync('YouYouLUI_iOS/YouYouLUI/AppDelegate.swift','utf8');assert(!gate.includes('openActivation()'),'No activation overlay');assert(!gate.includes('offerIdentification')&&!gate.includes('startIdentification')&&!swift.includes('deviceIdentification'),'No user-facing UDID collection bridge');assert(gate.includes('unique.count == 1')&&gate.includes('signing_udid')&&gate.includes('action: "register"')&&gate.includes('action: "heartbeat"'),'Automatic signing hint and presence remain enabled');
  w.eval(fs.readFileSync(htmlPath.replace('index.html','jszip.min.js'),'utf8'));
  w.eval("const generate=JSZip.prototype.generateAsync;JSZip.prototype.generateAsync=async function(options){const bytes=await generate.call(this,{...options,type:'uint8array'});return new Blob([bytes],{type:'application/zip'})}");
  // Pixel conversion is independently tested; keep this regression focused on completion and bridges.
@@ -38,3 +38,4 @@ const dom=new JSDOM(html,{url:'https://test.local',runScripts:'dangerously',pret
  console.log('Passed: initial imports, inline activation, busy/authorized/revoked states, full fill -> ZIP -> native rename -> native file share.');
  clearTimeout(watchdog);dom.window.close();
 })().catch(e=>{console.error(e);clearTimeout(watchdog);dom.window.close();process.exitCode=1});
+

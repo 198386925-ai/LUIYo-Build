@@ -10,7 +10,7 @@
     <key>CFBundleName</key><string>LUIYo</string>
     <key>CFBundlePackageType</key><string>APPL</string>
     <key>CFBundleShortVersionString</key><string>1.0.4</string>
-    <key>CFBundleVersion</key><string>22</string>
+    <key>CFBundleVersion</key><string>23</string>
     <key>LUIYO_AUTH_URL</key><string>https://mistoto.cc.cd/luiyo/api.php</string>
     <key>LSRequiresIPhoneOS</key><true/>
     <key>UIApplicationSupportsIndirectInputEvents</key><true/>
@@ -22,5 +22,6 @@
     <array><string>UIInterfaceOrientationPortrait</string><string>UIInterfaceOrientationPortraitUpsideDown</string></array>
 </dict>
 </plist>
+
 
 

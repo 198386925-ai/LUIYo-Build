@@ -35,7 +35,7 @@ BUILD=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP/Info.plist")
 BUILT_SDK=$(/usr/libexec/PlistBuddy -c 'Print :DTSDKName' "$APP/Info.plist")
 case "$BUILT_SDK" in iphoneos26.*) ;; *) echo "ERROR: Incorrect built SDK: $BUILT_SDK"; exit 1 ;; esac
 test "$VERSION" = '1.0.4'
-test "$BUILD" = '22'
+test "$BUILD" = '23'
 STAGE=$(mktemp -d "$ROOT/build/package.XXXXXX")
 mkdir -p "$STAGE/Payload"
 cp -R "$APP" "$STAGE/Payload/"
@@ -43,3 +43,4 @@ NAME="LUIYo-v${VERSION}-build${BUILD}-ios26-${GITHUB_RUN_NUMBER:-local}-unsigned
 (cd "$STAGE" && /usr/bin/zip -qry "$ROOT/output/$NAME" Payload)
 unzip -t "output/$NAME"
 echo "IPA: output/$NAME (unsigned; sign before installation)"
+
