@@ -1,5 +1,6 @@
 import UIKit
 import SwiftUI
+import CoreText
 
 final class NativeHomeModel: ObservableObject {
     @Published var authorized = false
@@ -11,6 +12,7 @@ final class NativeHomeModel: ObservableObject {
     @Published var backgroundImage: UIImage?
     @Published var theme = NativeHomeTheme()
     @Published var fontName: String?
+    @Published var importedFont: UIFont?
     var onCommand: ((String, [String: Any]) -> Void)?
     var onScrollView: ((UIScrollView) -> Void)?
     var savedColors: [String: Any] { UserDefaults.standard.dictionary(forKey: "luiyo.nativeIconColors") ?? [:] }
@@ -36,7 +38,7 @@ final class NativeHomeModel: ObservableObject {
         images = result
     }
     func font(size: CGFloat, weight: Font.Weight = .regular) -> Font {
-        if let fontName { return .custom(fontName, fixedSize: size).weight(weight) }
+        if let importedFont { return Font(importedFont.withSize(size) as CTFont).weight(weight) }
         return .system(size: size, weight: weight)
     }
 }
@@ -156,7 +158,7 @@ struct LUIYoNativeHome: View {
                 if !model.status.isEmpty && !model.status.hasPrefix("已上传 ") {
                     Text(model.status).font(model.font(size: 12)).foregroundStyle(.secondary).accessibilityIdentifier("nativeHomeStatus")
                 }
-                NativeHomeCategoryPicker(selection: $category, theme: model.theme, fontName: model.fontName).frame(height: 34)
+                NativeHomeCategoryPicker(selection: $category, theme: model.theme, font: model.importedFont).frame(height: 34)
                 HStack {
                     Text(category == 0 ? "LiquidUI 图标" : "原版微信图标").font(model.font(size: 17, weight: .semibold))
                     Spacer()
@@ -172,7 +174,7 @@ struct LUIYoNativeHome: View {
                                         Image(uiImage: image).resizable().scaledToFit().frame(width: 32, height: 32)
                                     } else {
                                         Image(systemName: "plus")
-                                            .font(model.font(size: 16, weight: .semibold)).foregroundStyle(model.theme.customButton ? Color(UIColor(nativeHex: model.theme.actionText)) : Color.white)
+                                            .font(.system(size: 16, weight: .semibold)).foregroundStyle(model.theme.customButton ? Color(UIColor(nativeHex: model.theme.actionText)) : Color.white)
                                             .frame(width: 32, height: 32)
                                             .background(model.theme.customButton ? Color(UIColor(nativeHex: model.theme.button)) : Color.blue, in: RoundedRectangle(cornerRadius: 12))
                                     }
@@ -189,7 +191,7 @@ struct LUIYoNativeHome: View {
                             .accessibilityLabel("上传" + item.title)
                               if model.images[item.id] != nil {
                                 Button { model.send("remove", ["id": item.id]) } label: {
-                                    Image(systemName: "trash").font(model.font(size: 16)).foregroundStyle(.red)
+                                    Image(systemName: "trash").font(.system(size: 18)).foregroundStyle(.red)
                                         .frame(width: 44, height: 64).contentShape(Rectangle())
                                 }.buttonStyle(.plain).accessibilityLabel("删除" + item.title)
                                     .accessibilityIdentifier("deleteIcon-\(item.id)")
@@ -200,6 +202,7 @@ struct LUIYoNativeHome: View {
                     }
                 }
             }
+            .labelStyle(NativeAlignedLabelStyle())
             .padding(.horizontal, 20).padding(.top, 12).padding(.bottom, 24)
             .background(NativeHomeScrollLink(onAttach: { model.onScrollView?($0) }))
         }
@@ -231,13 +234,13 @@ struct LUIYoNativeHome: View {
                 }.modifier(NativeActionStyle()).controlSize(.large)
                 Button { if model.authorized { showColors = true } else { model.send("authorize", [:]) } } label: {
                     HStack(spacing: 10) {
-                        Image(systemName: "paintpalette").font(model.font(size: 17)).foregroundStyle(.secondary)
+                        Image(systemName: "paintpalette").font(.system(size: 18)).frame(width: 20, height: 20).foregroundStyle(.secondary)
                         VStack(alignment: .leading, spacing: 2) {
                             Text("自定义修改颜色").font(model.font(size: 16, weight: .medium))
                             Text("浅色 / 深色 / 全部图标").font(model.font(size: 11)).foregroundStyle(.secondary)
                         }
                         Spacer()
-                        Image(systemName: "chevron.right").font(model.font(size: 12, weight: .semibold)).foregroundStyle(.secondary)
+                        Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold)).foregroundStyle(.secondary)
                     }
                     .foregroundStyle(model.theme.customButton ? Color(UIColor(nativeHex: model.theme.actionText)) : Color.primary).frame(maxWidth: .infinity).padding(.vertical, 1)
                 }.modifier(NativeActionStyle()).controlSize(.large).accessibilityIdentifier("nativeColorSettings")
@@ -380,6 +383,7 @@ private final class NativeMaterialView: UIVisualEffectView {
     override func layoutSubviews() {
         super.layoutSubviews()
         clipsToBounds = true
+        removeExtraLayerShadows(layer)
         layer.cornerCurve = .continuous
         layer.cornerRadius = shapeRadius < 0 ? bounds.height / 2 : min(shapeRadius, bounds.height / 2)
     }
@@ -388,7 +392,7 @@ private final class NativeMaterialView: UIVisualEffectView {
 private struct NativeHomeCategoryPicker: UIViewRepresentable {
     @Binding var selection: Int
     var theme: NativeHomeTheme
-    var fontName: String?
+    var font: UIFont?
     func makeCoordinator() -> Coordinator { Coordinator(self) }
     func makeUIView(context: Context) -> UISegmentedControl {
         let control = UISegmentedControl(items: ["LiquidUI", "原版微信"])
@@ -400,7 +404,7 @@ private struct NativeHomeCategoryPicker: UIViewRepresentable {
         control.selectedSegmentIndex = selection
         control.backgroundColor = UIColor(nativeHex: theme.card)
         control.selectedSegmentTintColor = UIColor(nativeHex: theme.button)
-        let font = fontName.flatMap { UIFont(name: $0, size: 13) } ?? UIFont.systemFont(ofSize: 13, weight: .semibold)
+        let font = self.font?.withSize(13) ?? UIFont.systemFont(ofSize: 13, weight: .semibold)
         control.setTitleTextAttributes([.font: font, .foregroundColor: UIColor.label], for: .normal)
         control.setTitleTextAttributes([.font: font, .foregroundColor: UIColor(nativeHex: theme.actionText)], for: .selected)
     }
@@ -459,4 +463,22 @@ private struct NativeHomeThemeKey: EnvironmentKey { static let defaultValue = Na
 extension EnvironmentValues {
     var nativeUseBlur: Bool { get { self[NativeUseBlurKey.self] } set { self[NativeUseBlurKey.self] = newValue } }
     var nativeHomeTheme: NativeHomeTheme { get { self[NativeHomeThemeKey.self] } set { self[NativeHomeThemeKey.self] = newValue } }
+}
+
+// Keep SF Symbols at a stable size when a decorative text font is imported.
+private struct NativeAlignedLabelStyle: LabelStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        HStack(alignment: .center, spacing: 8) {
+            configuration.icon.font(.system(size: 18)).frame(width: 20, height: 20)
+            configuration.title
+        }
+    }
+}
+
+// Public CALayer properties only. Native glass/blur continues to draw the material.
+func removeExtraLayerShadows(_ layer: CALayer) {
+    if layer.shadowOpacity != 0 { layer.shadowOpacity = 0 }
+    if layer.shadowRadius != 0 { layer.shadowRadius = 0 }
+    if layer.shadowPath != nil { layer.shadowPath = nil }
+    for child in layer.sublayers ?? [] { removeExtraLayerShadows(child) }
 }

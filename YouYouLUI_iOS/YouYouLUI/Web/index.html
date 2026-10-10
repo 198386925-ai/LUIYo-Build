@@ -1041,7 +1041,21 @@ body.nav-settings ::-webkit-scrollbar{display:none;width:0;height:0}
 .themeSwitch{width:46px;height:28px;flex:0 0 auto;accent-color:#34c759}
 html.has-background-image,html.has-background-image body{background:transparent!important}
 #webBackgroundImage{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1;pointer-events:none}
-</style></head><body><div class="app"><section class="homeHero" id="homeTarget">
+</style><style id="current-version-alignment-v106">
+:root[data-appearance] body *, :root[data-appearance] body *::before, :root[data-appearance] body *::after{box-shadow:none!important;text-shadow:none!important}
+:root[data-appearance] .settingsFold summary,:root[data-appearance] .settingsAuthHeading{display:grid!important;grid-template-columns:28px minmax(0,1fr) 14px!important;gap:12px!important;align-items:center!important;min-height:52px!important;padding:10px 14px!important;box-sizing:border-box}
+:root[data-appearance] .luiyoActivationEntry{padding:0!important}
+:root[data-appearance] .luiyoActivationForm{margin:0 14px 14px!important}
+:root[data-appearance] .settingsFoldIcon,:root[data-appearance] .settingsToggleIcon{width:28px!important;height:28px!important;display:flex!important;align-items:center!important;justify-content:center!important;font-size:20px!important;line-height:1!important;background:transparent!important}
+:root[data-appearance] body.native-symbol-icons .settingsFoldIcon,:root[data-appearance] body.native-symbol-icons .settingsToggleIcon{color:transparent!important}
+:root[data-appearance] .settingsFoldText{display:flex!important;flex-direction:column!important;justify-content:center!important;min-width:0}
+:root[data-appearance] .settingsFoldText b{font-size:14px!important;line-height:1.25!important;margin:0!important}
+:root[data-appearance] .settingsFoldText small{font-size:11px!important;line-height:1.35!important;margin:4px 0 0!important}
+:root[data-appearance] .inlineVersionTitle,:root[data-appearance] .logTitle{display:flex!important;align-items:baseline!important;gap:8px!important}
+:root[data-appearance] .inlineVersionTitle span,:root[data-appearance] .logTitle span{margin:0!important}
+body.custom-font-active :is(button,input,summary,span,b,p,small,label,select,textarea){font-family:inherit!important}
+</style>
+</head><body><div class="app"><section class="homeHero" id="homeTarget">
   <div class="homeEyebrow">LIQUIDUI ICON STUDIO</div>
   <h1>微信图标生成器</h1>
   <div class="homeSub">上传一次，自动处理 LiquidUI / 微信图标补全与打包。</div>
@@ -1052,10 +1066,10 @@ html.has-background-image,html.has-background-image body{background:transparent!
   <a class="homeFeedback" href="https://qm.qq.com/q/th1QshgzHW" target="_blank" rel="noopener noreferrer">反馈问题 · 联系客服</a>
   <input class="search" id="searchInput" type="search" placeholder="搜索：转账、位置、底栏微信…">
 </section><section class="tools" id="homeTools"><div class="actions"><label class="batch">关键词批量导入<input id="batchInput" type="file" accept="image/*" multiple></label><label class="fillpick">补全图片<input id="fillInput" type="file" accept="image/*"></label><button class="fill" id="fillBtn">双分类补全</button></div><button type="button" class="colorfold" id="colorFoldBtn" aria-expanded="false"><span>自定义修改颜色 <small>浅色 / 深色 / 全部图标</small></span><span class="chev">⌄</span></button><div class="colorpanel" id="colorPanel"><div class="colorrow disabled" id="selectedLightRow"><div><span>自定义选中浅色模式</span><small>默认自动加深；启用后使用这个颜色</small></div><div class="colorcontrols"><label class="switchlabel"><input id="selectedLightEnabled" type="checkbox">启用</label><input id="selectedColor" type="color" value="#1677ff"></div></div><div class="colorrow disabled" id="selectedDarkRow"><div><span>自定义选中深色模式</span><small>默认自动反转；启用后使用这个颜色</small></div><div class="colorcontrols"><label class="switchlabel"><input id="selectedDarkEnabled" type="checkbox">启用</label><input id="selectedDarkColor" type="color" value="#ffffff"></div></div><div class="colorrow disabled" id="allColorRow"><div><span>自定义全部图标颜色</span><small>默认保持上传图片原本颜色</small></div><div class="colorcontrols"><label class="switchlabel"><input id="allColorEnabled" type="checkbox">启用</label><input id="allColor" type="color" value="#222222"></div></div></div><div class="exportrow"><button class="clear" onclick="clearAll()">清空</button><button class="zip" onclick="makeZip(this)">导出 ZIP</button></div><div class="status" id="status">已上传 0 项</div></section><section class="settingsTarget" id="settingsTarget">
-  <div class="settingsHead"><h1>设置</h1><p>主题、使用说明与更新日志</p></div>
+  <div class="settingsHead"><h1>设置</h1><p>主题、使用说明与当前版本</p></div>
 
   <details class="settingsFold themeFold">
-    <summary aria-label="主题"><span class="settingsFoldIcon">◐</span><span class="settingsFoldText"><b>主题</b><small>卡片材质、背景、按钮与字体</small></span><span class="settingsFoldChevron"></span></summary>
+    <summary aria-label="主题"><span class="settingsFoldIcon" data-system-icon="circle.lefthalf.filled">◐</span><span class="settingsFoldText"><b>主题</b><small>卡片材质、背景、按钮与字体</small></span><span class="settingsFoldChevron"></span></summary>
     <div class="settingsFoldBody themeBody">
       <div class="themeRow appearanceThemeRow"><div><b>外观模式</b><small id="appearanceHint">跟随系统</small></div><div id="appearanceModePicker" class="appearanceModePicker" role="radiogroup" aria-label="外观模式"><button type="button" data-appearance-mode="system">跟随系统</button><button type="button" data-appearance-mode="light">浅色</button><button type="button" data-appearance-mode="dark">深色</button></div></div>
       <div class="themeRow materialThemeRow"><div><b>卡片材质</b><small id="cardMaterialHint">iOS 26+ 原生液态玻璃 / UIKit 原生磨砂</small></div><div class="materialModePicker" id="materialModePicker" role="radiogroup" aria-label="卡片材质"><button type="button" data-material="liquid">液态玻璃</button><button type="button" data-material="blur">原生磨砂</button></div></div>
@@ -1071,7 +1085,7 @@ html.has-background-image,html.has-background-image body{background:transparent!
   </details>
 
   <details class="settingsFold">
-    <summary><span class="settingsFoldIcon">?</span><span class="settingsFoldText"><b>使用说明</b><small>查看功能说明与操作方法</small></span><span class="settingsFoldChevron"></span></summary>
+    <summary><span class="settingsFoldIcon" data-system-icon="questionmark.circle">?</span><span class="settingsFoldText"><b>使用说明</b><small>查看功能说明与操作方法</small></span><span class="settingsFoldChevron"></span></summary>
     <div class="settingsFoldBody guideInline">
       <h3>这个工具有什么用？</h3>
       <p>用于快速制作 LiquidUI / 微信图标替换包。只需按网页标题上传图片，管理器会自动处理对应命名、同名同步、补全、颜色和 ZIP 打包，不需要自己逐个查内部文件名。</p>
@@ -1087,19 +1101,13 @@ html.has-background-image,html.has-background-image body{background:transparent!
   </details>
 
   <details class="settingsFold">
-    <summary><span class="settingsFoldIcon">↻</span><span class="settingsFoldText"><b>更新日志</b><small>Version 1.0.7 · 正式版</small></span><span class="settingsFoldChevron"></span></summary>
+    <summary><span class="settingsFoldIcon" data-system-icon="clock.arrow.circlepath">↻</span><span class="settingsFoldText"><b>当前版本</b><small>Version 1.0.6 · 正式版</small></span><span class="settingsFoldChevron"></span></summary>
     <div class="settingsFoldBody changelogInline">
-<section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.7 <span>正式版</span></div><p><b class="opt">优化</b> 放大首页工具栏按钮，首页、规则与设置统一主题颜色。</p><p><b class="fix">修复</b> 恢复修改后的更新日志；修复首页删除图标、滚动缩小底栏及设置同步。</p></section>
-<section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.5 <span>正式版</span></div><p><b class="opt">优化</b> 修复已知问题。</p><p>该版本为首发测试。</p></section>
-<section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.4</div><p><b class="add">新增</b> 主题支持工具栏卡片透明度、滚动缩小底栏及自定义背景图片；设置自动保存。</p><p><b class="add">新增</b> 底栏搜索改为关闭、合并、分开三段切换，保留已保存的搜索布局；关闭后恢复顶部搜索框。</p><p><b class="opt">优化</b> 相同或相近用途的图标合并为一个上传入口，共用图标归原版微信；LiquidUI 分类保留专属入口，导出保留全部对应文件名。</p><p><b class="opt">优化</b> 首页上传项每排两列，左图右标题；LiquidUI 与原版微信的导入项和规则分组标题统一缩小；更新规则按大标题合并展示。</p><p><b class="opt">优化</b> 导出 ZIP 改名使用系统原生弹窗。</p><p><b class="opt">优化</b> 补全图片和自定义颜色入口略微加粗描边，增加柔和淡色底。</p><p><b class="opt">优化</b> 首页工具卡片改用纯色，其他卡片保持原生材质。</p><p><b class="opt">优化</b> 清空固定蓝色、白色文字；导出 ZIP 固定绿色、白色文字。</p><p><b class="opt">优化</b> 首页分类和设置切换同步配色：未选中底色跟随卡片颜色，选中底色跟随按钮颜色。</p><p><b class="fix">修复</b> 合并和分开底栏搜索均可点击，打开原生全屏搜索页，自动弹出键盘，关闭后返回原页面。</p><p><b class="fix">修复</b> 深色液态玻璃下六个按钮不明显，按钮保持独立纯色并自动适配文字颜色。</p><p><b class="fix">修复</b> 原生底栏文字跟随导入字体，恢复默认和重新打开也同步生效。</p><p><b class="fix">修复</b> 分开搜索改用系统原生独立搜索标签，底栏与搜索统一对齐、尺寸及安全区位置。</p></section>
-<section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.3</div><p><b class="add">新增</b> 主题增加按钮颜色，首页按钮与分类底色同步；浅色、深色分别保存。</p><p><b class="add">新增</b> 跟随系统、浅色与深色外观；背景颜色分别保存并随外观切换。</p><p><b class="opt">优化</b> 搜索框位于反馈问题下方，随材质切换为液态玻璃或原生磨砂。</p><p><b class="opt">优化</b> 首页六个操作按钮保持纯色，其他卡片保留原有材质。</p><p><b class="opt">优化</b> 分类未选中底色使用按钮颜色，增加透明度以呈现柔和层次。</p><p><b class="opt">优化</b> 分类、材质与外观使用紧凑原生分段控件；缩短设置卡片。</p><p><b class="opt">优化</b> 移除自定义卡片描边，鸣谢仅在设置页随内容排布。</p><p><b class="fix">修复</b> 展开动画结束时的高度跳动和重复点击状态。</p></section>
-<section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.2</div><p><b class="add">新增</b> 卡片液态效果开关；关闭后切换为 UIKit 原生磨砂效果。</p><p><b class="add">新增</b> 主题内自定义字体，可导入 TTF、OTF、WOFF、WOFF2 文件并持久保存。</p><p><b class="add">新增</b> 卡片材质、液态玻璃、原生磨砂两种模式直接切换/低于26+不生效液态玻璃。</p><p><b class="add">新增</b> 主题增加卡片颜色，可修改纯色卡片颜色</p><p><b class="opt">优化</b> 规则页移除图片导入入口，仅显示规则名称与图标规则名。</p><p><b class="opt">优化</b> 首页采用新的双列卡片UI，上传区工具区与顶部信息重新布局。</p><p><b class="opt">优化</b> 设置页入口卡片进一步压缩高度与文字尺寸。</p><p><b class="opt">优化</b> 首页白色工具控件、搜索框、颜色展开项、清空按钮、分类未选中项和上传框统一接入 UIKit 原生玻璃/磨砂材质。</p><p><b class="opt">优化</b> 材质切换与首页分类分段切换改为参考图的胶囊式，选中项使用内嵌白色圆角块。</p><p><b class="opt">优化</b> 首页按钮、搜索框、颜色入口与导出操作统一为分类栏同类圆润胶囊轮廓。</p><p><b class="opt">优化</b> 纯色模式下首页操作框统一为同一中性底色，补全图片、自定义颜色、清空等入口保持清晰可见。</p><p><b class="fix">修复</b> 设置页使用说明与更新日志改为原位下拉拉伸卡片。</p><p><b class="fix">修复</b> 规则页顶部安全区与状态栏重叠问题。</p><p><b class="fix">修复</b> 首页、规则、设置三页卡片视觉统一，首页工具卡不再使用单独的透明样式。</p><p><b class="fix">修复</b> 使用说明、更新日志与主题卡片收起响应延迟，收起动画改为快速响应。</p><p><b class="fix">修复</b> 纯色模式默认不显示卡片描边；只有主动开启卡片描边后才显示所选描边颜色。</p><p><b class="fix">修复</b> 背景颜色现在同步到 UIKit 根视图，修改后立即生效并保存。</p><p><b class="fix">修复</b> 首页双分类切换中间露出的白色材质块；分类容器不再重复叠加玻璃。</p><p><b class="fix">修复</b> 液态玻璃与原生磨砂在刷新、筛选和重绘时原生材质层重新绑定导致的跳动。</p></section>
-<section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.1</div><p><b class="add">新增</b> 全局换图标规则页，可按规则名称与图标规则名查找。</p><p><b class="add">新增</b> 关键词批量导入、双分类补全、同名项目自动联动与 ZIP 自定义名称分享。</p><p><b class="add">新增</b> 浅色选中、深色选中及全部图标颜色自定义。</p><p><b class="opt">优化</b> 设置页的使用说明与更新日志改为原位下拉拉伸，不再弹出独立页面。</p><p><b class="opt">优化</b> iOS 26+ 使用 UIKit 系统原生 Liquid Glass；不使用 CSS 自绘玻璃。</p><p><b class="opt">优化</b> iOS 25 及以下自动回退 UIKit 原生 systemMaterial 磨砂。</p><p><b class="opt">优化</b> 规则页移除图片导入入口，只保留规则名称与图标规则名。</p><p><b class="fix">修复</b> 规则页安全区，避免标题与状态栏重叠。</p></section>
-<section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.0</div><p><b class="add">新增</b> 优优 LUI 图标补全基础功能。</p><p><b class="add">新增</b> LiquidUI / 原版微信图标上传、补全与 ZIP 导出。</p></section>
+<section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.6 <span>正式版</span></div><p><b class="add">新增</b> 原生首页接入完整图标上传、关键词批量导入、双分类补全与 ZIP 导出。</p><p><b class="opt">优化</b> 首页采用系统原生玻璃，低版本系统自动使用原生磨砂；缩小工具与上传卡片。</p><p><b class="opt">优化</b> 反馈与客服联系入口增加图标，保留普通文字链接。</p><p><b class="opt">优化</b> 放大首页工具栏按钮，首页、规则与设置统一主题颜色。</p><p><b class="opt">优化</b> 移除全界面额外阴影，统一图标尺寸与文字对齐；默认底色恢复上一版首页颜色。</p><p><b class="opt">优化</b> 更新日志改为当前版本，只显示 1.0.6 本版内容。</p><p><b class="fix">修复</b> 恢复修改后的更新日志；修复首页删除图标、滚动缩小底栏及设置同步。</p><p><b class="fix">修复</b> 首页工具按钮、分类和底栏文字同步主题字体，恢复默认及重新打开后保持一致。</p></section>
     </div>
   </details>
   <details class="settingsFold" id="specialThanks" hidden>
-    <summary><span class="settingsFoldIcon">♡</span><span class="settingsFoldText"><b>特别鸣谢</b><small>感谢支持与帮助</small></span><span class="settingsFoldChevron"></span></summary>
+    <summary><span class="settingsFoldIcon" data-system-icon="heart">♡</span><span class="settingsFoldText"><b>特别鸣谢</b><small>感谢支持与帮助</small></span><span class="settingsFoldChevron"></span></summary>
     <div class="settingsFoldBody"><p>感谢每一位为本项目提供反馈与帮助的朋友。</p></div>
   </details>
 <footer id="settingsCredits">特别鸣谢 Mk · 作者：优优<br>仅供学习交流</footer></section><div class="categorytabs" role="tablist" aria-label="图标分类"><button role="tab" id="tabLui" class="active">LiquidUI</button><button role="tab" id="tabWechat">原版微信</button></div><div class="sectiontitle" id="sectionTitle">LiquidUI 图标</div><main id="list" class="grid"></main>
@@ -1762,15 +1770,9 @@ renderRuleReference();
   </div>
 </div>
 <div class="nativeInfoPage" id="logInfoPage" aria-hidden="true">
-  <div class="nativeInfoHeader"><h2>更新日志</h2><button type="button" onclick="closeInfoPage('log')" aria-label="关闭">×</button></div>
+  <div class="nativeInfoHeader"><h2>当前版本</h2><button type="button" onclick="closeInfoPage('log')" aria-label="关闭">×</button></div>
   <div class="logCards">
-<article class="logCard"><div class="logTitle">Version 1.0.7 <span>正式版</span></div><p><b class="opt">优化</b> 放大首页工具栏按钮，首页、规则与设置统一主题颜色。</p><p><b class="fix">修复</b> 恢复修改后的更新日志；修复首页删除图标、滚动缩小底栏及设置同步。</p></article>
-<article class="logCard"><div class="logTitle">Version 1.0.5 <span>正式版</span></div><p><b class="opt">优化</b> 修复已知问题。</p><p>该版本为首发测试。</p></article>
-<article class="logCard"><div class="logTitle">Version 1.0.4</div><p><b class="add">新增</b> 主题支持工具栏卡片透明度、滚动缩小底栏及自定义背景图片；设置自动保存。</p><p><b class="add">新增</b> 底栏搜索改为关闭、合并、分开三段切换，保留已保存的搜索布局；关闭后恢复顶部搜索框。</p><p><b class="opt">优化</b> 相同或相近用途的图标合并为一个上传入口，共用图标归原版微信；LiquidUI 分类保留专属入口，导出保留全部对应文件名。</p><p><b class="opt">优化</b> 首页上传项每排两列，左图右标题；LiquidUI 与原版微信的导入项和规则分组标题统一缩小；更新规则按大标题合并展示。</p><p><b class="opt">优化</b> 导出 ZIP 改名使用系统原生弹窗。</p><p><b class="opt">优化</b> 补全图片和自定义颜色入口略微加粗描边，增加柔和淡色底。</p><p><b class="opt">优化</b> 首页工具卡片改用纯色，其他卡片保持原生材质。</p><p><b class="opt">优化</b> 清空固定蓝色、白色文字；导出 ZIP 固定绿色、白色文字。</p><p><b class="opt">优化</b> 首页分类和设置切换同步配色：未选中底色跟随卡片颜色，选中底色跟随按钮颜色。</p><p><b class="fix">修复</b> 合并和分开底栏搜索均可点击，打开原生全屏搜索页，自动弹出键盘，关闭后返回原页面。</p><p><b class="fix">修复</b> 深色液态玻璃下六个按钮不明显，按钮保持独立纯色并自动适配文字颜色。</p><p><b class="fix">修复</b> 原生底栏文字跟随导入字体，恢复默认和重新打开也同步生效。</p><p><b class="fix">修复</b> 分开搜索改用系统原生独立搜索标签，底栏与搜索统一对齐、尺寸及安全区位置。</p></article>
-<article class="logCard"><div class="logTitle">Version 1.0.3</div><p><b class="add">新增</b> 主题增加按钮颜色，首页按钮与分类底色同步；浅色、深色分别保存。</p><p><b class="add">新增</b> 跟随系统、浅色与深色外观；背景颜色分别保存并随外观切换。</p><p><b class="opt">优化</b> 搜索框位于反馈问题下方，随材质切换为液态玻璃或原生磨砂。</p><p><b class="opt">优化</b> 首页六个操作按钮保持纯色，其他卡片保留原有材质。</p><p><b class="opt">优化</b> 分类未选中底色使用按钮颜色，增加透明度以呈现柔和层次。</p><p><b class="opt">优化</b> 分类、材质与外观使用紧凑原生分段控件；缩短设置卡片。</p><p><b class="opt">优化</b> 移除自定义卡片描边，鸣谢仅在设置页随内容排布。</p><p><b class="fix">修复</b> 展开动画结束时的高度跳动和重复点击状态。</p></article>
-<article class="logCard"><div class="logTitle">Version 1.0.2</div><p><b class="add">新增</b> 卡片液态效果开关；关闭后切换为 UIKit 原生磨砂效果。</p><p><b class="add">新增</b> 主题内自定义字体，可导入 TTF、OTF、WOFF、WOFF2 文件并持久保存。</p><p><b class="add">新增</b> 卡片材质、液态玻璃、原生磨砂两种模式直接切换/低于26+不生效液态玻璃。</p><p><b class="add">新增</b> 主题增加卡片颜色，可修改纯色卡片颜色</p><p><b class="opt">优化</b> 规则页移除图片导入入口，仅显示规则名称与图标规则名。</p><p><b class="opt">优化</b> 首页采用新的双列卡片UI，上传区工具区与顶部信息重新布局。</p><p><b class="opt">优化</b> 设置页入口卡片进一步压缩高度与文字尺寸。</p><p><b class="opt">优化</b> 首页白色工具控件、搜索框、颜色展开项、清空按钮、分类未选中项和上传框统一接入 UIKit 原生玻璃/磨砂材质。</p><p><b class="opt">优化</b> 材质切换与首页分类分段切换改为参考图的胶囊式，选中项使用内嵌白色圆角块。</p><p><b class="opt">优化</b> 首页按钮、搜索框、颜色入口与导出操作统一为分类栏同类圆润胶囊轮廓。</p><p><b class="opt">优化</b> 纯色模式下首页操作框统一为同一中性底色，补全图片、自定义颜色、清空等入口保持清晰可见。</p><p><b class="fix">修复</b> 设置页使用说明与更新日志改为原位下拉拉伸卡片。</p><p><b class="fix">修复</b> 规则页顶部安全区与状态栏重叠问题。</p><p><b class="fix">修复</b> 首页、规则、设置三页卡片视觉统一，首页工具卡不再使用单独的透明样式。</p><p><b class="fix">修复</b> 使用说明、更新日志与主题卡片收起响应延迟，收起动画改为快速响应。</p><p><b class="fix">修复</b> 纯色模式默认不显示卡片描边；只有主动开启卡片描边后才显示所选描边颜色。</p><p><b class="fix">修复</b> 背景颜色现在同步到 UIKit 根视图，修改后立即生效并保存。</p><p><b class="fix">修复</b> 首页双分类切换中间露出的白色材质块；分类容器不再重复叠加玻璃。</p><p><b class="fix">修复</b> 液态玻璃与原生磨砂在刷新、筛选和重绘时原生材质层重新绑定导致的跳动。</p></article>
-<article class="logCard"><div class="logTitle">Version 1.0.1</div><p><b class="add">新增</b> 全局换图标规则页，可按规则名称与图标规则名查找。</p><p><b class="add">新增</b> 关键词批量导入、双分类补全、同名项目自动联动与 ZIP 自定义名称分享。</p><p><b class="add">新增</b> 浅色选中、深色选中及全部图标颜色自定义。</p><p><b class="opt">优化</b> 设置页的使用说明与更新日志改为原位下拉拉伸，不再弹出独立页面。</p><p><b class="opt">优化</b> iOS 26+ 使用 UIKit 系统原生 Liquid Glass；不使用 CSS 自绘玻璃。</p><p><b class="opt">优化</b> iOS 25 及以下自动回退 UIKit 原生 systemMaterial 磨砂。</p><p><b class="opt">优化</b> 规则页移除图片导入入口，只保留规则名称与图标规则名。</p><p><b class="fix">修复</b> 规则页安全区，避免标题与状态栏重叠。</p></article>
-<article class="logCard"><div class="logTitle">Version 1.0.0</div><p><b class="add">新增</b> 优优 LUI 图标补全基础功能。</p><p><b class="add">新增</b> LiquidUI / 原版微信图标上传、补全与 ZIP 导出。</p></article>
+<article class="logCard"><div class="logTitle">Version 1.0.6 <span>正式版</span></div><p><b class="add">新增</b> 原生首页接入完整图标上传、关键词批量导入、双分类补全与 ZIP 导出。</p><p><b class="opt">优化</b> 首页采用系统原生玻璃，低版本系统自动使用原生磨砂；缩小工具与上传卡片。</p><p><b class="opt">优化</b> 反馈与客服联系入口增加图标，保留普通文字链接。</p><p><b class="opt">优化</b> 放大首页工具栏按钮，首页、规则与设置统一主题颜色。</p><p><b class="opt">优化</b> 移除全界面额外阴影，统一图标尺寸与文字对齐；默认底色恢复上一版首页颜色。</p><p><b class="opt">优化</b> 更新日志改为当前版本，只显示 1.0.6 本版内容。</p><p><b class="fix">修复</b> 恢复修改后的更新日志；修复首页删除图标、滚动缩小底栏及设置同步。</p><p><b class="fix">修复</b> 首页工具按钮、分类和底栏文字同步主题字体，恢复默认及重新打开后保持一致。</p></article>
   </div>
 </div>
 <script>
@@ -1880,7 +1882,14 @@ function closeInfoPage(kind){
    }
    save('youyou.theme.whiteButtonDefaults.v104','1');
  }
- // Keep existing light customization; dark backgrounds have their own color.
+ // Restore the former native homepage base, migrating only the legacy default.
+ if(get('youyou.theme.homeBackground.v106','')!=='1'){
+   const value=get('youyou.theme.background.light',get('youyou.theme.background',''));
+   if(value.toUpperCase()==='#F4F2EE'&&get('youyou.theme.background.custom.light','0')!=='1'){
+     save('youyou.theme.background.light','#F2F2F7');save('youyou.theme.background','#F2F2F7');
+   }
+   save('youyou.theme.homeBackground.v106','1');
+ }
  const colors={light:{bg:get('youyou.theme.background.light',get('youyou.theme.background','#F2F2F7')),card:get('youyou.theme.cardColor.light',get('youyou.theme.cardColor','#FFFFFF')),button:get('youyou.theme.buttonColor.light','#FFFFFF')},dark:{bg:get('youyou.theme.background.dark','#121214'),card:get('youyou.theme.cardColor.dark','#1C1C1E'),button:get('youyou.theme.buttonColor.dark','#FFFFFF')}};
  for(const appearance of ['light','dark']){
    colors[appearance].custom=get('youyou.theme.buttonColor.custom.'+appearance,colors[appearance].button.toUpperCase()==='#FFFFFF'?'0':'1')==='1';
@@ -1911,11 +1920,11 @@ function closeInfoPage(kind){
  }
  buttons.forEach(b=>b.addEventListener('click',()=>applyMode(b.dataset.appearanceMode)));
  media.addEventListener('change',()=>{if(mode==='system')applyColors()});
- bg.addEventListener('input',()=>{const a=effective();colors[a].bg=bg.value;save('youyou.theme.background.'+a,bg.value);applyColors()});
+ bg.addEventListener('input',()=>{const a=effective();colors[a].bg=bg.value;save('youyou.theme.background.custom.'+a,'1');save('youyou.theme.background.'+a,bg.value);applyColors()});
  card.addEventListener('input',()=>{const a=effective();colors[a].card=card.value;save('youyou.theme.cardColor.'+a,card.value);applyColors()});
  buttonColor.addEventListener('input',()=>{const a=effective();colors[a].button=buttonColor.value;colors[a].custom=true;save('youyou.theme.buttonColor.custom.'+a,'1');save('youyou.theme.buttonColor.'+a,buttonColor.value);applyColors()});
  resetButton.addEventListener('click',()=>{const a=effective();colors[a].button='#FFFFFF';colors[a].custom=false;save('youyou.theme.buttonColor.custom.'+a,'0');save('youyou.theme.buttonColor.'+a,colors[a].button);applyColors()});
- reset.addEventListener('click',()=>{const a=effective();colors[a].bg=a==='dark'?'#121214':'#F2F2F7';save('youyou.theme.background.'+a,colors[a].bg);applyColors()});
+ reset.addEventListener('click',()=>{const a=effective();colors[a].bg=a==='dark'?'#121214':'#F2F2F7';save('youyou.theme.background.custom.'+a,'0');save('youyou.theme.background.'+a,colors[a].bg);applyColors()});
  resetCard.addEventListener('click',()=>{const a=effective();colors[a].card=a==='dark'?'#1C1C1E':'#FFFFFF';save('youyou.theme.cardColor.'+a,colors[a].card);applyColors()});
  root.style.setProperty('--surface-border','transparent','important');root.style.setProperty('--yy-card-border','transparent','important');
  try{localStorage.removeItem('youyou.theme.border.enabled');localStorage.removeItem('youyou.theme.border.color')}catch(e){}
@@ -1923,7 +1932,7 @@ function closeInfoPage(kind){
 })();</script><script id="true-native-card-glass-bridge-v103">
 (function(){
  const handler=window.webkit?.messageHandlers?.cardGlassRects;if(!handler)return;
- document.body.classList.add("native-segment-controls");
+ document.body.classList.add("native-segment-controls","native-symbol-icons");
  const selector=".luiyoActivationEntry,.inlineVersion,.card,.ruleCard,.settingsFold,.infobox,.ruleSearch,.uploadbox,.modeTabs,.settingsToggleCard,.homePill,.categorytabs,#materialModePicker,#appearanceModePicker,#bottomSearchModePicker,#searchInput,#homeTools .colorrow,.pick";
  let raf=0,lastPayload="";
  const nodeKeys=new WeakMap();let nextKey=0;
@@ -1964,11 +1973,15 @@ function closeInfoPage(kind){
      if(homeControl)return; // These six actions are opaque CSS surfaces.
      const segment=el.classList.contains("categorytabs")?"category":el.id==="materialModePicker"?"material":el.id==="appearanceModePicker"?"appearance":el.id==="bottomSearchModePicker"?"search":null;
      const buttons=segment?[...el.querySelectorAll("button")]:[];
+     const icon=el.querySelector('.settingsFoldIcon,.settingsToggleIcon');
+     const ir=icon?.getBoundingClientRect();
+     const systemIcon=icon?.dataset.systemIcon||({'◐':'circle.lefthalf.filled','?':'questionmark.circle','↻':'clock.arrow.circlepath','♡':'heart','✓':'checkmark.shield'}[icon?.textContent.trim()]||null);
      rects.push({
        key:stableKey(el),x:r.left+scrollX,y:r.top+scrollY,width:r.width,height:r.height,
        radius:Math.min(parseFloat(cs.borderTopLeftRadius)||0,r.width/2,r.height/2),
        clipX:clip.left+scrollX,clipY:clip.top+scrollY,clipWidth:clip.right-clip.left,clipHeight:clip.bottom-clip.top,
-       forceLiquid:false,homeControl,segment,
+       forceLiquid:false,homeControl,segment,systemIcon,
+       iconX:ir?ir.left-r.left:0,iconY:ir?ir.top-r.top:0,iconWidth:ir?.width||28,iconHeight:ir?.height||28,
        selected:segment?Math.max(0,buttons.findIndex(b=>b.classList.contains("active"))):0
      });
    });

@@ -1,27 +1,22 @@
 #!/usr/bin/env python3
-import importlib.util,json,re
+import importlib.util,json,re,plistlib,html
 from pathlib import Path
 root=Path(__file__).resolve().parents[1]
 spec=importlib.util.spec_from_file_location('release_renderer',root/'scripts/render-release-notes.py')
 module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
 notes=json.loads((root/'scripts/release-notes.json').read_text())
-current=module.render('1.0.5',notes)
-assert 'Version 1.0.5 <span>正式版</span>' in current
-assert '该版本为首发测试。' in current and '修复已知问题。' in current
-assert 'Build' not in current
-assert current.count('Version 1.0.4</div>')==1
-assert current.count('class="inlineVersion"')==6
-for section in notes['exclusive_history_by_version']['1.0.5']:
- for entry in section['entries']:assert entry['text'] in current
-future=module.render('1.0.7',notes)
-assert 'Version 1.0.7 <span>正式版</span>' in future
-assert 'Build' not in future
-assert future.count('Version 1.0.4</div>')==1
-assert future.count('class="inlineVersion"')==7
-for section in notes['shared_history']:
- for entry in section['entries']:assert entry['text'] in future
+version=plistlib.loads((root/'YouYouLUI_iOS/YouYouLUI/Info.plist').read_bytes())['CFBundleShortVersionString']
+assert version=='1.0.6'
+current=module.render(version,notes)
+assert current.count('class="inlineVersion"')==1
+assert 'Version 1.0.6 <span>正式版</span>' in current
+for entry in notes['releases'][version]['entries']:assert html.escape(entry['text']) in current
+for section in notes['shared_history']:assert 'Version '+section['version'] not in current
+assert notes['shared_history'] and notes['exclusive_history_by_version']['1.0.5']
 page=(root/'YouYouLUI_iOS/YouYouLUI/Web/index.html').read_text()
-future_page=module.update(page,'1.0.7',notes)
-assert future_page.count('Version 1.0.4')==2 # Both original log surfaces keep the edited text.
-assert '该版本为首发测试。' in future_page
-print('Passed: the complete user-edited history is preserved in both log surfaces without Build labels.')
+updated=module.update(page,version,notes)
+assert updated==page and module.update(updated,version,notes)==updated
+assert updated.count('Version 1.0.6')==3
+assert '<b>当前版本</b><small>Version 1.0.6 · 正式版</small>' in updated
+assert not re.search(r'Version 1\.0\.[0-57]',updated)
+print('Passed: only current 1.0.6 notes appear in both surfaces; edited history stays archived.')

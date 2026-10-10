@@ -58,6 +58,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     private var activeSearchPage = "home"
     private var themeFont: UIFont?
     private var themeFontData: Data?
+    private let originalTabLabelFonts = NSMapTable<UILabel, UIFont>(keyOptions: .weakMemory, valueOptions: .strongMemory)
     private var registeredThemeGraphicsFont: CGFont?
     private var restoredNativeFont = false
     private var defaultTabAppearance: UITabBarAppearance?
@@ -70,6 +71,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     private var cardSpecs: [String: [String: Any]] = [:]
     private var cardOrder: [String] = []
     private var nativeSegments: [String: UISegmentedControl] = [:]
+    private var nativeSymbols: [String: UIImageView] = [:]
     private var nativeSegmentStyles: [String: UIUserInterfaceStyle] = [:]
     private var nativeSelectedCapsules: [String: UIView] = [:]
     private var scrollOffsetObservation: NSKeyValueObservation?
@@ -97,7 +99,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
       if (settings) {
         const box = document.createElement('section');
         box.className = 'luiyoActivationEntry';box.id='luiyoActivationCard';
-        box.innerHTML = '<strong>激活授权</strong><small id="luiyoAuthState">未激活 · 仅可浏览</small><form class="luiyoActivationForm" id="luiyoActivationForm"><input id="luiyoLicenseCode" aria-label="卡密" placeholder="输入卡密" autocomplete="one-time-code" autocapitalize="characters" spellcheck="false"><button id="luiyoLicenseSubmit" type="submit">激活</button></form>';
+        box.innerHTML = '<div class="settingsAuthHeading"><span class="settingsFoldIcon" data-system-icon="checkmark.shield">✓</span><span class="settingsFoldText"><b>激活授权</b><small id="luiyoAuthState">未激活 · 仅可浏览</small></span></div><form class="luiyoActivationForm" id="luiyoActivationForm"><input id="luiyoLicenseCode" aria-label="卡密" placeholder="输入卡密" autocomplete="one-time-code" autocapitalize="characters" spellcheck="false"><button id="luiyoLicenseSubmit" type="submit">激活</button></form>';
         settings.querySelector('.settingsHead')?.insertAdjacentElement('afterend', box);
         box.querySelector('form').addEventListener('submit', e => {
           e.preventDefault();const code=box.querySelector('input').value.trim();
@@ -328,6 +330,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
                 #if DEBUG
                 if rawScenario == "preview-native-theme" {
                     self.nativeHomeModel.fontName = "Courier"
+                    self.nativeHomeModel.importedFont = UIFont(name: "Courier", size: 10)
                     self.webView.evaluateJavaScript("for(const [id,value] of Object.entries({appBackgroundColor:'#dce7f2',appCardColor:'#f3e8dc',appButtonColor:'#385170'})){const input=document.getElementById(id);input.value=value;input.dispatchEvent(new Event('input',{bubbles:true}))}document.querySelector('[data-material=blur]').click();window.__applyToolbarTransparency(35);window.__setBottomSearchMode('off');window.__setMinimizeBottomBar(true);")
                 }
                 #endif
@@ -636,6 +639,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             self.activeSearchPage = state["page"] as? String ?? "home"
             let page = LUIYoSearchViewController()
             page.query = state["query"] as? String ?? ""
+            page.themeFont = self.themeFont
             page.backgroundImage = self.backgroundImageView.image
             page.placeholder = state["placeholder"] as? String ?? "搜索"
             page.onSearch = { [weak self] query in self?.applyBottomSearch(query) }
@@ -801,9 +805,8 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         // Remove extra layer shadows without replacing native system glass.
-        tabBar.layer.shadowOpacity = 0
-        tabBar.layer.shadowRadius = 0
-        tabBar.layer.shadowColor = UIColor.clear.cgColor
+        removeExtraLayerShadows(tabBar.layer)
+        updateTabLabelFonts(in: tabBar)
         keepContentBelowNativeBar()
         updateLayoutMetrics()
         renderVisibleNativeMaterials()
@@ -868,7 +871,11 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     }
 
     @discardableResult private func setNativeFont(_ data: Data) -> Bool {
-        if themeFontData == data { return true }
+        if themeFontData == data {
+            nativeHomeModel.importedFont = themeFont
+            applyTabFont()
+            return true
+        }
         guard let descriptors = CTFontManagerCreateFontDescriptorsFromData(data as CFData) as? [CTFontDescriptor],
               let descriptor = descriptors.first else { return false }
         if let font = registeredThemeGraphicsFont { CTFontManagerUnregisterGraphicsFont(font, nil) }
@@ -877,6 +884,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         registeredThemeGraphicsFont = CTFontManagerRegisterGraphicsFont(graphicsFont, nil) ? graphicsFont : nil
         themeFont = createdFont as UIFont
         nativeHomeModel.fontName = themeFont?.fontName
+        nativeHomeModel.importedFont = themeFont
         themeFontData = data
         applyTabFont()
         return true
@@ -913,7 +921,49 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             item.setTitleTextAttributes(attributes, for: .normal)
             item.setTitleTextAttributes(attributes, for: .selected)
         }
+        updateTabLabelFonts(in: tabBar)
+        activeSearchPageController?.themeFont = themeFont
+        tabBar.setNeedsLayout()
         renderVisibleNativeMaterials()
+    }
+
+    private func updateTabLabelFonts(in view: UIView) {
+        if let label = view as? UILabel, let text = label.text,
+           ["首页", "规则", "设置", "搜索", "Search"].contains(text) {
+            if originalTabLabelFonts.object(forKey: label) == nil {
+                let original = themeFont == nil ? label.font! : UIFont.systemFont(ofSize: label.font.pointSize)
+                originalTabLabelFonts.setObject(original, forKey: label)
+            }
+            if let original = originalTabLabelFonts.object(forKey: label) {
+                let desired = themeFont?.withSize(original.pointSize) ?? original
+                if label.font != desired { label.font = desired }
+            }
+        }
+        for child in view.subviews { updateTabLabelFonts(in: child) }
+    }
+
+    private func configureSymbol(in surface: UIVisualEffectView, key: String, spec: [String: Any]) {
+        guard let name = spec["systemIcon"] as? String, !name.isEmpty else {
+            nativeSymbols.removeValue(forKey: key)?.removeFromSuperview()
+            return
+        }
+        let icon: UIImageView
+        if let existing = nativeSymbols[key] { icon = existing }
+        else {
+            icon = UIImageView()
+            icon.isUserInteractionEnabled = false
+            icon.isAccessibilityElement = false
+            icon.contentMode = .scaleAspectFit
+            surface.contentView.addSubview(icon)
+            nativeSymbols[key] = icon
+        }
+        icon.image = UIImage(systemName: name, withConfiguration: UIImage.SymbolConfiguration(pointSize: 20, weight: .regular))
+        icon.tintColor = .label
+        let x = CGFloat((spec["iconX"] as? NSNumber)?.doubleValue ?? 0)
+        let y = CGFloat((spec["iconY"] as? NSNumber)?.doubleValue ?? 0)
+        let width = CGFloat((spec["iconWidth"] as? NSNumber)?.doubleValue ?? 28)
+        let height = CGFloat((spec["iconHeight"] as? NSNumber)?.doubleValue ?? 28)
+        icon.frame = CGRect(x: x + (width - 20) / 2, y: y + (height - 20) / 2, width: 20, height: 20)
     }
 
     private func configureSegment(in surface: UIVisualEffectView, key: String, spec: [String: Any]) {
@@ -1016,7 +1066,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
                     surface.clipsToBounds = true
                     let host = UIView()
                     host.isUserInteractionEnabled = false
-                    host.clipsToBounds = false
+                    host.clipsToBounds = true
                     glassContainer.addSubview(host)
                     host.addSubview(surface)
                     cardMaterialHosts[key] = host
@@ -1024,15 +1074,20 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
                 }
                 cardMaterialHosts[key]?.isHidden = false
                 cardMaterialHosts[key]?.frame = clip
-                // Full-size glass must keep an unclipped ancestor for native refraction.
-                // Clip only while an expanding fold actually crops its child.
-                cardMaterialHosts[key]?.clipsToBounds = clip.minX > frame.minX + 0.5 || clip.minY > frame.minY + 0.5
+                // Crop the external native shadow while preserving the system material.
+                cardMaterialHosts[key]?.clipsToBounds = true
+                let cropped = clip.minX > frame.minX + 0.5 || clip.minY > frame.minY + 0.5
                     || clip.maxX < frame.maxX - 0.5 || clip.maxY < frame.maxY - 0.5
                 surface.frame = CGRect(x: frame.minX - clip.minX, y: frame.minY - clip.minY, width: frame.width, height: frame.height)
                 let requested = CGFloat((spec["radius"] as? NSNumber)?.doubleValue ?? 24)
                 // CSS uses 999px for pills; CALayer needs the actual finite radius.
                 surface.layer.cornerRadius = min(max(0, requested), min(frame.width, frame.height) / 2)
+                cardMaterialHosts[key]?.layer.cornerCurve = .continuous
+                cardMaterialHosts[key]?.layer.cornerRadius = cropped ? 0 : surface.layer.cornerRadius
                 applyTint(to: surface, spec: spec)
+                configureSymbol(in: surface, key: key, spec: spec)
+                removeExtraLayerShadows(surface.layer)
+                if let host = cardMaterialHosts[key] { removeExtraLayerShadows(host.layer) }
                 configureSegment(in: surface, key: key, spec: spec)
             }
         }
@@ -1057,6 +1112,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         for key in Array(cardMaterialViews.keys) where frames[key] == nil {
             cardMaterialViews.removeValue(forKey: key)?.removeFromSuperview()
             cardMaterialHosts.removeValue(forKey: key)?.removeFromSuperview()
+            nativeSymbols.removeValue(forKey: key)?.removeFromSuperview()
             nativeSegments.removeValue(forKey: key)
             nativeSegmentStyles.removeValue(forKey: key)
             nativeSelectedCapsules.removeValue(forKey: key)?.removeFromSuperview()
@@ -1306,6 +1362,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
                 if let font = registeredThemeGraphicsFont { CTFontManagerUnregisterGraphicsFont(font, nil) }
                 registeredThemeGraphicsFont = nil
                 nativeHomeModel.fontName = nil
+                nativeHomeModel.importedFont = nil
                 try? FileManager.default.removeItem(at: nativeFontURL)
                 applyTabFont()
             } else if let base64 = payload["data"] as? String,
@@ -1429,6 +1486,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
 private final class LUIYoSearchViewController: UIViewController, UITextFieldDelegate {
     var query = ""
     var placeholder = "搜索"
+    var themeFont: UIFont? { didSet { if isViewLoaded { searchField.font = themeFont?.withSize(16) ?? .systemFont(ofSize: 16) } } }
     var onSearch: ((String) -> Void)?
     var onClose: (() -> Void)?
     var onLayout: (() -> Void)?
@@ -1456,7 +1514,7 @@ private final class LUIYoSearchViewController: UIViewController, UITextFieldDele
         inputSurface.clipsToBounds = true
         searchField.placeholder = placeholder
         searchField.text = query
-        searchField.font = .systemFont(ofSize: 16)
+        searchField.font = themeFont?.withSize(16) ?? .systemFont(ofSize: 16)
         searchField.delegate = self
         searchField.returnKeyType = .search
         searchField.autocorrectionType = .no
