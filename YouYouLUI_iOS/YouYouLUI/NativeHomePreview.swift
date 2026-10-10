@@ -94,19 +94,22 @@ private struct LUIYoNativeGlassHomePreview: View {
                 .pickerStyle(.segmented)
                 Text(category == 0 ? "LiquidUI 图标" : "原版微信图标").font(.headline)
                 NativeGlassGroup {
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                    LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible())], spacing: 10) {
                         ForEach(titles, id: \.self) { title in
                             Button {} label: {
-                                HStack(spacing: 10) {
-                                    Image(systemName: "plus").font(.title3).foregroundStyle(.secondary)
-                                        .frame(width: 30, height: 42)
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(title).font(.system(size: 13, weight: .semibold)).foregroundStyle(.primary)
+                                HStack(spacing: 8) {
+                                    Image(systemName: "plus")
+                                        .font(.system(size: 16, weight: .semibold))
+                                        .foregroundStyle(.white)
+                                        .frame(width: 32, height: 32)
+                                        .background(Color.blue, in: RoundedRectangle(cornerRadius: 12))
+                                    VStack(alignment: .leading, spacing: 3) {
+                                        Text(title).font(.system(size: 12, weight: .semibold)).foregroundStyle(.primary)
                                         Text("点击上传").font(.caption2).foregroundStyle(.secondary)
                                     }
                                     Spacer(minLength: 0)
                                 }
-                                .padding(14).frame(maxWidth: .infinity, minHeight: 78)
+                                .padding(10).frame(maxWidth: .infinity, minHeight: 64)
                             }
                             .buttonStyle(.plain)
                             .modifier(NativeCardSurface())
@@ -126,41 +129,41 @@ private struct LUIYoNativeGlassHomePreview: View {
 
     private var tools: some View {
         NativeGlassGroup {
-            VStack(spacing: 12) {
-                HStack(spacing: 10) {
+            VStack(spacing: 8) {
+                HStack(spacing: 8) {
                     Button {} label: {
                         Label("关键词批量导入", systemImage: "square.and.arrow.down")
                             .font(.system(size: 12, weight: .medium)).frame(maxWidth: .infinity)
-                    }.modifier(NativeActionStyle()).controlSize(.large)
+                    }.modifier(NativeActionStyle()).controlSize(.regular)
                     Button {} label: {
                         Label("补全图片", systemImage: "photo")
                             .font(.system(size: 12, weight: .medium)).frame(maxWidth: .infinity)
-                    }.modifier(NativeActionStyle()).controlSize(.large)
+                    }.modifier(NativeActionStyle()).controlSize(.regular)
                 }
                 Button {} label: {
                     Label("双分类补全", systemImage: "square.3.layers.3d")
-                        .font(.subheadline.weight(.semibold)).frame(maxWidth: .infinity)
-                }.modifier(NativeActionStyle()).controlSize(.large)
+                        .font(.system(size: 13, weight: .semibold)).frame(maxWidth: .infinity)
+                }.modifier(NativeActionStyle()).controlSize(.regular)
                 Button { showColors = true } label: {
-                    HStack(spacing: 12) {
-                        Image(systemName: "paintpalette").font(.title3).foregroundStyle(.secondary)
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text("自定义修改颜色").font(.subheadline.weight(.medium))
+                    HStack(spacing: 10) {
+                        Image(systemName: "paintpalette").font(.body).foregroundStyle(.secondary)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("自定义修改颜色").font(.system(size: 13, weight: .medium))
                             Text("浅色 / 深色 / 全部图标").font(.caption2).foregroundStyle(.secondary)
                         }
                         Spacer()
                         Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
                     }
-                    .foregroundStyle(.primary).frame(maxWidth: .infinity).padding(.vertical, 3)
-                }.modifier(NativeActionStyle()).controlSize(.large)
-                HStack(spacing: 12) {
+                    .foregroundStyle(.primary).frame(maxWidth: .infinity).padding(.vertical, 1)
+                }.modifier(NativeActionStyle()).controlSize(.regular)
+                HStack(spacing: 8) {
                     Button {} label: {
                         Label("清空", systemImage: "trash").frame(maxWidth: .infinity)
-                    }.modifier(NativeActionStyle(prominent: true)).tint(.blue).controlSize(.large)
+                    }.modifier(NativeActionStyle(prominent: true)).tint(.blue).controlSize(.regular)
                     Button {} label: {
                         Label("导出 ZIP", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity)
-                    }.modifier(NativeActionStyle(prominent: true)).tint(.green).controlSize(.large)
-                }.font(.subheadline.weight(.semibold))
+                    }.modifier(NativeActionStyle(prominent: true)).tint(.green).controlSize(.regular)
+                }.font(.system(size: 13, weight: .semibold))
             }
         }
     }
@@ -233,7 +236,7 @@ private struct NativeActionStyle: ViewModifier {
             if prominent { content.buttonStyle(.glassProminent) }
             else { content.buttonStyle(.glass) }
         } else {
-            content.buttonStyle(.plain).padding(.horizontal, 16).padding(.vertical, 12)
+            content.buttonStyle(.plain).padding(.horizontal, 14).padding(.vertical, 8)
                 .background(.regularMaterial, in: Capsule())
         }
     }
@@ -242,9 +245,9 @@ private struct NativeActionStyle: ViewModifier {
 private struct NativeCardSurface: ViewModifier {
     @ViewBuilder func body(content: Content) -> some View {
         if #available(iOS 26.0, *) {
-            content.glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: 24))
+            content.glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: 20))
         } else {
-            content.background(.regularMaterial, in: RoundedRectangle(cornerRadius: 24))
+            content.background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20))
         }
     }
 }
@@ -252,7 +255,7 @@ private struct NativeCardSurface: ViewModifier {
 private struct NativeGlassGroup<Content: View>: View {
     @ViewBuilder var content: () -> Content
     @ViewBuilder var body: some View {
-        if #available(iOS 26.0, *) { GlassEffectContainer(spacing: 10, content: content) }
+        if #available(iOS 26.0, *) { GlassEffectContainer(spacing: 6, content: content) }
         else { content() }
     }
 }
