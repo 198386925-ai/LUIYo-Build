@@ -13,7 +13,7 @@ xcrun simctl status_bar "$DEVICE" override --time '9:41' --batteryState charged 
 APP=native-preview-build/Build/Products/Debug-iphonesimulator/YouYouLUI.app
 BUNDLE_ID=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Info.plist")
 xcrun simctl install "$DEVICE" "$APP"
-for SCENARIO in light dark colors-light; do
+for SCENARIO in light dark colors-light wechat-light tail-light; do
   APPEARANCE=${SCENARIO##*-}
   xcrun simctl ui "$DEVICE" appearance "$APPEARANCE"
   DATA_DIR=$(xcrun simctl get_app_container "$DEVICE" "$BUNDLE_ID" data)
@@ -30,6 +30,9 @@ for SCENARIO in light dark colors-light; do
 import json,sys
 e=json.load(open(sys.argv[1])); assert e['osVersion'].startswith('26.'),e
 assert any('glass' in c.lower() for c in e['runtimeGlassClasses']),e
+assert e['catalogEntries'] == sum(e['catalogCounts'].values()),e
+assert all(n > 6 for n in e['catalogCounts'].values()),e
+if 'wechat' in sys.argv[1]: assert e['activeCategory'] == 'wechat',e
 print(e)
 PY
   xcrun simctl terminate "$DEVICE" "$BUNDLE_ID"

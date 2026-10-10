@@ -5,6 +5,7 @@ on:
     paths:
       - 'YouYouLUI_iOS/**'
       - 'scripts/preview-native-glass.sh'
+      - 'scripts/sync-native-preview-catalog.js'
       - '.github/workflows/native-glass-preview.yml'
 permissions:
   contents: read
@@ -17,6 +18,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Select Xcode 26
         run: echo 'DEVELOPER_DIR=/Applications/Xcode_26.3.app/Contents/Developer' >> "$GITHUB_ENV"
+      - name: Verify complete homepage catalog
+        run: node scripts/sync-native-preview-catalog.js --check
       - name: Compile standalone native preview
         timeout-minutes: 4
         run: |

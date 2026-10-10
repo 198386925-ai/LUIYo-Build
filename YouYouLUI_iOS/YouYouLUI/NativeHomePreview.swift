@@ -28,7 +28,15 @@ private struct LUIYoNativeGlassHomePreview: View {
     @State private var selectedEnabled = false
     @State private var darkSelectedEnabled = false
     @State private var allEnabled = false
-    private let titles = ["插件入口", "顶栏美化设置", "改金额", "改文字", "头像遮罩", "背景 Diy"]
+    private let catalog = NativeIconCatalog.load()
+    private var activeCategory: String { category == 0 ? "liquidui" : "wechat" }
+    private var categoryEntries: [NativeIconEntry] { catalog.entries.filter { $0.category == activeCategory } }
+    private var visibleEntries: [NativeIconEntry] {
+        let tokens = query.split(whereSeparator: { $0.isWhitespace }).map(String.init)
+        return categoryEntries.filter { item in
+            tokens.allSatisfy { item.searchText.localizedCaseInsensitiveContains($0) }
+        }
+    }
 
     var body: some View {
         tabs
@@ -36,6 +44,9 @@ private struct LUIYoNativeGlassHomePreview: View {
         .tint(.blue)
         .sheet(isPresented: $showColors) { colorSettings }
         .onAppear {
+            if ProcessInfo.processInfo.environment["LUI_SNAPSHOT"]?.contains("wechat") == true {
+                category = 1
+            }
             if ProcessInfo.processInfo.environment["LUI_SNAPSHOT"]?.contains("colors") == true {
                 showColors = true
             }
@@ -70,16 +81,19 @@ private struct LUIYoNativeGlassHomePreview: View {
     }
 
     private var home: some View {
+        ScrollViewReader { proxy in
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("LUIYo").font(.largeTitle.bold())
-                    Text("LiquidUI / 微信图标管理").font(.subheadline).foregroundStyle(.secondary)
+                    Text("微信图标管理").font(.subheadline).foregroundStyle(.secondary)
                     HStack(spacing: 8) {
                         Label("已授权", systemImage: "checkmark.seal.fill")
                             .font(.caption.weight(.medium)).foregroundStyle(.green)
                         Text("已上传项目：0 项").font(.caption).foregroundStyle(.secondary)
-                        Link("联系客服", destination: URL(string: "https://qm.qq.com/q/th1QshgzHW")!)
+                        Link(destination: URL(string: "https://qm.qq.com/q/th1QshgzHW")!) {
+                            Label("反馈问题 · 联系客服", systemImage: "bubble.left.and.bubble.right")
+                        }
                             .font(.caption.weight(.medium))
                             .buttonStyle(.plain)
                             .foregroundStyle(.blue)
@@ -92,10 +106,14 @@ private struct LUIYoNativeGlassHomePreview: View {
                     Text("原版微信").tag(1)
                 }
                 .pickerStyle(.segmented)
-                Text(category == 0 ? "LiquidUI 图标" : "原版微信图标").font(.headline)
+                HStack {
+                    Text(category == 0 ? "LiquidUI 图标" : "原版微信图标").font(.headline)
+                    Spacer()
+                    Text("\(categoryEntries.count) 项").font(.caption).foregroundStyle(.secondary)
+                }
                 NativeGlassGroup {
                     LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible())], spacing: 10) {
-                        ForEach(titles, id: \.self) { title in
+                        ForEach(visibleEntries) { item in
                             Button {} label: {
                                 HStack(spacing: 8) {
                                     Image(systemName: "plus")
@@ -104,7 +122,8 @@ private struct LUIYoNativeGlassHomePreview: View {
                                         .frame(width: 32, height: 32)
                                         .background(Color.blue, in: RoundedRectangle(cornerRadius: 12))
                                     VStack(alignment: .leading, spacing: 3) {
-                                        Text(title).font(.system(size: 12, weight: .semibold)).foregroundStyle(.primary)
+                                        Text(item.title).font(.system(size: 12, weight: .semibold)).foregroundStyle(.primary)
+                                            .lineLimit(2)
                                         Text("点击上传").font(.caption2).foregroundStyle(.secondary)
                                     }
                                     Spacer(minLength: 0)
@@ -113,7 +132,8 @@ private struct LUIYoNativeGlassHomePreview: View {
                             }
                             .buttonStyle(.plain)
                             .modifier(NativeCardSurface())
-                            .accessibilityLabel("上传" + title)
+                            .id(item.id)
+                            .accessibilityLabel("上传" + item.title)
                         }
                     }
                 }
@@ -124,6 +144,14 @@ private struct LUIYoNativeGlassHomePreview: View {
             // A wallpaper backdrop only. Glass, edges and highlights are system-rendered.
             LinearGradient(colors: [Color(uiColor: .systemGroupedBackground), Color.blue.opacity(0.07), Color(uiColor: .systemGroupedBackground)], startPoint: .topLeading, endPoint: .bottomTrailing)
                 .ignoresSafeArea()
+        }
+        .onAppear {
+            if ProcessInfo.processInfo.environment["LUI_SNAPSHOT"]?.contains("tail") == true {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                    if let last = categoryEntries.last { proxy.scrollTo(last.id, anchor: .bottom) }
+                }
+            }
+        }
         }
     }
 
@@ -217,6 +245,11 @@ private struct LUIYoNativeGlassHomePreview: View {
                 "rendering": "native SwiftUI on iOS simulator",
                 "materialPolicy": "iOS 26+: system Liquid Glass; earlier iOS: system regularMaterial and native tab bar",
                 "runtimeGlassClasses": Array(Set(glassClasses)).sorted(),
+                "catalogEntries": catalog.entries.count,
+                "catalogSourceItems": catalog.totalSourceItems,
+                "catalogCounts": ["liquidui": catalog.entries.filter { $0.category == "liquidui" }.count,
+                                  "wechat": catalog.entries.filter { $0.category == "wechat" }.count],
+                "activeCategory": activeCategory,
                 "previewOnly": true
             ]
             let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
@@ -225,6 +258,27 @@ private struct LUIYoNativeGlassHomePreview: View {
             }
             try? Data("ready".utf8).write(to: dir.appendingPathComponent("native-glass-ready.txt"))
         }
+    }
+}
+
+private struct NativeIconEntry: Decodable, Identifiable {
+    let id: Int
+    let title: String
+    let category: String
+    let searchText: String
+    let files: [String]
+}
+
+private struct NativeIconCatalog: Decodable {
+    let totalSourceItems: Int
+    let entries: [NativeIconEntry]
+    static func load() -> NativeIconCatalog {
+        guard let url = Bundle.main.url(forResource: "native-preview-catalog", withExtension: "json", subdirectory: "Web"),
+              let data = try? Data(contentsOf: url),
+              let catalog = try? JSONDecoder().decode(NativeIconCatalog.self, from: data) else {
+            fatalError("Native preview requires the complete original homepage catalog")
+        }
+        return catalog
     }
 }
 
