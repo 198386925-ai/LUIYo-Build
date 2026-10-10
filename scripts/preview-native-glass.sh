@@ -24,12 +24,12 @@ for APPEARANCE in light dark; do
   done
   test -f "$DATA_DIR/Documents/native-glass-ready.txt"
   cp "$DATA_DIR/Documents/native-glass-evidence.json" "native-glass-preview/evidence-$APPEARANCE.json"
+  xcrun simctl io "$DEVICE" screenshot "native-glass-preview/LUIYo-native-glass-home-$APPEARANCE.png"
   python3 - "native-glass-preview/evidence-$APPEARANCE.json" <<'PY'
 import json,sys
 e=json.load(open(sys.argv[1])); assert e['osVersion'].startswith('26.'),e
 assert any('glass' in c.lower() for c in e['runtimeGlassClasses']),e
 print(e)
 PY
-  xcrun simctl io "$DEVICE" screenshot "native-glass-preview/LUIYo-native-glass-home-$APPEARANCE.png"
   xcrun simctl terminate "$DEVICE" "$BUNDLE_ID"
 done
