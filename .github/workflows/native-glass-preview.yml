@@ -11,13 +11,22 @@ permissions:
 jobs:
   screenshot:
     if: github.event.repository.private == false
-    runs-on: macos-15-intel
+    runs-on: macos-26
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - name: Select Xcode 26
         run: echo 'DEVELOPER_DIR=/Applications/Xcode_26.3.app/Contents/Developer' >> "$GITHUB_ENV"
-      - name: Build and capture native glass
+      - name: Compile standalone native preview
+        timeout-minutes: 4
+        run: |
+          mkdir -p native-glass-preview
+          xcodebuild -project YouYouLUI_iOS/YouYouLUI.xcodeproj -scheme YouYouLUI \
+            -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath native-preview-build CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY="-" \
+            ARCHS=arm64 ONLY_ACTIVE_ARCH=YES build > native-glass-preview/build.log 2>&1 || { tail -100 native-glass-preview/build.log; exit 1; }
+      - name: Boot and capture native glass
+        timeout-minutes: 8
         run: bash scripts/preview-native-glass.sh
       - name: Save actual simulator screenshots
         if: always()

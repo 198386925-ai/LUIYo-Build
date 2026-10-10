@@ -1,7 +1,7 @@
 name: Mobile preview only
 on:
   push:
-    branches: ['preview/**']
+    branches: ['preview/**', '!preview/native-glass-home-20261010']
     paths:
       - 'YouYouLUI_iOS/**'
       - 'scripts/preview-mobile.sh'
