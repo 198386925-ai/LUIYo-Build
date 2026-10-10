@@ -19,6 +19,19 @@ const dom=new JSDOM(fs.readFileSync(root+'Web/index.html','utf8').replace('<scri
  w.DataTransfer=class {constructor(){this.files=[];this.items={add:f=>this.files.push(f)}}};
  for(const id of ['batchInput','fillInput']){let files=[];Object.defineProperty(d.getElementById(id),'files',{get:()=>files,set:value=>files=value})}
  w.eval(fs.readFileSync(root+'Web/native-home-bridge.js','utf8'));
+ const lastState=()=>messages.filter(m=>m.name==='nativeHomeState').at(-1).body;
+ const input=(id,value)=>{d.getElementById(id).value=value;d.getElementById(id).dispatchEvent(new w.Event('input',{bubbles:true}))};
+ input('appBackgroundColor','#dce7f2');input('appCardColor','#f3e8dc');input('appButtonColor','#385170');
+ w.__applyToolbarTransparency(35);w.__setBottomSearchMode('off');await w.__nativeHomeCommand('state');
+ assert.equal(lastState().theme.background,'#dce7f2');assert.equal(lastState().theme.card,'#f3e8dc');
+ assert.equal(lastState().theme.button,'#385170');assert.equal(lastState().theme.toolbarOpacity,.65);
+ assert.equal(lastState().theme.customButton,true);assert.equal(lastState().theme.bottomSearchEnabled,false);
+ d.querySelector('[data-appearance-mode=dark]').click();input('appBackgroundColor','#182b40');await w.__nativeHomeCommand('state');
+ assert.equal(lastState().theme.dark,true);assert.equal(lastState().theme.background,'#182b40');
+ d.querySelector('[data-appearance-mode=light]').click();await w.__nativeHomeCommand('state');
+ assert.equal(lastState().theme.background,'#dce7f2','Light customization survives appearance switching');
+ await w.__nativeHomeCommand('search',{query:'test'});assert.equal(d.getElementById('searchInput').value,'test');
+ await w.__nativeHomeCommand('search',{query:''});
  const file={base64:'AQID',name:'底栏微信.png',type:'image/png'},cmd=w.__nativeHomeCommand;
  await assert.rejects(cmd('files',{kind:'upload',id:0,files:[file]}),/未授权/);assert.equal(w.eval('chosen.size'),0);
  w.__luiyoSetAuthorized(true);

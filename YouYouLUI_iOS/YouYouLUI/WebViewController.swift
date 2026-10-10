@@ -13,6 +13,10 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     private let nativeHomeModel = NativeHomeModel()
     private var nativeHomeHost: UIHostingController<LUIYoNativeHome>?
     private var nativeHomeConstraints: [NSLayoutConstraint] = []
+    private weak var nativeHomeScrollView: UIScrollView?
+    #if DEBUG
+    private var nativeHomeScrollObservation: NSKeyValueObservation?
+    #endif
     private var nativeHomeReady = false
     private var nativeUploadKind = "upload"
     private var nativeUploadIndex: Int?
@@ -54,6 +58,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     private var activeSearchPage = "home"
     private var themeFont: UIFont?
     private var themeFontData: Data?
+    private var registeredThemeGraphicsFont: CGFont?
     private var restoredNativeFont = false
     private var defaultTabAppearance: UITabBarAppearance?
     private var defaultScrollEdgeAppearance: UITabBarAppearance?
@@ -74,7 +79,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     static let adaptiveBackground = UIColor { traits in
         traits.userInterfaceStyle == .dark
             ? UIColor(red: 18.0/255.0, green: 18.0/255.0, blue: 20.0/255.0, alpha: 1)
-            : UIColor(red: 244.0/255.0, green: 242.0/255.0, blue: 238.0/255.0, alpha: 1)
+            : UIColor(red: 242.0/255.0, green: 242.0/255.0, blue: 247.0/255.0, alpha: 1)
     }
 
     private static let activationPreviewScript = #"""
@@ -137,7 +142,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     override func loadView() {
         super.loadView()
         let rootView = view!
-        // Global default app background: #F4F2EE on every page.
+        // Shared native background on every page.
         rootView.backgroundColor = Self.adaptiveBackground
 
         // Native host for per-card materials. HTML supplies content only.
@@ -188,8 +193,19 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             configuration.userContentController.addUserScript(WKUserScript(source: script, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
         }
         nativeHomeModel.onCommand = { [weak self] action, values in
-            if action == "category" { self?.runNativeEngine(action, values) }
+            if ["category", "search"].contains(action) { self?.runNativeEngine(action, values) }
             else { self?.nativeHomeCommand(action, values) }
+        }
+        nativeHomeModel.onScrollView = { [weak self] scroll in
+            guard let self else { return }
+            self.nativeHomeScrollView = scroll
+            scroll.accessibilityIdentifier = "nativeHomeScroll"
+            scroll.keyboardDismissMode = .interactive
+            self.keepContentBelowNativeBar()
+            #if DEBUG
+            self.nativeHomeScrollObservation = scroll.observe(\.contentOffset, options: [.new]) { [weak self] _, _ in self?.writeNativeHomeDiagnostics() }
+            self.writeNativeHomeDiagnostics()
+            #endif
         }
         let webView = WKWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = self
@@ -302,9 +318,15 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { [weak self] in
                 guard let self else { return }
                 if rawScenario.contains("search") { self.presentBottomSearch() }
-                if rawScenario == "preview-inline-auth" {
+                if rawScenario == "preview-inline-auth" || rawScenario == "preview-native-theme" {
                     self.webView.evaluateJavaScript("fillFile=new File([Uint8Array.from(atob('iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAFklEQVR4nGNUqPj1nwEPYMInOXwUAACm9AKhD318TgAAAABJRU5ErkJggg=='),c=>c.charCodeAt(0))],'test.png',{type:'image/png'})")
                 }
+                #if DEBUG
+                if rawScenario == "preview-native-theme" {
+                    self.nativeHomeModel.fontName = "Courier"
+                    self.webView.evaluateJavaScript("for(const [id,value] of Object.entries({appBackgroundColor:'#dce7f2',appCardColor:'#f3e8dc',appButtonColor:'#385170'})){const input=document.getElementById(id);input.value=value;input.dispatchEvent(new Event('input',{bubbles:true}))}document.querySelector('[data-material=blur]').click();window.__applyToolbarTransparency(35);window.__setBottomSearchMode('off');window.__setMinimizeBottomBar(true);")
+                }
+                #endif
                 if rawScenario.contains("zip-name") { self.webView.evaluateJavaScript("const zip=new JSZip();zip.file('check.txt','ok');zip.generateAsync({type:'blob'}).then(blob=>{preparedZipBlob=blob;openShareModal()})") }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                     let marker = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("preview-ready.txt")
@@ -696,7 +718,8 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     }
 
     private func applyStoredPalette() {
-        view.backgroundColor = storedColor("background", lightDefault: "#F4F2EE", darkDefault: "#121214")
+        view.backgroundColor = storedColor("background", lightDefault: "#F2F2F7", darkDefault: "#121214")
+        nativeHomeHost?.view.backgroundColor = backgroundImageView.image == nil ? view.backgroundColor : .clear
         cardTintColor = storedColor("cardColor", lightDefault: "#FFFFFF", darkDefault: "#1C1C1E")
         updateNativeCardTint()
         renderVisibleNativeMaterials()
@@ -844,7 +867,12 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         if themeFontData == data { return true }
         guard let descriptors = CTFontManagerCreateFontDescriptorsFromData(data as CFData) as? [CTFontDescriptor],
               let descriptor = descriptors.first else { return false }
-        themeFont = CTFontCreateWithFontDescriptor(descriptor, 10, nil) as UIFont
+        if let font = registeredThemeGraphicsFont { CTFontManagerUnregisterGraphicsFont(font, nil) }
+        let createdFont = CTFontCreateWithFontDescriptor(descriptor, 10, nil)
+        let graphicsFont = CTFontCopyGraphicsFont(createdFont, nil)
+        registeredThemeGraphicsFont = CTFontManagerRegisterGraphicsFont(graphicsFont, nil) ? graphicsFont : nil
+        themeFont = createdFont as UIFont
+        nativeHomeModel.fontName = themeFont?.fontName
         themeFontData = data
         applyTabFont()
         return true
@@ -1053,7 +1081,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         }
         if nativeHomeHost == nil {
             let controller = UIHostingController(rootView: LUIYoNativeHome(model: nativeHomeModel))
-            controller.view.backgroundColor = .systemGroupedBackground
+            controller.view.backgroundColor = backgroundImageView.image == nil ? view.backgroundColor : .clear
             nativeHomeHost = controller
         }
         guard let controller = nativeHomeHost else { return }
@@ -1071,6 +1099,10 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
                 controller.view.trailingAnchor.constraint(equalTo: host.trailingAnchor)]
             NSLayoutConstraint.activate(nativeHomeConstraints)
             controller.didMove(toParent: parent)
+        }
+        if let scroll = nativeHomeScrollView {
+            parent.setContentScrollView(scroll, for: .bottom)
+            controller.setContentScrollView(scroll, for: .bottom)
         }
     }
 
@@ -1101,7 +1133,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
 
     private func runNativeEngine(_ action: String, _ values: [String: Any]) {
         // Gate every mutation again after the picker/asynchronous provider returns.
-        guard action == "state" || action == "category" || isAuthorized else { showAuthorizationRequired(); return }
+        guard ["state", "category", "search"].contains(action) || isAuthorized else { showAuthorizationRequired(); return }
         guard let data = try? JSONSerialization.data(withJSONObject: [action, values]),
               let arguments = String(data: data, encoding: .utf8) else { return }
         webView.evaluateJavaScript("window.__nativeHomeCommand?.(..." + arguments + ").catch(error => alert(error.message)); undefined;")
@@ -1187,10 +1219,34 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         view.addSubview(label)
     }
 
+    private func writeNativeHomeDiagnostics() {
+        #if DEBUG
+        guard ProcessInfo.processInfo.environment["LUI_SNAPSHOT"] == "preview-native-theme" else { return }
+        let theme = nativeHomeModel.theme
+        func alphas(_ view: UIView) -> [Double] {
+            (view is UIVisualEffectView ? [Double(view.alpha)] : []) + view.subviews.flatMap(alphas)
+        }
+        let values: [String: Any] = ["background":theme.background,"card":theme.card,"button":theme.button,
+            "rootBackground":view.backgroundColor?.resolvedColor(with: traitCollection).nativeHex ?? "",
+            "toolbarOpacity":theme.toolbarOpacity,"materialBlur":nativeHomeModel.useBlur,
+            "font":nativeHomeModel.fontName ?? "", "bottomSearchEnabled":theme.bottomSearchEnabled,
+            "minimizeEnabled":scrollMinimizeEnabled,"scrollLinked":nativeHomeScrollView != nil && pageControllers.first?.contentScrollView(for: .bottom) === nativeHomeScrollView,
+            "scrollOffset":Double(nativeHomeScrollView?.contentOffset.y ?? 0),
+            "nativeMaterialAlphas":nativeHomeHost.map { alphas($0.view) } ?? [],"uploadedCount":nativeHomeModel.uploadedCount]
+        if let data = try? JSONSerialization.data(withJSONObject: values) {
+            let file = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("native-home-diagnostics.json")
+            try? data.write(to: file, options: .atomic)
+        }
+        #endif
+    }
+
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         guard message.frameInfo.isMainFrame else { return }
         if message.name == "nativeHomeState" {
-            if let payload = message.body as? [String: Any] { nativeHomeModel.apply(payload) }
+            if let payload = message.body as? [String: Any] {
+                nativeHomeModel.apply(payload)
+                DispatchQueue.main.async { [weak self] in self?.writeNativeHomeDiagnostics() }
+            }
             return
         }
         if message.name == "activationSubmit" {
@@ -1229,6 +1285,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
                 try? data.write(to: nativeBackgroundURL, options: .atomic)
             }
             nativeHomeModel.backgroundImage = backgroundImageView.image
+            nativeHomeHost?.view.backgroundColor = backgroundImageView.image == nil ? view.backgroundColor : .clear
             return
         }
         if message.name == "bottomSearch" {
@@ -1242,6 +1299,9 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             guard let payload = message.body as? [String: Any] else { return }
             if payload["reset"] as? Bool == true {
                 themeFont = nil; themeFontData = nil
+                if let font = registeredThemeGraphicsFont { CTFontManagerUnregisterGraphicsFont(font, nil) }
+                registeredThemeGraphicsFont = nil
+                nativeHomeModel.fontName = nil
                 try? FileManager.default.removeItem(at: nativeFontURL)
                 applyTabFont()
             } else if let base64 = payload["data"] as? String,

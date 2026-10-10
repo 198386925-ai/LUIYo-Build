@@ -9,7 +9,10 @@ final class NativeHomeModel: ObservableObject {
     @Published var query = ""
     @Published var useBlur = false
     @Published var backgroundImage: UIImage?
+    @Published var theme = NativeHomeTheme()
+    @Published var fontName: String?
     var onCommand: ((String, [String: Any]) -> Void)?
+    var onScrollView: ((UIScrollView) -> Void)?
     var savedColors: [String: Any] { UserDefaults.standard.dictionary(forKey: "luiyo.nativeIconColors") ?? [:] }
     func send(_ action: String, _ values: [String: Any]) { onCommand?(action, values) }
     func saveColors(_ values: [String: Any]) {
@@ -17,6 +20,7 @@ final class NativeHomeModel: ObservableObject {
         send("colors", ["values": values])
     }
     func apply(_ payload: [String: Any]) {
+        if let values = payload["theme"] as? [String: Any] { theme = NativeHomeTheme(values) }
         uploadedCount = payload["uploadedCount"] as? Int ?? 0
         status = payload["status"] as? String ?? ""
         let sources = payload["images"] as? [String: String] ?? [:]
@@ -30,6 +34,27 @@ final class NativeHomeModel: ObservableObject {
             if let index = Int(id), let image = decoded[key] { result[index] = image }
         }
         images = result
+    }
+    func font(size: CGFloat, weight: Font.Weight = .regular) -> Font {
+        if let fontName { return .custom(fontName, fixedSize: size).weight(weight) }
+        return .system(size: size, weight: weight)
+    }
+}
+
+struct NativeHomeTheme: Equatable {
+    var background = "#F2F2F7", card = "#FFFFFF", button = "#FFFFFF", actionText = "#202832"
+    var dark = false, customButton = false, bottomSearchEnabled = true
+    var toolbarOpacity = 1.0
+    init() {}
+    init(_ values: [String: Any]) {
+        background = values["background"] as? String ?? background
+        card = values["card"] as? String ?? card
+        button = values["button"] as? String ?? button
+        actionText = values["actionText"] as? String ?? actionText
+        dark = values["dark"] as? Bool ?? dark
+        customButton = values["customButton"] as? Bool ?? customButton
+        bottomSearchEnabled = values["bottomSearchEnabled"] as? Bool ?? bottomSearchEnabled
+        toolbarOpacity = min(1, max(0, values["toolbarOpacity"] as? Double ?? toolbarOpacity))
     }
 }
 
@@ -51,6 +76,7 @@ struct LUIYoNativeHome: View {
     @State private var category = 0
     private var query: String { model.query }
     @State private var showColors = false
+    @FocusState private var searchFocused: Bool
     @State private var selectedColor = Color.blue
     @State private var darkSelectedColor = Color.white
     @State private var allColor = Color(uiColor: .darkGray)
@@ -71,6 +97,7 @@ struct LUIYoNativeHome: View {
         home
             .tint(.blue)
             .environment(\.nativeUseBlur, model.useBlur)
+            .environment(\.nativeHomeTheme, model.theme)
             .sheet(isPresented: $showColors) { colorSettings }
             .onChange(of: category) { value in model.send("category", ["category": value == 0 ? "liquidui" : "wechat"]) }
             .onChange(of: showColors) { value in
@@ -95,78 +122,91 @@ struct LUIYoNativeHome: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("LUIYo").font(.largeTitle.bold())
-                    Text("微信图标管理").font(.subheadline).foregroundStyle(.secondary)
+                    Text("LUIYo").font(model.font(size: 34, weight: .bold))
+                    Text("微信图标管理").font(model.font(size: 15)).foregroundStyle(.secondary)
                     HStack(spacing: 8) {
                         Label(model.authorized ? "已授权" : "未授权", systemImage: model.authorized ? "checkmark.seal.fill" : "lock.fill")
-                            .font(.caption.weight(.medium)).foregroundStyle(model.authorized ? Color.green : Color.secondary)
-                        Text("已上传项目：\(model.uploadedCount) 项").accessibilityIdentifier("nativeUploadedCount").font(.caption).foregroundStyle(.secondary)
+                            .font(model.font(size: 12, weight: .medium)).foregroundStyle(model.authorized ? Color.green : Color.secondary)
+                        Text("已上传项目：\(model.uploadedCount) 项").accessibilityIdentifier("nativeUploadedCount").font(model.font(size: 12)).foregroundStyle(.secondary)
                         Link(destination: URL(string: "https://qm.qq.com/q/th1QshgzHW")!) {
                             Label("反馈问题 · 联系客服", systemImage: "bubble.left.and.bubble.right")
                         }
-                            .font(.caption.weight(.medium))
+                            .font(model.font(size: 12, weight: .medium))
                             .buttonStyle(.plain)
                             .foregroundStyle(.blue)
                             .accessibilityLabel("反馈问题，联系客服")
                     }
                 }
+                if !model.theme.bottomSearchEnabled {
+                    HStack(spacing: 10) {
+                        Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
+                        TextField("搜索图标", text: Binding(get: { model.query }, set: { value in
+                            model.query = value; model.send("search", ["query": value])
+                        }))
+                        .font(model.font(size: 15)).submitLabel(.search).focused($searchFocused)
+                        .onSubmit { searchFocused = false }.accessibilityIdentifier("nativeHomeSearch")
+                        if !model.query.isEmpty {
+                            Button { model.query = ""; model.send("search", ["query": ""]) } label: {
+                                Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)
+                            }.buttonStyle(.plain).accessibilityLabel("清除搜索")
+                        }
+                    }.padding(.horizontal, 14).frame(height: 48).modifier(NativeCardSurface())
+                }
                 tools
                 if !model.status.isEmpty && !model.status.hasPrefix("已上传 ") {
-                    Text(model.status).font(.caption).foregroundStyle(.secondary).accessibilityIdentifier("nativeHomeStatus")
+                    Text(model.status).font(model.font(size: 12)).foregroundStyle(.secondary).accessibilityIdentifier("nativeHomeStatus")
                 }
-                Picker("图标分类", selection: $category) {
-                    Text("LiquidUI").tag(0)
-                    Text("原版微信").tag(1)
-                }
-                .pickerStyle(.segmented)
+                NativeHomeCategoryPicker(selection: $category, theme: model.theme, fontName: model.fontName).frame(height: 34)
                 HStack {
-                    Text(category == 0 ? "LiquidUI 图标" : "原版微信图标").font(.headline)
+                    Text(category == 0 ? "LiquidUI 图标" : "原版微信图标").font(model.font(size: 17, weight: .semibold))
                     Spacer()
-                    Text("\(categoryEntries.count) 项").font(.caption).foregroundStyle(.secondary)
+                    Text("\(categoryEntries.count) 项").font(model.font(size: 12)).foregroundStyle(.secondary)
                 }
                 NativeGlassGroup {
                     LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible())], spacing: 10) {
                         ForEach(visibleEntries) { item in
-                            Button { model.send("upload", ["id": item.id]) } label: {
+                            HStack(spacing: 0) {
+                              Button { model.send("upload", ["id": item.id]) } label: {
                                 HStack(spacing: 8) {
                                     if let image = model.images[item.id] {
                                         Image(uiImage: image).resizable().scaledToFit().frame(width: 32, height: 32)
                                     } else {
                                         Image(systemName: "plus")
-                                            .font(.system(size: 16, weight: .semibold)).foregroundStyle(.white)
+                                            .font(model.font(size: 16, weight: .semibold)).foregroundStyle(model.theme.customButton ? Color(UIColor(nativeHex: model.theme.actionText)) : Color.white)
                                             .frame(width: 32, height: 32)
-                                            .background(Color.blue, in: RoundedRectangle(cornerRadius: 12))
+                                            .background(model.theme.customButton ? Color(UIColor(nativeHex: model.theme.button)) : Color.blue, in: RoundedRectangle(cornerRadius: 12))
                                     }
                                     VStack(alignment: .leading, spacing: 3) {
-                                        Text(item.title).font(.system(size: 12, weight: .semibold)).foregroundStyle(.primary)
+                                        Text(item.title).font(model.font(size: 12, weight: .semibold)).foregroundStyle(.primary)
                                             .lineLimit(2)
-                                        Text(model.images[item.id] == nil ? "点击上传" : "已上传 · 点击替换").font(.caption2).foregroundStyle(.secondary)
+                                        Text(model.images[item.id] == nil ? "点击上传" : "已上传 · 点击替换").font(model.font(size: 11)).foregroundStyle(.secondary)
                                     }
                                     Spacer(minLength: 0)
                                 }
                                 .padding(10).frame(maxWidth: .infinity, minHeight: 64)
                             }
                             .buttonStyle(.plain)
-                            .modifier(NativeCardSurface())
-                            .id(item.id)
                             .accessibilityLabel("上传" + item.title)
+                              if model.images[item.id] != nil {
+                                Button { model.send("remove", ["id": item.id]) } label: {
+                                    Image(systemName: "trash").font(model.font(size: 16)).foregroundStyle(.red)
+                                        .frame(width: 36, height: 64).contentShape(Rectangle())
+                                }.buttonStyle(.plain).accessibilityLabel("删除" + item.title)
+                                    .accessibilityIdentifier("deleteIcon-\(item.id)")
+                              }
+                            }.modifier(NativeCardSurface()).id(item.id)
                             .contextMenu { if model.images[item.id] != nil { Button("移除图标", role: .destructive) { model.send("remove", ["id": item.id]) } } }
                         }
                     }
                 }
             }
             .padding(.horizontal, 20).padding(.top, 12).padding(.bottom, 24)
+            .background(NativeHomeScrollLink(onAttach: { model.onScrollView?($0) }))
         }
         .background {
-            // A wallpaper backdrop only. Glass, edges and highlights are system-rendered.
-            if let image = model.backgroundImage {
-                GeometryReader { frame in
-                    Image(uiImage: image).resizable().scaledToFill()
-                        .frame(width: frame.size.width, height: frame.size.height).clipped()
-                }.ignoresSafeArea()
-            } else {
-                LinearGradient(colors: [Color(uiColor: .systemGroupedBackground), Color.blue.opacity(0.07), Color(uiColor: .systemGroupedBackground)], startPoint: .topLeading, endPoint: .bottomTrailing).ignoresSafeArea()
-            }
+            if model.backgroundImage == nil {
+                Color(UIColor(nativeHex: model.theme.background)).ignoresSafeArea()
+            } else { Color.clear }
         }
 
         }
@@ -178,37 +218,37 @@ struct LUIYoNativeHome: View {
                 HStack(spacing: 8) {
                     Button { model.send("batch", [:]) } label: {
                         Label("关键词批量导入", systemImage: "square.and.arrow.down")
-                            .font(.system(size: 12, weight: .medium)).frame(maxWidth: .infinity)
-                    }.modifier(NativeActionStyle()).controlSize(.regular)
+                            .font(model.font(size: 15, weight: .medium)).frame(maxWidth: .infinity)
+                    }.modifier(NativeActionStyle()).controlSize(.large)
                     Button { model.send("fillImage", [:]) } label: {
                         Label("补全图片", systemImage: "photo")
-                            .font(.system(size: 12, weight: .medium)).frame(maxWidth: .infinity)
-                    }.modifier(NativeActionStyle()).controlSize(.regular)
+                            .font(model.font(size: 15, weight: .medium)).frame(maxWidth: .infinity)
+                    }.modifier(NativeActionStyle()).controlSize(.large)
                 }
                 Button { model.send("fill", [:]) } label: {
                     Label("双分类补全", systemImage: "square.3.layers.3d")
-                        .font(.system(size: 13, weight: .semibold)).frame(maxWidth: .infinity)
-                }.modifier(NativeActionStyle()).controlSize(.regular)
+                        .font(model.font(size: 16, weight: .semibold)).frame(maxWidth: .infinity)
+                }.modifier(NativeActionStyle()).controlSize(.large)
                 Button { if model.authorized { showColors = true } else { model.send("authorize", [:]) } } label: {
                     HStack(spacing: 10) {
-                        Image(systemName: "paintpalette").font(.body).foregroundStyle(.secondary)
+                        Image(systemName: "paintpalette").font(model.font(size: 17)).foregroundStyle(.secondary)
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("自定义修改颜色").font(.system(size: 13, weight: .medium))
-                            Text("浅色 / 深色 / 全部图标").font(.caption2).foregroundStyle(.secondary)
+                            Text("自定义修改颜色").font(model.font(size: 16, weight: .medium))
+                            Text("浅色 / 深色 / 全部图标").font(model.font(size: 11)).foregroundStyle(.secondary)
                         }
                         Spacer()
-                        Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+                        Image(systemName: "chevron.right").font(model.font(size: 12, weight: .semibold)).foregroundStyle(.secondary)
                     }
                     .foregroundStyle(.primary).frame(maxWidth: .infinity).padding(.vertical, 1)
-                }.modifier(NativeActionStyle()).controlSize(.regular).accessibilityIdentifier("nativeColorSettings")
+                }.modifier(NativeActionStyle()).controlSize(.large).accessibilityIdentifier("nativeColorSettings")
                 HStack(spacing: 8) {
                     Button { model.send("clear", [:]) } label: {
                         Label("清空", systemImage: "trash").frame(maxWidth: .infinity)
-                    }.modifier(NativeActionStyle(prominent: true)).tint(.blue).controlSize(.regular)
+                    }.modifier(NativeActionStyle(prominent: true, fill: "#007AFE")).controlSize(.large)
                     Button { model.send("export", [:]) } label: {
                         Label("导出 ZIP", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity)
-                    }.modifier(NativeActionStyle(prominent: true)).tint(.green).controlSize(.regular)
-                }.font(.system(size: 13, weight: .semibold))
+                    }.modifier(NativeActionStyle(prominent: true, fill: "#46D86A")).controlSize(.large)
+                }.font(model.font(size: 16, weight: .semibold))
             }
         }
     }
@@ -241,7 +281,7 @@ struct LUIYoNativeHome: View {
                     Button("完成") { showColors = false }
                 }
             }
-        }.navigationViewStyle(.stack)
+        }.navigationViewStyle(.stack).font(model.font(size: 17))
     }
 
 }
@@ -267,41 +307,145 @@ private struct NativeIconCatalog: Decodable {
     }
 }
 
-// Availability checks keep the iOS 15 deployment target. No simulated glass layers.
+// UIKit renders the material; only its native tint and background opacity change.
 private struct NativeActionStyle: ViewModifier {
     @Environment(\.nativeUseBlur) private var useBlur
+    @Environment(\.nativeHomeTheme) private var theme
     var prominent = false
-    @ViewBuilder func body(content: Content) -> some View {
-        if #available(iOS 26.0, *), !useBlur {
-            if prominent { content.buttonStyle(.glassProminent) }
-            else { content.buttonStyle(.glass) }
-        } else {
-            content.buttonStyle(.plain).padding(.horizontal, 14).padding(.vertical, 8)
-                .background(.regularMaterial, in: Capsule())
-        }
+    var fill: String?
+    func body(content: Content) -> some View {
+        let color = UIColor(nativeHex: fill ?? theme.button)
+        let text = prominent ? Color.white : (theme.customButton ? Color(UIColor(nativeHex: theme.actionText)) : Color.blue)
+        return content.buttonStyle(.plain).foregroundStyle(text)
+            .padding(.horizontal, 14).frame(minHeight: 48)
+            .background(NativeMaterialSurface(useBlur: useBlur, tint: color, opacity: theme.toolbarOpacity, radius: -1, solid: prominent))
+            .contentShape(Capsule())
     }
 }
 
 private struct NativeCardSurface: ViewModifier {
     @Environment(\.nativeUseBlur) private var useBlur
-    @ViewBuilder func body(content: Content) -> some View {
-        if #available(iOS 26.0, *), !useBlur {
-            content.glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: 20))
-        } else {
-            content.background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20))
+    @Environment(\.nativeHomeTheme) private var theme
+    func body(content: Content) -> some View {
+        content.background(NativeMaterialSurface(useBlur: useBlur, tint: UIColor(nativeHex: theme.card), opacity: 1, radius: 20))
+    }
+}
+
+private struct NativeMaterialSurface: UIViewRepresentable {
+    var useBlur: Bool
+    var tint: UIColor
+    var opacity: Double
+    var radius: CGFloat
+    var solid = false
+    func makeUIView(context: Context) -> NativeMaterialView {
+        let view = NativeMaterialView()
+        view.isUserInteractionEnabled = false
+        view.accessibilityElementsHidden = true
+        return view
+    }
+    func updateUIView(_ view: NativeMaterialView, context: Context) {
+        view.shapeRadius = radius
+        var blur = useBlur
+        if #available(iOS 26.0, *) {} else { blur = true }
+        let signature = "\(blur)|\(tint.nativeHex)|\(solid)"
+        if signature != view.materialSignature {
+            view.materialSignature = signature
+            if #available(iOS 26.0, *), !blur {
+                let glass = UIGlassEffect(style: .regular)
+                glass.tintColor = tint.withAlphaComponent(solid ? 0.85 : 0.12)
+                glass.isInteractive = true
+                view.effect = glass
+            } else { view.effect = UIBlurEffect(style: .systemMaterial) }
+            view.contentView.backgroundColor = tint.withAlphaComponent(solid ? 0.90 : (blur ? 0.24 : 0.10))
+        }
+        view.alpha = CGFloat(opacity)
+        view.setNeedsLayout()
+    }
+}
+
+private final class NativeMaterialView: UIVisualEffectView {
+    var materialSignature = ""
+    var shapeRadius: CGFloat = 20
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        clipsToBounds = true
+        layer.cornerCurve = .continuous
+        layer.cornerRadius = shapeRadius < 0 ? bounds.height / 2 : min(shapeRadius, bounds.height / 2)
+    }
+}
+
+private struct NativeHomeCategoryPicker: UIViewRepresentable {
+    @Binding var selection: Int
+    var theme: NativeHomeTheme
+    var fontName: String?
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+    func makeUIView(context: Context) -> UISegmentedControl {
+        let control = UISegmentedControl(items: ["LiquidUI", "原版微信"])
+        control.addTarget(context.coordinator, action: #selector(Coordinator.changed(_:)), for: .valueChanged)
+        return control
+    }
+    func updateUIView(_ control: UISegmentedControl, context: Context) {
+        context.coordinator.parent = self
+        control.selectedSegmentIndex = selection
+        control.backgroundColor = UIColor(nativeHex: theme.card)
+        control.selectedSegmentTintColor = UIColor(nativeHex: theme.button)
+        let font = fontName.flatMap { UIFont(name: $0, size: 13) } ?? UIFont.systemFont(ofSize: 13, weight: .semibold)
+        control.setTitleTextAttributes([.font: font, .foregroundColor: UIColor.label], for: .normal)
+        control.setTitleTextAttributes([.font: font, .foregroundColor: UIColor(nativeHex: theme.actionText)], for: .selected)
+    }
+    final class Coordinator: NSObject {
+        var parent: NativeHomeCategoryPicker
+        init(_ parent: NativeHomeCategoryPicker) { self.parent = parent }
+        @objc func changed(_ control: UISegmentedControl) { parent.selection = control.selectedSegmentIndex }
+    }
+}
+
+// Register the actual SwiftUI UIScrollView with the native tab controller.
+private struct NativeHomeScrollLink: UIViewRepresentable {
+    var onAttach: (UIScrollView) -> Void
+    func makeUIView(context: Context) -> NativeScrollProbe {
+        let view = NativeScrollProbe()
+        view.isUserInteractionEnabled = false
+        view.accessibilityElementsHidden = true
+        view.onAttach = onAttach
+        return view
+    }
+    func updateUIView(_ view: NativeScrollProbe, context: Context) {
+        view.onAttach = onAttach
+        view.setNeedsLayout()
+    }
+}
+
+private final class NativeScrollProbe: UIView {
+    var onAttach: ((UIScrollView) -> Void)?
+    private weak var reported: UIScrollView?
+    override func didMoveToWindow() { super.didMoveToWindow(); discover() }
+    override func layoutSubviews() { super.layoutSubviews(); discover() }
+    private func discover() {
+        var ancestor = superview
+        while let view = ancestor {
+            if let scroll = view as? UIScrollView {
+                if reported !== scroll {
+                    reported = scroll
+                    DispatchQueue.main.async { [weak self, weak scroll] in
+                        if let scroll { self?.onAttach?(scroll) }
+                    }
+                }
+                return
+            }
+            ancestor = view.superview
         }
     }
 }
 
 private struct NativeGlassGroup<Content: View>: View {
     @ViewBuilder var content: () -> Content
-    @ViewBuilder var body: some View {
-        if #available(iOS 26.0, *) { GlassEffectContainer(spacing: 6, content: content) }
-        else { content() }
-    }
+    var body: some View { content() }
 }
 
 private struct NativeUseBlurKey: EnvironmentKey { static let defaultValue = false }
+private struct NativeHomeThemeKey: EnvironmentKey { static let defaultValue = NativeHomeTheme() }
 extension EnvironmentValues {
     var nativeUseBlur: Bool { get { self[NativeUseBlurKey.self] } set { self[NativeUseBlurKey.self] = newValue } }
+    var nativeHomeTheme: NativeHomeTheme { get { self[NativeHomeThemeKey.self] } set { self[NativeHomeThemeKey.self] = newValue } }
 }

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render only the selected release; exclusive supplied history belongs to 1.0.5."""
+"""Render the selected release and the user-approved edited history."""
 from pathlib import Path
 import html
 import json
@@ -11,7 +11,8 @@ ROOT=Path(__file__).resolve().parents[1]
 def render(version, notes):
     current=notes['releases'].get(version, {'status':'正式版','entries':[{'kind':'opt','text':'修复已知问题。'}]})
     sections=[{'version':version,'status':current['status'],'entries':current['entries']}]
-    sections+=notes.get('exclusive_history_by_version',{}).get(version,[])
+    history=notes.get('shared_history',[]) if version != '1.0.5' else notes.get('exclusive_history_by_version',{}).get(version,[])
+    sections += [section for section in history if section['version'] != version]
     labels={'add':'新增','opt':'优化','fix':'修复'}
     result=[]
     for section in sections:

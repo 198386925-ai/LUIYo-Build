@@ -71,6 +71,43 @@ final class NativeNavigationTests: XCTestCase {
         XCTAssertTrue(app.descendants(matching: .any)["zipShareSheet"].waitForExistence(timeout: 20), app.debugDescription)
     }
 
+    func testNativeHomeThemeAndRemoval() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchEnvironment["LUI_SNAPSHOT"] = "preview-native-theme"
+        app.launch()
+        let search = app.textFields["nativeHomeSearch"]
+        XCTAssertTrue(search.waitForExistence(timeout: 120), app.debugDescription)
+        XCTAssertGreaterThanOrEqual(app.buttons["双分类补全"].frame.height, 48)
+        search.tap()
+        if app.buttons["Continue"].exists { app.buttons["Continue"].tap() }
+        search.typeText("not-matching-xyz")
+        XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label BEGINSWITH '上传'")).firstMatch.waitForNonExistence(timeout: 10))
+        app.buttons["清除搜索"].tap()
+        search.typeText("\n")
+        XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 10))
+        app.buttons["双分类补全"].tap()
+        XCTAssertTrue(app.alerts.firstMatch.waitForExistence(timeout: 10))
+        app.alerts.buttons["好"].tap()
+        let count = app.staticTexts["nativeUploadedCount"]
+        expectation(for: NSPredicate(format: "label CONTAINS '325'"), evaluatedWith: count)
+        waitForExpectations(timeout: 30)
+        let remove = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'deleteIcon-'")).firstMatch
+        XCTAssertTrue(remove.waitForExistence(timeout: 10))
+        remove.tap()
+        expectation(for: NSPredicate(format: "label CONTAINS '324'"), evaluatedWith: count)
+        waitForExpectations(timeout: 20)
+        let image = XCTAttachment(screenshot: app.screenshot())
+        image.name = "native-home-theme-delete"
+        image.lifetime = .keepAlways
+        add(image)
+        for _ in 0..<3 { app.swipeUp() }
+        let compact = XCTAttachment(screenshot: app.screenshot())
+        compact.name = "native-home-minimized-bar"
+        compact.lifetime = .keepAlways
+        add(compact)
+    }
+
     func testInlineActivationAndFullExport() {
         continueAfterFailure = false
         let app = XCUIApplication()
