@@ -75,16 +75,16 @@ private struct LUIYoNativeGlassHomePreview: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("LUIYo").font(.largeTitle.bold())
                     Text("LiquidUI / 微信图标管理").font(.subheadline).foregroundStyle(.secondary)
-                    HStack(spacing: 12) {
+                    HStack(spacing: 8) {
                         Label("已授权", systemImage: "checkmark.seal.fill")
                             .font(.caption.weight(.medium)).foregroundStyle(.green)
-                        Text("已上传 0 项").font(.caption).foregroundStyle(.secondary)
-                    }
-                    Link(destination: URL(string: "https://qm.qq.com/q/th1QshgzHW")!) {
-                        Label("反馈问题 · 联系客服", systemImage: "bubble.left.and.bubble.right")
+                        Text("已上传项目：0 项").font(.caption).foregroundStyle(.secondary)
+                        Link("联系客服", destination: URL(string: "https://qm.qq.com/q/th1QshgzHW")!)
                             .font(.caption.weight(.medium))
+                            .buttonStyle(.plain)
+                            .foregroundStyle(.blue)
+                            .accessibilityLabel("反馈问题，联系客服")
                     }
-                    .modifier(NativeActionStyle())
                 }
                 tools
                 Picker("图标分类", selection: $category) {
