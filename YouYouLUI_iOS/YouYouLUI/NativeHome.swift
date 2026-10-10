@@ -190,7 +190,7 @@ struct LUIYoNativeHome: View {
                               if model.images[item.id] != nil {
                                 Button { model.send("remove", ["id": item.id]) } label: {
                                     Image(systemName: "trash").font(model.font(size: 16)).foregroundStyle(.red)
-                                        .frame(width: 36, height: 64).contentShape(Rectangle())
+                                        .frame(width: 44, height: 64).contentShape(Rectangle())
                                 }.buttonStyle(.plain).accessibilityLabel("删除" + item.title)
                                     .accessibilityIdentifier("deleteIcon-\(item.id)")
                               }
@@ -239,7 +239,7 @@ struct LUIYoNativeHome: View {
                         Spacer()
                         Image(systemName: "chevron.right").font(model.font(size: 12, weight: .semibold)).foregroundStyle(.secondary)
                     }
-                    .foregroundStyle(.primary).frame(maxWidth: .infinity).padding(.vertical, 1)
+                    .foregroundStyle(model.theme.customButton ? Color(UIColor(nativeHex: model.theme.actionText)) : Color.primary).frame(maxWidth: .infinity).padding(.vertical, 1)
                 }.modifier(NativeActionStyle()).controlSize(.large).accessibilityIdentifier("nativeColorSettings")
                 HStack(spacing: 8) {
                     Button { model.send("clear", [:]) } label: {
@@ -316,9 +316,20 @@ private struct NativeActionStyle: ViewModifier {
     func body(content: Content) -> some View {
         let color = UIColor(nativeHex: fill ?? theme.button)
         let text = prominent ? Color.white : (theme.customButton ? Color(UIColor(nativeHex: theme.actionText)) : Color.blue)
-        return content.buttonStyle(.plain).foregroundStyle(text)
+        return content.buttonStyle(NativeHomeActionButtonStyle(useBlur: useBlur, tint: color, text: text, opacity: theme.toolbarOpacity, solid: prominent))
+    }
+}
+
+private struct NativeHomeActionButtonStyle: ButtonStyle {
+    var useBlur: Bool
+    var tint: UIColor
+    var text: Color
+    var opacity: Double
+    var solid: Bool
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.foregroundStyle(text)
             .padding(.horizontal, 14).frame(minHeight: 48)
-            .background(NativeMaterialSurface(useBlur: useBlur, tint: color, opacity: theme.toolbarOpacity, radius: -1, solid: prominent))
+            .background(NativeMaterialSurface(useBlur: useBlur, tint: tint, opacity: opacity, radius: -1, solid: solid))
             .contentShape(Capsule())
     }
 }

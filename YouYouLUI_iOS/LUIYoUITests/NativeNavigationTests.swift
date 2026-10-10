@@ -34,6 +34,7 @@ final class NativeNavigationTests: XCTestCase {
         code.tap()
         if app.buttons["Continue"].exists { app.buttons["Continue"].tap() }
         XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 30), app.debugDescription)
+        code.tap()
         code.typeText("UI-TEST")
         XCTAssertEqual(code.value as? String, "UI-TEST", app.debugDescription)
         app.webViews.buttons["激活"].tap()
@@ -81,6 +82,7 @@ final class NativeNavigationTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(app.buttons["双分类补全"].frame.height, 48)
         search.tap()
         if app.buttons["Continue"].exists { app.buttons["Continue"].tap() }
+        search.tap()
         search.typeText("not-matching-xyz")
         XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label BEGINSWITH '上传'")).firstMatch.waitForNonExistence(timeout: 10))
         app.buttons["清除搜索"].tap()
