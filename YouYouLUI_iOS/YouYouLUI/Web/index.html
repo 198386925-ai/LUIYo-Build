@@ -1691,6 +1691,25 @@ function ruleDescription(it){
   if(uniq.length) return uniq.join(' · ');
   return it.section ? '位置：'+it.section : '对应图标位置：'+own;
 }
+// Only group the reference display; import and export keep the original rules.
+function ruleReferenceRows(rows){
+  const selectedBase=title=>title.endsWith('选中')&&!title.endsWith('未选中')?title.slice(0,-2):null;
+  const normalTitles=new Set(rows.filter(row=>selectedBase(row.title)===null).map(row=>row.title));
+  const selectedByTitle=new Map();
+  for(const row of rows){
+    const base=selectedBase(row.title);
+    if(base!==null&&normalTitles.has(base)){
+      if(!selectedByTitle.has(base))selectedByTitle.set(base,[]);
+      selectedByTitle.get(base).push(row);
+    }
+  }
+  return rows.flatMap(row=>{
+    const base=selectedBase(row.title);
+    if(base!==null&&selectedByTitle.has(base))return [];
+    const selected=selectedByTitle.get(row.title)||[];
+    return [{title:row.title+(selected.length?' + 选中':''),rules:[row,...selected]}];
+  });
+}
 function renderRuleReference(){
   const box=document.getElementById('ruleList');if(!box)return;
   const q=document.getElementById('ruleSearch')?.value||'';
@@ -1701,10 +1720,10 @@ function renderRuleReference(){
   }
   box.innerHTML='';
   for(const [section,rows] of groups){
-    const visible=rows.filter(row=>itemMatchesQuery(row,q));
+    const visible=ruleReferenceRows(rows).filter(row=>itemMatchesQuery(row,q)||row.rules.some(rule=>itemMatchesQuery(rule,q)));
     if(!visible.length)continue;
     const card=document.createElement('section');card.className='ruleCard';card.dataset.section=section;
-    card.innerHTML=`<div class="ruleGroupHead"><h2>${escapeRuleHtml(section)}</h2><span>${visible.length} 项</span></div><div class="ruleRows">${visible.map(row=>`<div class="ruleRow"><div class="ruleName">${escapeRuleHtml(row.title)}</div><div class="ruleFile">${escapeRuleHtml(row.file)}</div></div>`).join('')}</div>`;
+    card.innerHTML=`<div class="ruleGroupHead"><h2>${escapeRuleHtml(section)}</h2><span>${visible.length} 项</span></div><div class="ruleRows">${visible.map(row=>`<div class="ruleRow"><div class="ruleName">${escapeRuleHtml(row.title)}</div>${row.rules.map(rule=>`<div class="ruleFile">${escapeRuleHtml(rule.file)}</div>`).join('')}</div>`).join('')}</div>`;
     box.appendChild(card);
   }
   if(!box.children.length)box.innerHTML='<p class="searchEmpty">没有匹配的规则</p>';
