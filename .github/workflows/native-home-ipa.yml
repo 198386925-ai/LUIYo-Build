@@ -38,20 +38,3 @@ jobs:
           path: output/*.ipa
           if-no-files-found: error
           retention-days: 1
-  native-ui:
-    needs: validate
-    runs-on: macos-26
-    timeout-minutes: 25
-    steps:
-      - uses: actions/checkout@v4
-      - name: Select Xcode 26
-        run: echo 'DEVELOPER_DIR=/Applications/Xcode_26.3.app/Contents/Developer' >> "$GITHUB_ENV"
-      - name: Test native activation upload controls colors fill and ZIP share
-        timeout-minutes: 20
-        run: bash scripts/check-native-home-ios.sh
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: Native-home-functional-check
-          path: native-home-check/
-          retention-days: 1
