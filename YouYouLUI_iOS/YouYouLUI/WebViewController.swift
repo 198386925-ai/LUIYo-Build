@@ -1475,4 +1475,81 @@ private final class LUIYoSearchViewController: UIViewController, UITextFieldDele
             var configuration = UIButton.Configuration.glass()
             configuration.image = nil
             configuration.cornerStyle = .capsule
-            close.configuration 
+            close.configuration = configuration
+        } else {
+            close.setImage(nil, for: .normal)
+            close.backgroundColor = .tertiarySystemFill
+            close.layer.cornerRadius = 22
+        }
+        let closeIcon = UIImageView(image: UIImage(systemName: "xmark", withConfiguration: symbol))
+        closeIcon.contentMode = .scaleAspectFit
+        closeIcon.tintColor = .label
+        closeIcon.isUserInteractionEnabled = false
+        closeIcon.isAccessibilityElement = false
+        closeIcon.translatesAutoresizingMaskIntoConstraints = false
+        close.addSubview(closeIcon)
+        close.tintColor = .label
+        close.accessibilityIdentifier = "bottomSearchClose"
+        close.accessibilityLabel = "关闭搜索"
+        close.addAction(UIAction { [weak self] _ in self?.searchField.resignFirstResponder(); self?.dismiss(animated: false) }, for: .touchUpInside)
+        for control in [contentHost, inputSurface, close] {
+            control.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview(control)
+        }
+        for control in [icon, searchField] {
+            control.translatesAutoresizingMaskIntoConstraints = false
+            inputSurface.contentView.addSubview(control)
+        }
+        NSLayoutConstraint.activate([
+            contentHost.topAnchor.constraint(equalTo: view.topAnchor),
+            contentHost.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            contentHost.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            contentHost.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            inputSurface.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 20),
+            inputSurface.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor, constant: -12),
+            inputSurface.heightAnchor.constraint(equalToConstant: 44),
+            close.leadingAnchor.constraint(equalTo: inputSurface.trailingAnchor, constant: 10),
+            close.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
+            close.centerYAnchor.constraint(equalTo: inputSurface.centerYAnchor),
+            close.widthAnchor.constraint(equalToConstant: 44),
+            close.heightAnchor.constraint(equalToConstant: 44),
+            closeIcon.widthAnchor.constraint(equalToConstant: 20),
+            closeIcon.heightAnchor.constraint(equalToConstant: 20),
+            closeIcon.centerXAnchor.constraint(equalTo: close.centerXAnchor),
+            closeIcon.centerYAnchor.constraint(equalTo: close.centerYAnchor),
+            icon.leadingAnchor.constraint(equalTo: inputSurface.contentView.leadingAnchor, constant: 16),
+            icon.centerYAnchor.constraint(equalTo: inputSurface.contentView.centerYAnchor),
+            icon.widthAnchor.constraint(equalToConstant: 20),
+            icon.heightAnchor.constraint(equalToConstant: 20),
+            searchField.leadingAnchor.constraint(equalTo: icon.trailingAnchor, constant: 12),
+            searchField.trailingAnchor.constraint(equalTo: inputSurface.contentView.trailingAnchor, constant: -16),
+            searchField.topAnchor.constraint(equalTo: inputSurface.contentView.topAnchor),
+            searchField.bottomAnchor.constraint(equalTo: inputSurface.contentView.bottomAnchor)
+        ])
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        searchField.becomeFirstResponder()
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        onLayout?()
+    }
+
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        if isBeingDismissed || presentingViewController == nil { onClose?() }
+    }
+
+    @objc private func queryChanged() { onSearch?(searchField.text ?? "") }
+
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        onSearch?(textField.text ?? "")
+        textField.resignFirstResponder()
+        return true
+    }
+}
+
+
