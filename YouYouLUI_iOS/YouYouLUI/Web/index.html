@@ -1723,7 +1723,7 @@ function renderRuleReference(){
     const visible=ruleReferenceRows(rows).filter(row=>itemMatchesQuery(row,q)||row.rules.some(rule=>itemMatchesQuery(rule,q)));
     if(!visible.length)continue;
     const card=document.createElement('section');card.className='ruleCard';card.dataset.section=section;
-    card.innerHTML=`<div class="ruleGroupHead"><h2>${escapeRuleHtml(section)}</h2><span>${visible.length} 项</span></div><div class="ruleRows">${visible.map(row=>`<div class="ruleRow"><div class="ruleName">${escapeRuleHtml(row.title)}</div>${row.rules.map(rule=>`<div class="ruleFile">${escapeRuleHtml(rule.file)}</div>`).join('')}</div>`).join('')}</div>`;
+    card.innerHTML=`<div class="ruleGroupHead"><h2>${escapeRuleHtml(section)}</h2><span>${visible.length} 项</span></div><div class="ruleRows">${visible.map(row=>`<div class="ruleRow"><div class="ruleName">${escapeRuleHtml(row.title)}</div>${row.rules.map((rule,index)=>`<div class="ruleFile"><span class="ruleFileName">${escapeRuleHtml(rule.file)}</span>${row.rules.length>1?`<span class="ruleState">（${index===0?'不选中':'选中'}）</span>`:''}</div>`).join('')}</div>`).join('')}</div>`;
     box.appendChild(card);
   }
   if(!box.children.length)box.innerHTML='<p class="searchEmpty">没有匹配的规则</p>';

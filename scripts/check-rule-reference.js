@@ -21,13 +21,14 @@ try{
     const combined=rows.find(row=>row.querySelector('.ruleName').textContent===base+' + 选中');
     assert(combined,base+' must combine in its original section');
     const normal=rules.find(r=>r.section===selected.section&&r.title===base);
-    assert.deepEqual(Array.from(combined.querySelectorAll('.ruleFile'),e=>e.textContent),[normal.file,selected.file]);
+    assert.deepEqual(Array.from(combined.querySelectorAll('.ruleFileName'),e=>e.textContent),[normal.file,selected.file]);
+    assert.deepEqual(Array.from(combined.querySelectorAll('.ruleState'),e=>e.textContent),['（不选中）','（选中）']);
     assert(!rows.some(row=>row.querySelector('.ruleName').textContent===selected.title));
   }
   const dock=cardFor('LiquidUI 底栏 dock（各款底栏通用）');
   assert.deepEqual(Array.from(dock.querySelectorAll('.ruleName'),e=>e.textContent),['微信','通讯录','发现','我的'].map(t=>'LiquidUI 底栏'+t+' + 选中'));
   assert.equal(dock.querySelector('.ruleGroupHead>span').textContent,'4 项');
-  assert.deepEqual(Array.from(d.querySelectorAll('#ruleList .ruleFile'),e=>e.textContent).sort(),rules.map(r=>r.file).sort(),'Every reference filename must remain visible');
+  assert.deepEqual(Array.from(d.querySelectorAll('#ruleList .ruleFileName'),e=>e.textContent).sort(),rules.map(r=>r.file).sort(),'Every reference filename must remain visible');
   assert(d.querySelector('#ruleList').textContent.includes('LiquidUI「群聊」选中'),'Unmatched selected titles remain separate');
   assert(d.querySelector('#ruleList').textContent.includes('多选联系人勾选框 · 未选中'),'Unselected states remain separate');
   const search=d.getElementById('ruleSearch');
