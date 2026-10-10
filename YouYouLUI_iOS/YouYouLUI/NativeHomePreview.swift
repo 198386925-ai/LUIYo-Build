@@ -8,9 +8,7 @@ final class NativeHomePreviewAppDelegate: UIResponder, UIApplicationDelegate {
         let window = UIWindow(frame: UIScreen.main.bounds)
         let scenario = ProcessInfo.processInfo.environment["LUI_SNAPSHOT"] ?? "preview-native-glass-home-light"
         window.overrideUserInterfaceStyle = scenario.hasSuffix("dark") ? .dark : .light
-        if #available(iOS 26.0, *) {
-            window.rootViewController = UIHostingController(rootView: LUIYoNativeGlassHomePreview())
-        }
+        window.rootViewController = UIHostingController(rootView: LUIYoNativeGlassHomePreview())
         self.window = window
         window.makeKeyAndVisible()
         return true
@@ -20,15 +18,33 @@ final class NativeHomePreviewAppDelegate: UIResponder, UIApplicationDelegate {
 // Preview-only: all glass is rendered by iOS 26 SwiftUI system APIs.
 // This view is compiled only for Debug simulator builds.
 #if DEBUG && targetEnvironment(simulator)
-@available(iOS 26.0, *)
 private struct LUIYoNativeGlassHomePreview: View {
     @State private var category = 0
     @State private var query = ""
     @State private var showColors = false
     @State private var selectedColor = Color.blue
+    @State private var darkSelectedColor = Color.white
+    @State private var allColor = Color(uiColor: .darkGray)
+    @State private var selectedEnabled = false
+    @State private var darkSelectedEnabled = false
+    @State private var allEnabled = false
     private let titles = ["插件入口", "顶栏美化设置", "改金额", "改文字", "头像遮罩", "背景 Diy"]
 
     var body: some View {
+        tabs
+        .searchable(text: $query, prompt: "搜索图标")
+        .tint(.blue)
+        .sheet(isPresented: $showColors) { colorSettings }
+        .onAppear {
+            if ProcessInfo.processInfo.environment["LUI_SNAPSHOT"]?.contains("colors") == true {
+                showColors = true
+            }
+            saveRuntimeEvidence()
+        }
+    }
+
+    @ViewBuilder private var tabs: some View {
+        if #available(iOS 26.0, *) {
         TabView {
             Tab("首页", systemImage: "house.fill") { home }
             Tab("规则", systemImage: "list.bullet.rectangle") {
@@ -41,9 +57,16 @@ private struct LUIYoNativeGlassHomePreview: View {
                 NavigationStack { Text("搜索图标").navigationTitle("搜索") }
             }
         }
-        .searchable(text: $query, prompt: "搜索图标")
-        .tint(.blue)
-        .onAppear(perform: saveRuntimeEvidence)
+        } else {
+            // The system tab bar supplies its native blur on older iOS versions.
+            TabView {
+                home.tabItem { Label("首页", systemImage: "house.fill") }
+                NavigationView { Text("图标命名规则").navigationTitle("规则") }
+                    .tabItem { Label("规则", systemImage: "list.bullet.rectangle") }
+                NavigationView { Text("主题与偏好设置").navigationTitle("设置") }
+                    .tabItem { Label("设置", systemImage: "gearshape.fill") }
+            }
+        }
     }
 
     private var home: some View {
@@ -57,6 +80,11 @@ private struct LUIYoNativeGlassHomePreview: View {
                             .font(.caption.weight(.medium)).foregroundStyle(.green)
                         Text("已上传 0 项").font(.caption).foregroundStyle(.secondary)
                     }
+                    Link(destination: URL(string: "https://qm.qq.com/q/th1QshgzHW")!) {
+                        Label("反馈问题 · 联系客服", systemImage: "bubble.left.and.bubble.right")
+                            .font(.caption.weight(.medium))
+                    }
+                    .modifier(NativeActionStyle())
                 }
                 tools
                 Picker("图标分类", selection: $category) {
@@ -65,7 +93,7 @@ private struct LUIYoNativeGlassHomePreview: View {
                 }
                 .pickerStyle(.segmented)
                 Text(category == 0 ? "LiquidUI 图标" : "原版微信图标").font(.headline)
-                GlassEffectContainer(spacing: 10) {
+                NativeGlassGroup {
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                         ForEach(titles, id: \.self) { title in
                             Button {} label: {
@@ -81,7 +109,7 @@ private struct LUIYoNativeGlassHomePreview: View {
                                 .padding(14).frame(maxWidth: .infinity, minHeight: 78)
                             }
                             .buttonStyle(.plain)
-                            .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: 24))
+                            .modifier(NativeCardSurface())
                             .accessibilityLabel("上传" + title)
                         }
                     }
@@ -97,38 +125,75 @@ private struct LUIYoNativeGlassHomePreview: View {
     }
 
     private var tools: some View {
-        GlassEffectContainer(spacing: 10) {
+        NativeGlassGroup {
             VStack(spacing: 12) {
                 HStack(spacing: 10) {
                     Button {} label: {
                         Label("关键词批量导入", systemImage: "square.and.arrow.down")
                             .font(.system(size: 12, weight: .medium)).frame(maxWidth: .infinity)
-                    }.buttonStyle(.glass).controlSize(.large)
+                    }.modifier(NativeActionStyle()).controlSize(.large)
                     Button {} label: {
                         Label("补全图片", systemImage: "photo")
                             .font(.system(size: 12, weight: .medium)).frame(maxWidth: .infinity)
-                    }.buttonStyle(.glass).controlSize(.large)
+                    }.modifier(NativeActionStyle()).controlSize(.large)
                 }
                 Button {} label: {
                     Label("双分类补全", systemImage: "square.3.layers.3d")
                         .font(.subheadline.weight(.semibold)).frame(maxWidth: .infinity)
-                }.buttonStyle(.glass).controlSize(.large)
-                DisclosureGroup(isExpanded: $showColors) {
-                    ColorPicker("选中颜色", selection: $selectedColor).font(.subheadline)
-                } label: {
-                    Label("自定义修改颜色", systemImage: "paintpalette")
-                        .font(.subheadline).foregroundStyle(.primary)
-                }.padding(.horizontal, 8)
+                }.modifier(NativeActionStyle()).controlSize(.large)
+                Button { showColors = true } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: "paintpalette").font(.title3).foregroundStyle(.secondary)
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("自定义修改颜色").font(.subheadline.weight(.medium))
+                            Text("浅色 / 深色 / 全部图标").font(.caption2).foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+                    }
+                    .foregroundStyle(.primary).frame(maxWidth: .infinity).padding(.vertical, 3)
+                }.modifier(NativeActionStyle()).controlSize(.large)
                 HStack(spacing: 12) {
                     Button {} label: {
                         Label("清空", systemImage: "trash").frame(maxWidth: .infinity)
-                    }.buttonStyle(.glassProminent).tint(.blue).controlSize(.large)
+                    }.modifier(NativeActionStyle(prominent: true)).tint(.blue).controlSize(.large)
                     Button {} label: {
                         Label("导出 ZIP", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity)
-                    }.buttonStyle(.glassProminent).tint(.green).controlSize(.large)
+                    }.modifier(NativeActionStyle(prominent: true)).tint(.green).controlSize(.large)
                 }.font(.subheadline.weight(.semibold))
             }
         }
+    }
+
+    private var colorSettings: some View {
+        NavigationView {
+            Form {
+                Section {
+                    Toggle("启用自定义颜色", isOn: $selectedEnabled)
+                    ColorPicker("选中颜色", selection: $selectedColor, supportsOpacity: false)
+                        .disabled(!selectedEnabled)
+                } header: { Text("选中 · 浅色模式") }
+                  footer: { Text("关闭时自动加深上传图片的颜色。") }
+                Section {
+                    Toggle("启用自定义颜色", isOn: $darkSelectedEnabled)
+                    ColorPicker("选中颜色", selection: $darkSelectedColor, supportsOpacity: false)
+                        .disabled(!darkSelectedEnabled)
+                } header: { Text("选中 · 深色模式") }
+                  footer: { Text("关闭时自动反转上传图片的颜色。") }
+                Section {
+                    Toggle("启用统一颜色", isOn: $allEnabled)
+                    ColorPicker("图标颜色", selection: $allColor, supportsOpacity: false)
+                        .disabled(!allEnabled)
+                } header: { Text("全部图标") }
+                  footer: { Text("关闭时保留上传图片的原本颜色。") }
+            }
+            .navigationTitle("自定义颜色").navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("完成") { showColors = false }
+                }
+            }
+        }.navigationViewStyle(.stack)
     }
 
     private func saveRuntimeEvidence() {
@@ -147,7 +212,7 @@ private struct LUIYoNativeGlassHomePreview: View {
             let evidence: [String: Any] = [
                 "osVersion": UIDevice.current.systemVersion,
                 "rendering": "native SwiftUI on iOS simulator",
-                "apis": ["glassEffect(.regular.interactive())", "buttonStyle(.glass)", "buttonStyle(.glassProminent)", "Picker(.segmented)", "TabView with search role"],
+                "materialPolicy": "iOS 26+: system Liquid Glass; earlier iOS: system regularMaterial and native tab bar",
                 "runtimeGlassClasses": Array(Set(glassClasses)).sorted(),
                 "previewOnly": true
             ]
@@ -157,6 +222,38 @@ private struct LUIYoNativeGlassHomePreview: View {
             }
             try? Data("ready".utf8).write(to: dir.appendingPathComponent("native-glass-ready.txt"))
         }
+    }
+}
+
+// Availability checks keep the iOS 15 deployment target. No simulated glass layers.
+private struct NativeActionStyle: ViewModifier {
+    var prominent = false
+    @ViewBuilder func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            if prominent { content.buttonStyle(.glassProminent) }
+            else { content.buttonStyle(.glass) }
+        } else {
+            content.buttonStyle(.plain).padding(.horizontal, 16).padding(.vertical, 12)
+                .background(.regularMaterial, in: Capsule())
+        }
+    }
+}
+
+private struct NativeCardSurface: ViewModifier {
+    @ViewBuilder func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content.glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: 24))
+        } else {
+            content.background(.regularMaterial, in: RoundedRectangle(cornerRadius: 24))
+        }
+    }
+}
+
+private struct NativeGlassGroup<Content: View>: View {
+    @ViewBuilder var content: () -> Content
+    @ViewBuilder var body: some View {
+        if #available(iOS 26.0, *) { GlassEffectContainer(spacing: 10, content: content) }
+        else { content() }
     }
 }
 #endif

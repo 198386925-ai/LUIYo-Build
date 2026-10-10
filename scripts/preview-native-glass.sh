@@ -13,19 +13,20 @@ xcrun simctl status_bar "$DEVICE" override --time '9:41' --batteryState charged 
 APP=native-preview-build/Build/Products/Debug-iphonesimulator/YouYouLUI.app
 BUNDLE_ID=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Info.plist")
 xcrun simctl install "$DEVICE" "$APP"
-for APPEARANCE in light dark; do
+for SCENARIO in light dark colors-light; do
+  APPEARANCE=${SCENARIO##*-}
   xcrun simctl ui "$DEVICE" appearance "$APPEARANCE"
   DATA_DIR=$(xcrun simctl get_app_container "$DEVICE" "$BUNDLE_ID" data)
   rm -f "$DATA_DIR/Documents/native-glass-ready.txt"
-  SIMCTL_CHILD_LUI_SNAPSHOT="preview-native-glass-home-$APPEARANCE" xcrun simctl launch --terminate-running-process "$DEVICE" "$BUNDLE_ID"
+  SIMCTL_CHILD_LUI_SNAPSHOT="preview-native-glass-home-$SCENARIO" xcrun simctl launch --terminate-running-process "$DEVICE" "$BUNDLE_ID"
   for ATTEMPT in $(seq 1 45); do
     if [ -f "$DATA_DIR/Documents/native-glass-ready.txt" ]; then break; fi
     sleep 1
   done
   test -f "$DATA_DIR/Documents/native-glass-ready.txt"
-  cp "$DATA_DIR/Documents/native-glass-evidence.json" "native-glass-preview/evidence-$APPEARANCE.json"
-  xcrun simctl io "$DEVICE" screenshot "native-glass-preview/LUIYo-native-glass-home-$APPEARANCE.png"
-  python3 - "native-glass-preview/evidence-$APPEARANCE.json" <<'PY'
+  cp "$DATA_DIR/Documents/native-glass-evidence.json" "native-glass-preview/evidence-$SCENARIO.json"
+  xcrun simctl io "$DEVICE" screenshot "native-glass-preview/LUIYo-native-glass-home-$SCENARIO.png"
+  python3 - "native-glass-preview/evidence-$SCENARIO.json" <<'PY'
 import json,sys
 e=json.load(open(sys.argv[1])); assert e['osVersion'].startswith('26.'),e
 assert any('glass' in c.lower() for c in e['runtimeGlassClasses']),e
