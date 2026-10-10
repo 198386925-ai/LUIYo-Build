@@ -37,3 +37,8 @@ print(e)
 PY
   xcrun simctl terminate "$DEVICE" "$BUNDLE_ID"
 done
+python3 - <<'PY'
+from pathlib import Path
+folder = Path('native-glass-preview')
+assert (folder / 'LUIYo-native-glass-home-light.png').read_bytes() != (folder / 'LUIYo-native-glass-home-wechat-light.png').read_bytes(), 'WeChat category screenshot must differ from LiquidUI'
+PY

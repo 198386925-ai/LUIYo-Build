@@ -19,7 +19,7 @@ final class NativeHomePreviewAppDelegate: UIResponder, UIApplicationDelegate {
 // This view is compiled only for Debug simulator builds.
 #if DEBUG && targetEnvironment(simulator)
 private struct LUIYoNativeGlassHomePreview: View {
-    @State private var category = 0
+    @State private var category = ProcessInfo.processInfo.environment["LUI_SNAPSHOT"]?.contains("wechat") == true ? 1 : 0
     @State private var query = ""
     @State private var showColors = false
     @State private var selectedColor = Color.blue
@@ -44,9 +44,6 @@ private struct LUIYoNativeGlassHomePreview: View {
         .tint(.blue)
         .sheet(isPresented: $showColors) { colorSettings }
         .onAppear {
-            if ProcessInfo.processInfo.environment["LUI_SNAPSHOT"]?.contains("wechat") == true {
-                category = 1
-            }
             if ProcessInfo.processInfo.environment["LUI_SNAPSHOT"]?.contains("colors") == true {
                 showColors = true
             }
