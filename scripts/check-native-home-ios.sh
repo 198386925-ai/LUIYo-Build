@@ -6,7 +6,7 @@ DEVICE=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; d
 xcrun simctl boot "$DEVICE"
 xcrun simctl bootstatus "$DEVICE" -b
 xcrun simctl status_bar "$DEVICE" override --time '9:41' --batteryState charged --batteryLevel 100
-xcodebuild -project YouYouLUI_iOS/YouYouLUI.xcodeproj -scheme YouYouLUI -configuration Debug \
+xcodebuild -project YouYouLUI_iOS/YouYouLUI.xcodeproj -scheme YouYouLUI -configuration Debug -sdk iphonesimulator \
   -destination "id=$DEVICE" -derivedDataPath native-home-test-build \
   -resultBundlePath native-home-check/NativeHome.xcresult \
   -only-testing:LUIYoUITests/NativeNavigationTests/testNativeHomeActivationAndExport \

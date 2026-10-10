@@ -1124,7 +1124,8 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         picker.dismiss(animated: true)
         guard let provider = results.first?.itemProvider else { return }
         let kind = nativeUploadKind, index = nativeUploadIndex
-        provider.loadDataRepresentation(forTypeIdentifier: UTType.image.identifier) { [weak self] data, error in
+        let imageType = provider.registeredTypeIdentifiers.first { UTType($0)?.conforms(to: .image) == true } ?? UTType.image.identifier
+        provider.loadDataRepresentation(forTypeIdentifier: imageType) { [weak self] data, error in
             guard let self else { return }
             let file = data.flatMap { self.nativeImageFile($0, name: provider.suggestedName ?? "图片.png") }
             DispatchQueue.main.async {
