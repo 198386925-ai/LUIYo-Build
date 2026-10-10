@@ -1,0 +1,57 @@
+name: Build functional native home IPA
+on:
+  push:
+    branches: ['release/native-home-20261010']
+permissions:
+  contents: read
+jobs:
+  validate:
+    if: github.event.repository.private == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify export engine and native homepage
+        run: |
+          npm install --prefix "$RUNNER_TEMP/luiyo-dom" jsdom@26 --no-audit --no-fund
+          python3 scripts/render-release-notes.py
+          python3 scripts/check-release-notes.py
+          node scripts/sync-native-preview-catalog.js --check
+          node YouYouLUI_iOS/verify-material-bridge.js YouYouLUI_iOS/YouYouLUI/Web/index.html
+          node scripts/check-theme-upload.js YouYouLUI_iOS/YouYouLUI/Web/index.html
+          NODE_PATH="$RUNNER_TEMP/luiyo-dom/node_modules" node scripts/check-activation-export.js
+          NODE_PATH="$RUNNER_TEMP/luiyo-dom/node_modules" node scripts/check-rule-reference.js
+          NODE_PATH="$RUNNER_TEMP/luiyo-dom/node_modules" node scripts/check-native-home.js
+  build:
+    needs: validate
+    runs-on: macos-26
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Xcode 26
+        run: echo 'DEVELOPER_DIR=/Applications/Xcode_26.3.app/Contents/Developer' >> "$GITHUB_ENV"
+      - name: Compile iPhone Release IPA
+        run: bash scripts/build-ipa.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LUIYo-v1.0.6-build27-IPA
+          path: output/*.ipa
+          if-no-files-found: error
+          retention-days: 1
+  native-ui:
+    needs: validate
+    runs-on: macos-26
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Xcode 26
+        run: echo 'DEVELOPER_DIR=/Applications/Xcode_26.3.app/Contents/Developer' >> "$GITHUB_ENV"
+      - name: Test native activation upload controls colors fill and ZIP share
+        timeout-minutes: 20
+        run: bash scripts/check-native-home-ios.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Native-home-functional-check
+          path: native-home-check/
+          retention-days: 1

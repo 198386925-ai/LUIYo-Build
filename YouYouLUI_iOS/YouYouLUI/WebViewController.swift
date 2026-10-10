@@ -1,12 +1,22 @@
 import UIKit
 import WebKit
 import CoreText
+import SwiftUI
+import PhotosUI
+import UniformTypeIdentifiers
 
 /// Native material shell.
 /// iOS 26+ uses UIKit Liquid Glass; older systems use UIKit systemMaterial blur.
 /// HTML is content-only and never draws blur/glass itself.
-final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler, UITabBarControllerDelegate {
+final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler, UITabBarControllerDelegate, UIDocumentPickerDelegate, PHPickerViewControllerDelegate {
     private var webView: WKWebView!
+    private let nativeHomeModel = NativeHomeModel()
+    private var nativeHomeHost: UIHostingController<LUIYoNativeHome>?
+    private var nativeHomeConstraints: [NSLayoutConstraint] = []
+    private var nativeHomeReady = false
+    private var nativeUploadKind = "upload"
+    private var nativeUploadIndex: Int?
+
     private var isAuthorized = false
     var onActivationRequested: (() -> Void)?
     var onLicenseSubmitted: ((String) -> Void)?
@@ -15,10 +25,12 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     private var authorizationBusy = false
 
     func setAuthorization(_ allowed: Bool, message: String? = nil, busy: Bool = false) {
+        nativeHomeModel.authorized = allowed
         isAuthorized = allowed
         authorizationMessage = message ?? (allowed ? "已授权" : "未激活 · 仅可浏览")
         authorizationBusy = busy
         syncAuthorization()
+        if allowed, nativeHomeReady { runNativeEngine("colors", ["values": nativeHomeModel.savedColors]) }
     }
 
     private func syncAuthorization() {
@@ -142,6 +154,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             backgroundImageView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor)
         ])
         backgroundImageView.image = UIImage(contentsOfFile: nativeBackgroundURL.path)
+        nativeHomeModel.backgroundImage = backgroundImageView.image
         glassContainer.backgroundColor = .clear
         glassContainer.isUserInteractionEnabled = false
         glassContainer.accessibilityElementsHidden = true
@@ -149,6 +162,8 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         let configuration = WKWebViewConfiguration()
         configuration.websiteDataStore = .default()
         configuration.defaultWebpagePreferences.allowsContentJavaScript = true
+        configuration.userContentController.addUserScript(WKUserScript(source: "if(localStorage.getItem('youyou.theme.bottomSearchMode')===null && localStorage.getItem('youyou.theme.bottomSearchEnabled')===null){localStorage.setItem('youyou.theme.bottomSearchMode','separate')}", injectionTime: .atDocumentStart, forMainFrameOnly: true))
+        configuration.userContentController.add(self, name: "nativeHomeState")
         configuration.userContentController.add(self, name: "shareZip")
         configuration.userContentController.add(self, name: "infoPage")
         configuration.userContentController.add(self, name: "materialMode")
@@ -168,6 +183,14 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         configuration.userContentController.addUserScript(WKUserScript(source: Self.activationPreviewScript,
             injectionTime: .atDocumentEnd, forMainFrameOnly: true))
 
+        if let url = Bundle.main.url(forResource: "native-home-bridge", withExtension: "js", subdirectory: "Web"),
+           let script = try? String(contentsOf: url, encoding: .utf8) {
+            configuration.userContentController.addUserScript(WKUserScript(source: script, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
+        }
+        nativeHomeModel.onCommand = { [weak self] action, values in
+            if action == "category" { self?.runNativeEngine(action, values) }
+            else { self?.nativeHomeCommand(action, values) }
+        }
         let webView = WKWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = self
         webView.uiDelegate = self
@@ -227,6 +250,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        UserDefaults.standard.register(defaults: ["youyou.bottomSearchEnabled": true, "youyou.bottomSearchLayout": "separate"])
         setScrollMinimize(UserDefaults.standard.bool(forKey: "youyou.minimizeBottomBar"))
         separateSearch = UserDefaults.standard.string(forKey: "youyou.bottomSearchLayout") == "separate"
         setBottomSearchEnabled(UserDefaults.standard.bool(forKey: "youyou.bottomSearchEnabled"))
@@ -240,6 +264,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     }
 
     deinit {
+        webView?.configuration.userContentController.removeScriptMessageHandler(forName: "nativeHomeState")
         scrollOffsetObservation?.invalidate()
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "shareZip")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "infoPage")
@@ -260,7 +285,11 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        nativeHomeReady = true
         syncAuthorization()
+        if isAuthorized { runNativeEngine("colors", ["values": nativeHomeModel.savedColors]) }
+        runNativeEngine("state", [:])
+        keepContentBelowNativeBar()
         updateLayoutMetrics(force: true)
         // CI exercises the same taps, native traits and saved appearance as users.
         guard let rawScenario = ProcessInfo.processInfo.environment["LUI_SNAPSHOT"] else { return }
@@ -532,6 +561,9 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             NSLayoutConstraint.activate(webHostConstraints)
             if activeSearchPageController == nil, #available(iOS 15.0, *) { selectedViewController?.setContentScrollView(webView.scrollView, for: .bottom) }
         }
+        if let parent = (activeSearchPageController as UIViewController?) ?? selectedViewController {
+            attachNativeHome(to: parent, host: host)
+        }
     }
 
     private func setBottomSearchEnabled(_ enabled: Bool) {
@@ -582,6 +614,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             page.onSearch = { [weak self] query in self?.applyBottomSearch(query) }
             page.onClose = { [weak self] in
                 guard let self else { return }
+                self.nativeHomeModel.query = ""
                 self.webView.evaluateJavaScript("window.__clearBottomSearch?.()")
                 self.activeSearchPageController = nil
                 UIView.performWithoutAnimation {
@@ -606,6 +639,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     private func applyBottomSearch(_ query: String) {
         guard let data = try? JSONSerialization.data(withJSONObject: [query, activeSearchPage]),
               let arguments = String(data: data, encoding: .utf8) else { return }
+        if activeSearchPage == "home" { nativeHomeModel.query = query }
         webView.evaluateJavaScript("window.__applyBottomSearch?.(..." + arguments + ")")
     }
 
@@ -686,6 +720,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     }
 
     private func setCardMaterialMode(_ rawMode: String) {
+        nativeHomeModel.useBlur = rawMode == "blur"
         cardMaterialMode = rawMode == "blur" ? .blur : .liquid
         UIView.performWithoutAnimation {
             for (key, surface) in cardMaterialViews {
@@ -767,6 +802,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
 
     private func updatePageScroll(_ page: String) {
         nativePageName = page
+        keepContentBelowNativeBar()
         webView.scrollView.showsVerticalScrollIndicator = page != "settings"
         webView.scrollView.showsHorizontalScrollIndicator = false
         webView.scrollView.alwaysBounceVertical = page != "settings"
@@ -996,6 +1032,125 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         renderVisibleNativeMaterials()
     }
 
+    private func attachNativeHome(to parent: UIViewController, host: UIView) {
+        if nativeHomeHost == nil {
+            let controller = UIHostingController(rootView: LUIYoNativeHome(model: nativeHomeModel))
+            controller.view.backgroundColor = .clear
+            nativeHomeHost = controller
+        }
+        guard let controller = nativeHomeHost else { return }
+        if controller.parent !== parent {
+            NSLayoutConstraint.deactivate(nativeHomeConstraints)
+            controller.willMove(toParent: nil)
+            controller.view.removeFromSuperview()
+            controller.removeFromParent()
+            parent.addChild(controller)
+            host.addSubview(controller.view)
+            controller.view.translatesAutoresizingMaskIntoConstraints = false
+            nativeHomeConstraints = [controller.view.topAnchor.constraint(equalTo: host.topAnchor),
+                controller.view.bottomAnchor.constraint(equalTo: host.bottomAnchor),
+                controller.view.leadingAnchor.constraint(equalTo: host.leadingAnchor),
+                controller.view.trailingAnchor.constraint(equalTo: host.trailingAnchor)]
+            NSLayoutConstraint.activate(nativeHomeConstraints)
+            controller.didMove(toParent: parent)
+        }
+        let visible = nativePageName == "home" && (activeSearchPageController == nil || activeSearchPage == "home")
+        controller.view.isHidden = !visible
+        webView.isHidden = visible
+    }
+
+    private func nativeHomeCommand(_ action: String, _ values: [String: Any]) {
+        guard isAuthorized else { showAuthorizationRequired(); return }
+        guard nativeHomeReady else { return }
+        if ["upload", "batch", "fillImage"].contains(action) {
+            nativeUploadKind = action == "fillImage" ? "fillImage" : action
+            nativeUploadIndex = values["id"] as? Int
+            if action == "batch" { presentNativeFiles(); return }
+            let alert = UIAlertController(title: "选择图片", message: nil, preferredStyle: .actionSheet)
+            alert.addAction(UIAlertAction(title: "照片", style: .default) { [weak self] _ in self?.presentNativePhotos() })
+            alert.addAction(UIAlertAction(title: "文件", style: .default) { [weak self] _ in self?.presentNativeFiles() })
+            alert.addAction(UIAlertAction(title: "取消", style: .cancel))
+            alert.popoverPresentationController?.sourceView = view
+            alert.popoverPresentationController?.sourceRect = CGRect(x: view.bounds.midX, y: view.bounds.midY, width: 1, height: 1)
+            present(alert, animated: true)
+            return
+        }
+        if action == "clear" {
+            let alert = UIAlertController(title: "清空上传图片？", message: "将移除本次上传与补全图片。", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "取消", style: .cancel))
+            alert.addAction(UIAlertAction(title: "清空", style: .destructive) { [weak self] _ in self?.runNativeEngine("clear", [:]) })
+            present(alert, animated: true); return
+        }
+        runNativeEngine(action, values)
+    }
+
+    private func runNativeEngine(_ action: String, _ values: [String: Any]) {
+        // Gate every mutation again after the picker/asynchronous provider returns.
+        guard action == "state" || action == "category" || isAuthorized else { showAuthorizationRequired(); return }
+        guard let data = try? JSONSerialization.data(withJSONObject: [action, values]),
+              let arguments = String(data: data, encoding: .utf8) else { return }
+        webView.evaluateJavaScript("window.__nativeHomeCommand?.(..." + arguments + ").catch(error => alert(error.message)); undefined;")
+    }
+
+    private func presentNativeFiles() {
+        let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.image], asCopy: true)
+        picker.allowsMultipleSelection = nativeUploadKind == "batch"
+        picker.delegate = self
+        present(picker, animated: true)
+    }
+
+    private func presentNativePhotos() {
+        var config = PHPickerConfiguration()
+        config.filter = .images
+        config.selectionLimit = 1
+        let picker = PHPickerViewController(configuration: config)
+        picker.delegate = self
+        present(picker, animated: true)
+    }
+
+    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+        let kind = nativeUploadKind, index = nativeUploadIndex
+        var files: [[String: String]] = []
+        for url in urls {
+            let access = url.startAccessingSecurityScopedResource()
+            defer { if access { url.stopAccessingSecurityScopedResource() } }
+            if let data = try? Data(contentsOf: url), let file = nativeImageFile(data, name: url.lastPathComponent) { files.append(file) }
+        }
+        guard !files.isEmpty else { showErrorAlert("无法读取所选图片，请重新选择。"); return }
+        receiveNativeFiles(files, kind: kind, index: index)
+    }
+
+    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+        picker.dismiss(animated: true)
+        guard let provider = results.first?.itemProvider else { return }
+        let kind = nativeUploadKind, index = nativeUploadIndex
+        provider.loadDataRepresentation(forTypeIdentifier: UTType.image.identifier) { [weak self] data, error in
+            guard let self else { return }
+            let file = data.flatMap { self.nativeImageFile($0, name: provider.suggestedName ?? "图片.png") }
+            DispatchQueue.main.async {
+                guard let file else { self.showErrorAlert("无法读取照片，请使用文件选择或换一张图片。"); return }
+                self.receiveNativeFiles([file], kind: kind, index: index)
+            }
+        }
+    }
+
+    private func nativeImageFile(_ data: Data, name: String) -> [String: String]? {
+        guard let image = UIImage(data: data), let png = image.pngData() else { return nil }
+        return ["name": name, "type": "image/png", "base64": png.base64EncodedString()]
+    }
+
+    private func receiveNativeFiles(_ files: [[String: String]], kind: String, index: Int?) {
+        var payload: [String: Any] = ["files": files, "kind": kind]
+        if let index { payload["id"] = index }
+        runNativeEngine("files", payload)
+    }
+
+    private func showErrorAlert(_ text: String) {
+        let alert = UIAlertController(title: "提示", message: text, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "好", style: .default))
+        present(alert, animated: true)
+    }
+
     private func showAuthorizationRequired() {
         let alert = UIAlertController(title: "尚未激活", message: "当前可以浏览页面。前往设置输入卡密，激活后才可使用功能。", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "知道了", style: .cancel))
@@ -1018,6 +1173,10 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         guard message.frameInfo.isMainFrame else { return }
+        if message.name == "nativeHomeState" {
+            if let payload = message.body as? [String: Any] { nativeHomeModel.apply(payload) }
+            return
+        }
         if message.name == "activationSubmit" {
             guard !isAuthorized, let payload = message.body as? [String: Any], let code = payload["code"] as? String else { return }
             onLicenseSubmitted?(code)
@@ -1053,6 +1212,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
                 try? FileManager.default.createDirectory(at: nativeBackgroundURL.deletingLastPathComponent(), withIntermediateDirectories: true)
                 try? data.write(to: nativeBackgroundURL, options: .atomic)
             }
+            nativeHomeModel.backgroundImage = backgroundImageView.image
             return
         }
         if message.name == "bottomSearch" {

@@ -18,6 +18,54 @@ final class NativeNavigationTests: XCTestCase {
         return field
     }
 
+    func testNativeHomeActivationAndExport() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchEnvironment["LUI_SNAPSHOT"] = "preview-inline-auth"
+        app.launch()
+        XCTAssertTrue(app.buttons["双分类补全"].waitForExistence(timeout: 120))
+        app.buttons["双分类补全"].tap()
+        XCTAssertTrue(app.alerts["尚未激活"].waitForExistence(timeout: 10))
+        app.alerts.buttons["取消"].tap()
+        app.tabBars.buttons["设置"].tap()
+        let code = app.webViews.textFields["卡密"]
+        XCTAssertTrue(code.waitForExistence(timeout: 15))
+        code.tap()
+        if app.buttons["Continue"].exists { app.buttons["Continue"].tap() }
+        code.typeText("UI-TEST")
+        app.webViews.buttons["激活"].tap()
+        XCTAssertTrue(code.waitForNonExistence(timeout: 15))
+        app.tabBars.buttons["首页"].tap()
+        app.buttons["补全图片"].tap()
+        XCTAssertTrue(app.buttons["照片"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["文件"].exists)
+        app.buttons["取消"].tap()
+        app.segmentedControls.buttons["原版微信"].tap()
+        XCTAssertTrue(app.staticTexts["原版微信图标"].exists)
+        XCTAssertTrue(app.staticTexts["199 项"].exists)
+        app.segmentedControls.buttons["LiquidUI"].tap()
+        app.buttons["nativeColorSettings"].tap()
+        XCTAssertTrue(app.navigationBars["自定义颜色"].waitForExistence(timeout: 10))
+        app.buttons["完成"].tap()
+        let home = XCTAttachment(screenshot: app.screenshot())
+        home.name = "native-functional-home"
+        home.lifetime = .keepAlways
+        add(home)
+        app.buttons["双分类补全"].tap()
+        XCTAssertTrue(app.alerts.firstMatch.waitForExistence(timeout: 10))
+        app.alerts.buttons["好"].tap()
+        let count = app.staticTexts["nativeUploadedCount"]
+        let filled = NSPredicate(format: "label CONTAINS '325'")
+        expectation(for: filled, evaluatedWith: count)
+        waitForExpectations(timeout: 30)
+        app.buttons["导出 ZIP"].tap()
+        let rename = app.alerts["导出 ZIP"]
+        XCTAssertTrue(rename.waitForExistence(timeout: 90), app.debugDescription)
+        XCTAssertTrue(rename.textFields["zipExportName"].exists)
+        rename.buttons["分享"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["zipShareSheet"].waitForExistence(timeout: 20), app.debugDescription)
+    }
+
     func testInlineActivationAndFullExport() {
         continueAfterFailure = false
         let app = XCUIApplication()

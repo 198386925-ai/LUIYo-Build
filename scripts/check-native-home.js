@@ -1,0 +1,47 @@
+const fs=require('fs'),assert=require('assert'),{JSDOM,VirtualConsole}=require('jsdom');
+const root='YouYouLUI_iOS/YouYouLUI/',swift=fs.readFileSync(root+'WebViewController.swift','utf8');
+const injected=swift.match(/activationPreviewScript = #"""([\s\S]*?)"""#/)[1];
+const messages=[],errors=[],vc=new VirtualConsole();vc.on('jsdomError',e=>errors.push(e.message));
+const watchdog=setTimeout(()=>{console.error('Native home test timed out');process.exit(1)},15000);
+const dom=new JSDOM(fs.readFileSync(root+'Web/index.html','utf8').replace('<script src="jszip.min.js"></script>',''),{
+ url:'https://test.local',runScripts:'dangerously',pretendToBeVisual:true,virtualConsole:vc,beforeParse(w){
+  w.matchMedia=()=>({matches:false,addEventListener(){}});w.alert=()=>{};w.setImmediate=setImmediate;w.clearImmediate=clearImmediate;
+  w.URL.createObjectURL=()=> 'blob:test';w.URL.revokeObjectURL=()=>{};
+  w.indexedDB={open(){const r={};setTimeout(()=>r.onerror?.(),1);return r}};
+  w.webkit={messageHandlers:new Proxy({},{get:(_,name)=>({postMessage:body=>messages.push({name,body})})})};
+ }});
+(async()=>{const w=dom.window,d=w.document;await new Promise(r=>setTimeout(r,100));assert.deepEqual(errors,[]);
+ const catalog=JSON.parse(fs.readFileSync(root+'Web/native-preview-catalog.json','utf8'));
+ const runtime=JSON.parse(w.eval('JSON.stringify(items)'));
+ for(const entry of catalog.entries){assert(!runtime[entry.id].hiddenFromUI);assert.equal(entry.category,runtime[entry.id].category);assert.equal(entry.title,runtime[entry.id].title.replace(/^LiquidUI\s*/,''));}
+ assert.equal(catalog.entries.length,runtime.filter(x=>!x.hiddenFromUI).length);
+ w.eval(injected);w.eval("thumbnailFor=async()=> 'data:image/png;base64,AQID'");
+ w.DataTransfer=class {constructor(){this.files=[];this.items={add:f=>this.files.push(f)}}};
+ for(const id of ['batchInput','fillInput']){let files=[];Object.defineProperty(d.getElementById(id),'files',{get:()=>files,set:value=>files=value})}
+ w.eval(fs.readFileSync(root+'Web/native-home-bridge.js','utf8'));
+ const file={base64:'AQID',name:'底栏微信.png',type:'image/png'},cmd=w.__nativeHomeCommand;
+ await assert.rejects(cmd('files',{kind:'upload',id:0,files:[file]}),/未授权/);assert.equal(w.eval('chosen.size'),0);
+ w.__luiyoSetAuthorized(true);
+ const id=w.eval("items.findIndex(x=>!x.hiddenFromUI&&x.category==='wechat')");
+ await cmd('files',{kind:'upload',id,files:[file]});assert(w.eval(`chosen.has(${id})`));
+ await cmd('category',{category:'wechat'});assert.equal(d.querySelectorAll('#list .card').length,199);
+ await cmd('remove',{id});assert(!w.eval(`chosen.has(${id})`));
+ await cmd('clear');
+ await cmd('files',{kind:'batch',files:[file]});assert(w.eval('chosen.size')>0,'Batch keeps original filename keyword matching');
+ const values={selectedLightEnabled:true,selectedDarkEnabled:true,allColorEnabled:true,selectedColor:'#123456',selectedDarkColor:'#abcdef',allColor:'#987654'};
+ await cmd('colors',{values});for(const [key,value] of Object.entries(values))assert.equal(typeof value==='boolean'?d.getElementById(key).checked:d.getElementById(key).value,value);
+ await cmd('files',{kind:'fillImage',files:[file]});assert.equal(w.eval('fillFile.name'),file.name);
+ await cmd('fill');await cmd('state');
+ const state=messages.filter(m=>m.name==='nativeHomeState').at(-1).body;
+ assert.equal(state.uploadedCount,325);assert.equal(Object.keys(state.uploaded).length,325);assert.equal(w.eval('chosen.size'),388);
+ w.__luiyoSetAuthorized(false);await assert.rejects(cmd('clear'),/未授权/);assert.equal(w.eval('chosen.size'),388);
+ w.__luiyoSetAuthorized(true);
+ w.eval(fs.readFileSync(root+'Web/jszip.min.js','utf8'));
+ w.eval("const generate=JSZip.prototype.generateAsync;JSZip.prototype.generateAsync=async function(options){return new Blob([await generate.call(this,{...options,type:'uint8array'})],{type:'application/zip'})};toPng=async()=>({arrayBuffer:async()=>new Uint8Array([1,2,3]).buffer});toDarkPng=toPng;toSelectedPng=toPng;");
+ await cmd('export');assert(messages.some(m=>m.name==='zipName'));
+ w.__shareZipWithName('原生首页验证');await new Promise(r=>setTimeout(r,100));
+ const share=messages.find(m=>m.name==='shareZip');assert(share?.body.base64.startsWith('UEs'));assert.equal(share.body.fileName,'原生首页验证.zip');
+ await cmd('clear');await cmd('state');assert.equal(messages.filter(m=>m.name==='nativeHomeState').at(-1).body.uploadedCount,0);
+ console.log('Passed: native single/batch upload, 199 stock entries, removal, 325 visible/396 original filenames / 388 engine fill, colors, revocation, real ZIP and native rename/share.');
+ clearTimeout(watchdog);dom.window.close();
+})().catch(error=>{console.error(error);clearTimeout(watchdog);dom.window.close();process.exitCode=1});

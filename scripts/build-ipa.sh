@@ -3,6 +3,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 python3 scripts/render-release-notes.py
+node scripts/sync-native-preview-catalog.js --check
 xcodebuild -version
 SDK_VERSION="$(xcrun --sdk iphoneos --show-sdk-version)"
 case "$SDK_VERSION" in
@@ -35,8 +36,8 @@ VERSION=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP/I
 BUILD=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP/Info.plist")
 BUILT_SDK=$(/usr/libexec/PlistBuddy -c 'Print :DTSDKName' "$APP/Info.plist")
 case "$BUILT_SDK" in iphoneos26.*) ;; *) echo "ERROR: Incorrect built SDK: $BUILT_SDK"; exit 1 ;; esac
-test "$VERSION" = '1.0.5'
-test "$BUILD" = '26'
+test "$VERSION" = '1.0.6'
+test "$BUILD" = '27'
 STAGE=$(mktemp -d "$ROOT/build/package.XXXXXX")
 mkdir -p "$STAGE/Payload"
 cp -R "$APP" "$STAGE/Payload/"
