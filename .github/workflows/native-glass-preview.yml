@@ -1,0 +1,28 @@
+name: Native iOS 26 Glass Home Preview
+on:
+  push:
+    branches: ['preview/native-glass-home-20261010']
+    paths:
+      - 'YouYouLUI_iOS/**'
+      - 'scripts/preview-native-glass.sh'
+      - '.github/workflows/native-glass-preview.yml'
+permissions:
+  contents: read
+jobs:
+  screenshot:
+    if: github.event.repository.private == false
+    runs-on: macos-15-intel
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Xcode 26
+        run: echo 'DEVELOPER_DIR=/Applications/Xcode_26.3.app/Contents/Developer' >> "$GITHUB_ENV"
+      - name: Build and capture native glass
+        run: bash scripts/preview-native-glass.sh
+      - name: Save actual simulator screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: LUIYo-native-glass-home-${{ github.run_number }}
+          path: native-glass-preview/
+          retention-days: 3
