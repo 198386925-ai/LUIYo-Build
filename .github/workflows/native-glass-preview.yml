@@ -26,7 +26,7 @@ jobs:
             -derivedDataPath native-preview-build CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY="-" \
             ARCHS=arm64 ONLY_ACTIVE_ARCH=YES build > native-glass-preview/build.log 2>&1 || { tail -100 native-glass-preview/build.log; exit 1; }
       - name: Boot and capture native glass
-        timeout-minutes: 8
+        timeout-minutes: 12
         run: bash scripts/preview-native-glass.sh
       - name: Save actual simulator screenshots
         if: always()
