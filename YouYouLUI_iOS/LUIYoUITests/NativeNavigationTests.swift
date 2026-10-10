@@ -33,9 +33,11 @@ final class NativeNavigationTests: XCTestCase {
         XCTAssertTrue(code.waitForExistence(timeout: 15))
         code.tap()
         if app.buttons["Continue"].exists { app.buttons["Continue"].tap() }
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 30), app.debugDescription)
         code.typeText("UI-TEST")
+        XCTAssertEqual(code.value as? String, "UI-TEST", app.debugDescription)
         app.webViews.buttons["激活"].tap()
-        XCTAssertTrue(code.waitForNonExistence(timeout: 15))
+        XCTAssertTrue(app.webViews.staticTexts["已授权"].waitForExistence(timeout: 15), app.debugDescription)
         app.tabBars.buttons["首页"].tap()
         app.buttons["补全图片"].tap()
         XCTAssertTrue(app.buttons["照片"].waitForExistence(timeout: 10))

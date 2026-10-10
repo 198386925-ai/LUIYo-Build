@@ -1036,9 +1036,24 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     }
 
     private func attachNativeHome(to parent: UIViewController, host: UIView) {
+        let visible = nativePageName == "home" && (activeSearchPageController == nil || activeSearchPage == "home")
+        // Keep WebKit attached and rendering so its processing/input state stays live.
+        // An opaque native home covers it; other tabs have no SwiftUI overlay.
+        webView.isHidden = false
+        webView.isUserInteractionEnabled = !visible
+        webView.accessibilityElementsHidden = visible
+        if !visible {
+            if let controller = nativeHomeHost, controller.parent != nil {
+                NSLayoutConstraint.deactivate(nativeHomeConstraints)
+                controller.willMove(toParent: nil)
+                controller.view.removeFromSuperview()
+                controller.removeFromParent()
+            }
+            return
+        }
         if nativeHomeHost == nil {
             let controller = UIHostingController(rootView: LUIYoNativeHome(model: nativeHomeModel))
-            controller.view.backgroundColor = .clear
+            controller.view.backgroundColor = .systemGroupedBackground
             nativeHomeHost = controller
         }
         guard let controller = nativeHomeHost else { return }
@@ -1057,9 +1072,6 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             NSLayoutConstraint.activate(nativeHomeConstraints)
             controller.didMove(toParent: parent)
         }
-        let visible = nativePageName == "home" && (activeSearchPageController == nil || activeSearchPage == "home")
-        controller.view.isHidden = !visible
-        webView.isHidden = visible
     }
 
     private func nativeHomeCommand(_ action: String, _ values: [String: Any]) {
