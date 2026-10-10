@@ -8,6 +8,7 @@ xcrun simctl bootstatus "$DEVICE" -b
 xcrun simctl status_bar "$DEVICE" override --time '9:41' --batteryState charged --batteryLevel 100
 xcodebuild -project YouYouLUI_iOS/YouYouLUI.xcodeproj -scheme YouYouLUI -configuration Debug -sdk iphonesimulator \
   -destination "id=$DEVICE" -derivedDataPath native-home-test-build \
+  -parallel-testing-enabled NO \
   -resultBundlePath native-home-check/NativeHome.xcresult \
   -only-testing:LUIYoUITests/NativeNavigationTests/testNativeHomeActivationAndExport \
   CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY="-" ONLY_ACTIVE_ARCH=YES test \
