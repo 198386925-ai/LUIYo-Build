@@ -43,7 +43,7 @@ final class NativeNavigationTests: XCTestCase {
         XCTAssertTrue(app.buttons["照片"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.buttons["文件"].exists)
         if app.buttons["取消"].exists { app.buttons["取消"].tap() }
-        else { app.staticTexts["LUIYo"].tap() }
+        else { app.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.15)).tap() }
         XCTAssertTrue(app.buttons["照片"].waitForNonExistence(timeout: 10))
         app.segmentedControls.buttons["原版微信"].tap()
         XCTAssertTrue(app.staticTexts["原版微信图标"].exists)
