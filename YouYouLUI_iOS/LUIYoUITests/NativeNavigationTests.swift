@@ -26,7 +26,8 @@ final class NativeNavigationTests: XCTestCase {
         XCTAssertTrue(app.buttons["双分类补全"].waitForExistence(timeout: 120))
         app.buttons["双分类补全"].tap()
         XCTAssertTrue(app.alerts["尚未激活"].waitForExistence(timeout: 10))
-        app.alerts.buttons["取消"].tap()
+        app.alerts.buttons["知道了"].tap()
+        XCTAssertTrue(app.staticTexts["nativeHomeStatus"].waitForNonExistence(timeout: 120))
         app.tabBars.buttons["设置"].tap()
         let code = app.webViews.textFields["卡密"]
         XCTAssertTrue(code.waitForExistence(timeout: 15))

@@ -289,6 +289,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         syncAuthorization()
         if isAuthorized { runNativeEngine("colors", ["values": nativeHomeModel.savedColors]) }
         runNativeEngine("state", [:])
+        navigateFromNativeTab(activePageTag)
         keepContentBelowNativeBar()
         updateLayoutMetrics(force: true)
         // CI exercises the same taps, native traits and saved appearance as users.
@@ -663,6 +664,8 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         case 2: page = "settings"
         default: page = "home"
         }
+        updatePageScroll(page)
+        guard nativeHomeReady else { return }
         webView.evaluateJavaScript("appNavTo(\'" + page + "\')")
     }
 
@@ -1157,7 +1160,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         alert.addAction(UIAlertAction(title: "知道了", style: .cancel))
         alert.addAction(UIAlertAction(title: "前往设置", style: .default) { [weak self] _ in
             self?.selectNativePage(2)
-            self?.webView.evaluateJavaScript("appNavTo('settings')")
+            self?.navigateFromNativeTab(2)
         })
         present(alert, animated: true)
     }
