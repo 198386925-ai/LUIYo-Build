@@ -99,7 +99,12 @@ void LUIYoRefreshSettingsHero(UIView *view) {
     UIColor *fill = [UIColor colorWithDynamicProvider:^UIColor *(UITraitCollection *traits) {
         NSString *appearance = traits.userInterfaceStyle == UIUserInterfaceStyleDark ? @"dark" : @"light";
         NSString *key = [@"youyou.heroCardColor." stringByAppendingString:appearance];
-        NSString *hex = [NSUserDefaults.standardUserDefaults stringForKey:key] ?: ([appearance isEqualToString:@"dark"] ? @"#1C1C1E" : @"#FFFFFF");
+        NSString *savedHex = [NSUserDefaults.standardUserDefaults stringForKey:key];
+        // Prevent a stale dark-theme preference from turning the authorization
+        // hero charcoal while the Settings page is in light appearance.
+        NSString *hex = [appearance isEqualToString:@"dark"]
+            ? (savedHex.length ? savedHex : @"#1C1C1E")
+            : @"#FFFFFF";
         unsigned int value = 0;[[NSScanner scannerWithString:[hex stringByReplacingOccurrencesOfString:@"#" withString:@""]] scanHexInt:&value];
         return [UIColor colorWithRed:((value>>16)&255)/255.0 green:((value>>8)&255)/255.0 blue:(value&255)/255.0 alpha:1];
     }];

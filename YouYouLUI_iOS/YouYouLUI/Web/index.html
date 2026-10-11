@@ -1077,7 +1077,35 @@ input[type=checkbox]:checked::before{background:radial-gradient(ellipse at cente
 input[type=checkbox]:checked::after{content:"";background:#ffde63;transform:translateX(22px)}
 input[type=checkbox]:checked{background:radial-gradient(ellipse at center,white 0 65%,transparent 70%) 14px 12px/13px 7px no-repeat!important}
 input[type=checkbox]:focus-visible{outline:2px solid #007afe;outline-offset:3px}
-</style><style>body.native-day-night-switches input[type=checkbox]{opacity:0!important}</style></head><body><div class="app"><section class="homeHero" id="homeTarget">
+</style><style>body.native-day-night-switches input[type=checkbox]{opacity:0!important}</style><style id="luiyo-wallpaper-layout-auth-hotfix">
+/* <!-- LUIYo wallpaper/layout + settings auth surface hotfix -->
+   Keep image-card rows content-driven after background changes and avoid the
+   old fixed/implicit grid row sizing that can let labels collide. */
+#list,.grid,.categorytabs,.tools,.dashboard{min-width:0}
+#list,.grid{align-content:start;grid-auto-rows:max-content;align-items:stretch}
+.grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+.grid>.card{position:relative!important;display:grid!important;grid-template-columns:54px minmax(0,1fr)!important;grid-template-rows:minmax(32px,auto) auto!important;align-content:start!important;align-items:center!important;height:auto!important;min-height:78px!important;overflow:hidden!important}
+.grid>.card .title{min-width:0!important;min-height:32px!important;height:auto!important;white-space:normal!important;overflow-wrap:anywhere!important}
+.grid>.card .pick,.grid>.card .preview{grid-row:1 / span 2!important;align-self:center!important}
+.grid>.card:after{grid-column:2!important;grid-row:2!important;align-self:start!important;min-width:0!important;pointer-events:none!important}
+#homeTarget,#homeTools,#list,.settingsTarget,#settingsTarget{min-width:0}
+body{padding-bottom:calc(112px + env(safe-area-inset-bottom))!important}
+#list{padding-bottom:calc(28px + env(safe-area-inset-bottom))!important}
+@media(max-width:390px){.grid>.card{grid-template-columns:46px minmax(0,1fr)!important;min-height:74px!important}.grid>.card .pick,.grid>.card .preview{width:46px!important;height:46px!important}}
+/* Native iOS renders the real glass. Keep the injected authorization entry
+   readable and neutral instead of inheriting an opaque dark hero surface. */
+body.native-card-glass #luiyoActivationCard{
+  background:rgba(255,255,255,.24)!important;
+  border:1px solid rgba(255,255,255,.62)!important;
+  color:var(--text,#202832)!important;
+  border-radius:26px!important;
+}
+:root[data-appearance="dark"] body.native-card-glass #luiyoActivationCard{
+  background:rgba(44,44,46,.26)!important;
+  border-color:rgba(255,255,255,.14)!important;
+  color:#f5f5f7!important;
+}
+</style></head><body><div class="app"><section class="homeHero" id="homeTarget">
   <div class="homeEyebrow">LIQUIDUI ICON STUDIO</div>
   <h1>微信图标生成器</h1>
   <div class="homeSub">上传一次，自动处理 LiquidUI / 微信图标补全与打包。</div>
