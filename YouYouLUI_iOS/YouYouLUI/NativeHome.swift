@@ -337,11 +337,43 @@ private struct NativeHomeActionButtonStyle: ButtonStyle {
 }
 
 // UIKit owns the tinted glass, hit target and pressed state. Semantic colors are fixed.
+// Uploaded glyphs include white cutouts. Derive the silhouette from luminance
+// before tinting, so template rendering preserves those internal details.
+private enum ToolbarAssetImages {
+    private static var cache: [String: UIImage] = [:]
+    static func template(named name: String) -> UIImage? {
+        if let cached = cache[name] { return cached }
+        guard let original = UIImage(named: name), let source = original.cgImage else { return nil }
+        let width = source.width, height = source.height
+        var pixels = [UInt8](repeating: 0, count: width * height * 4)
+        let mask: CGImage? = pixels.withUnsafeMutableBytes { bytes in
+            guard let context = CGContext(data: bytes.baseAddress, width: width, height: height,
+                bitsPerComponent: 8, bytesPerRow: width * 4, space: CGColorSpaceCreateDeviceRGB(),
+                bitmapInfo: CGBitmapInfo.byteOrder32Big.rawValue | CGImageAlphaInfo.premultipliedLast.rawValue) else { return nil }
+            context.draw(source, in: CGRect(x: 0, y: 0, width: CGFloat(width), height: CGFloat(height)))
+            let data = bytes.bindMemory(to: UInt8.self)
+            for index in stride(from: 0, to: data.count, by: 4) {
+                let alpha = Double(data[index + 3])
+                let luminance = 0.2126 * Double(data[index]) + 0.7152 * Double(data[index + 1]) + 0.0722 * Double(data[index + 2])
+                let opacity = max(0, min(alpha, (alpha - luminance) / 0.8))
+                data[index] = 0; data[index + 1] = 0; data[index + 2] = 0
+                data[index + 3] = UInt8(opacity.rounded())
+            }
+            return context.makeImage()
+        }
+        guard let mask else { return nil }
+        let image = UIImage(cgImage: mask, scale: original.scale, orientation: .up).withRenderingMode(.alwaysTemplate)
+        cache[name] = image
+        return image
+    }
+}
+
 private struct ToolbarAssetIcon: View {
     var name: String
     var size: CGFloat
     var body: some View {
-        Image(name).resizable().renderingMode(.original).scaledToFit()
+        Image(uiImage: ToolbarAssetImages.template(named: name) ?? UIImage()).resizable().renderingMode(.template).scaledToFit()
+            .foregroundStyle(.blue)
             .frame(width: size, height: size).accessibilityHidden(true)
     }
 }
@@ -372,9 +404,9 @@ private struct NativeGlassActionButton: UIViewRepresentable {
             configuration.background.backgroundColor = tint.withAlphaComponent(0.72)
         }
         configuration.title = title
-        if let image = UIImage(named: asset) {
+        if let image = ToolbarAssetImages.template(named: asset) {
             configuration.image = UIGraphicsImageRenderer(size: CGSize(width: 18, height: 18)).image { _ in
-                image.draw(in: CGRect(x: 0, y: 0, width: 18, height: 18))
+                image.withTintColor(.white, renderingMode: .alwaysOriginal).draw(in: CGRect(x: 0, y: 0, width: 18, height: 18))
             }.withRenderingMode(.alwaysOriginal)
         }
         configuration.imagePadding = 8
@@ -534,7 +566,7 @@ private final class NativeCategoryGlassView: UIView {
         selectedPill.backgroundColor = .white
         selectedPill.layer.borderWidth = 0
         selectedPill.layer.shadowColor = UIColor.black.cgColor
-        selectedPill.layer.shadowOpacity = 0.035
+        selectedPill.layer.shadowOpacity = 0.065
         selectedPill.layer.shadowRadius = 1
         selectedPill.layer.shadowOffset = CGSize(width: 0, height: 0.5)
         let textFont = font?.withSize(13) ?? UIFont.systemFont(ofSize: 13, weight: .semibold)

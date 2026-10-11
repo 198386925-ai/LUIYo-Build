@@ -51,7 +51,6 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     private var separateSearch = false
     private weak var activeSearchPageController: LUIYoSearchViewController?
     private var webHostConstraints: [NSLayoutConstraint] = []
-    private let contentContainer = LUIYoStableContentView()
     private var boundScrollViews: [ObjectIdentifier: UIScrollView] = [:]
     private let backgroundImageView = UIImageView()
     private var scrollMinimizeEnabled = false
@@ -586,38 +585,26 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     }
 
     private func keepContentBelowNativeBar() {
-        guard let webView, isViewLoaded else { return }
-        // The renderer and SwiftUI homepage stay in one persistent container.
-        // Tab selection no longer detaches either view or recreates their layout.
-        let host = contentContainer
-        host.tabBarReference = tabBar
-        if host.superview !== view {
-            view.addSubview(host)
-            host.translatesAutoresizingMaskIntoConstraints = false
-            NSLayoutConstraint.activate([host.topAnchor.constraint(equalTo: view.topAnchor),
-                host.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-                host.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-                host.trailingAnchor.constraint(equalTo: view.trailingAnchor)])
-        }
-        view.bringSubviewToFront(host)
-        host.layer.zPosition = 1
-        var barBranch: UIView = tabBar
-        while let parent = barBranch.superview, parent !== view { barBranch = parent }
-        if barBranch !== view, barBranch !== host { barBranch.layer.zPosition = 2; barBranch.backgroundColor = .clear }
+        guard let webView, isViewLoaded, let parent = selectedViewController,
+              let host = parent.view else { return }
+        // Content belongs to the selected tab. UIKit keeps its native floating
+        // bar above this page and propagates the page's safe-area insets.
         if webView.superview !== host {
-            host.addSubview(webView)
+            NSLayoutConstraint.deactivate(webHostConstraints)
+            webView.removeFromSuperview()
+            host.insertSubview(webView, at: 0)
             webView.translatesAutoresizingMaskIntoConstraints = false
             webHostConstraints = [webView.topAnchor.constraint(equalTo: host.topAnchor),
+                webView.bottomAnchor.constraint(equalTo: host.bottomAnchor),
                 webView.leadingAnchor.constraint(equalTo: host.leadingAnchor),
-                webView.trailingAnchor.constraint(equalTo: host.trailingAnchor),
-                webView.bottomAnchor.constraint(equalTo: host.bottomAnchor)]
+                webView.trailingAnchor.constraint(equalTo: host.trailingAnchor)]
             NSLayoutConstraint.activate(webHostConstraints)
         }
-        attachNativeHome(to: self, host: host)
+        attachNativeHome(to: parent, host: host)
         let scroll = nativePageName == "home" ? (nativeHomeScrollView ?? webView.scrollView) : webView.scrollView
-        if let page = selectedViewController, boundScrollViews[ObjectIdentifier(page)] !== scroll {
-            page.setContentScrollView(scroll, for: .bottom)
-            boundScrollViews[ObjectIdentifier(page)] = scroll
+        if boundScrollViews[ObjectIdentifier(parent)] !== scroll {
+            parent.setContentScrollView(scroll, for: .bottom)
+            boundScrollViews[ObjectIdentifier(parent)] = scroll
         }
     }
 
@@ -653,11 +640,12 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         guard nativeHomeReady, tag != activePageTag else { return true }
         guard !switchingNativePage else { return false }
         switchingNativePage = true
-        let cover = contentContainer.snapshotView(afterScreenUpdates: false)
+        let currentHost = selectedViewController?.view
+        let cover = currentHost?.snapshotView(afterScreenUpdates: false)
         if let cover {
-            cover.frame = contentContainer.bounds
+            cover.frame = currentHost?.bounds ?? .zero
             cover.isUserInteractionEnabled = false
-            contentContainer.addSubview(cover)
+            currentHost?.addSubview(cover)
         }
         let page = tag == 1 ? "rules" : tag == 2 ? "settings" : "home"
         // Wait for the destination's WebKit paint, rather than the JS evaluation
@@ -1101,7 +1089,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
                 pill.layer.cornerCurve = .continuous
                 pill.layer.borderWidth = 0
                 pill.layer.shadowColor = UIColor.black.cgColor
-                pill.layer.shadowOpacity = kind == "category" ? 0.035 : 0
+                pill.layer.shadowOpacity = kind == "category" ? 0.065 : 0
                 pill.layer.shadowRadius = 1
                 pill.layer.shadowOffset = CGSize(width: 0, height: 0.5)
             }
@@ -1241,6 +1229,13 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         webView.isHidden = false
         webView.isUserInteractionEnabled = !visible
         webView.accessibilityElementsHidden = visible
+        // The homepage stays attached to its own tab, including while hidden.
+        // Switching rules/settings only moves WebKit, never the SwiftUI tree.
+        guard visible else {
+            nativeHomeHost?.view.isHidden = true
+            nativeHomeHost?.view.accessibilityElementsHidden = true
+            return
+        }
         if nativeHomeHost == nil {
             let controller = UIHostingController(rootView: LUIYoNativeHome(model: nativeHomeModel))
             controller.view.backgroundColor = backgroundImageView.image == nil ? view.backgroundColor : .clear
@@ -1780,22 +1775,6 @@ private final class LUIYoSearchViewController: UIViewController, UITextFieldDele
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         onSearch?(textField.text ?? "")
         textField.resignFirstResponder()
-        return true
-    }
-}
-
-
-
-/// The persistent content draws below UIKit's bar but remains the hit-test target
-/// above empty tab pages. The footer passes touches to the native bar/search tab.
-private final class LUIYoStableContentView: UIView {
-    weak var tabBarReference: UIView?
-    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
-        guard super.point(inside: point, with: event) else { return false }
-        if let bar = tabBarReference, bar.window != nil {
-            let top = bar.convert(bar.bounds, to: self).minY
-            if point.y >= top { return false }
-        }
         return true
     }
 }
