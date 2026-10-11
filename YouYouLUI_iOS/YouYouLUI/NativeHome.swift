@@ -372,7 +372,11 @@ private struct NativeGlassActionButton: UIViewRepresentable {
             configuration.background.backgroundColor = tint.withAlphaComponent(0.72)
         }
         configuration.title = title
-        configuration.image = UIImage(named: asset)?.preparingThumbnail(of: CGSize(width: 18, height: 18))?.withRenderingMode(.alwaysOriginal)
+        if let image = UIImage(named: asset) {
+            configuration.image = UIGraphicsImageRenderer(size: CGSize(width: 18, height: 18)).image { _ in
+                image.draw(in: CGRect(x: 0, y: 0, width: 18, height: 18))
+            }.withRenderingMode(.alwaysOriginal)
+        }
         configuration.imagePadding = 8
         configuration.cornerStyle = .capsule
         configuration.baseBackgroundColor = tint
