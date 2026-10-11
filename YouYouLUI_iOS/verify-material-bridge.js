@@ -18,7 +18,7 @@ ctx.document={documentElement:{dataset:{appearance:"light"},classList:{add(){}}}
 ctx.window=ctx;ctx.webkit={messageHandlers:{cardGlassRects:{postMessage:r=>payloads.push(r)}}};
 vm.runInNewContext(bridge,ctx);raf.shift()();
 assert.equal(payloads[0].length,3,'closed fold must omit descendants despite their nonzero rectangles');
-assert.equal(payloads[0][0].radius,24);assert.equal(payloads[0][0].forceLiquid,false);assert(!payloads[0].some(x=>x.key==='id:fillBtn'));assert.equal(payloads[0][1].radius,17);assert.equal(payloads[0][1].segment,'category');assert.equal(payloads[0][2].y,3200);assert.equal(payloads[0][2].systemIcon,'heart');assert.equal(payloads[0][2].iconX,14);assert.equal(payloads[0][2].iconY,14);assert.equal(payloads[0][2].iconWidth,28);assert.equal(listeners.scroll,undefined);assert.equal(payloads[0][1].selectedColor,'#007AFE');
+assert.equal(payloads[0][0].radius,24);assert.equal(payloads[0][0].forceLiquid,false);assert(!payloads[0].some(x=>x.key==='id:fillBtn'));assert.equal(payloads[0][1].radius,17);assert.equal(payloads[0][1].segment,'category');assert.equal(payloads[0][2].y,3200);assert.equal(payloads[0][2].systemIcon,'heart');assert.equal(payloads[0][2].iconX,14);assert.equal(payloads[0][2].iconY,14);assert.equal(payloads[0][2].iconWidth,28);assert.equal(listeners.scroll,undefined);assert.equal(payloads[0][1].selectedColor,'#FFFFFF');
 ctx.scrollY=600;ctx.__syncNativeCardGlass();raf.shift()();assert.equal(payloads.length,1,'scroll must not send different document frames');
 selected=1;ctx.__syncNativeCardGlass();raf.shift()();assert.equal(payloads[1][1].selected,1);assert.equal(payloads[1][0].y,240);
 fold.open=true;expanded=true;ctx.__syncNativeCardGlass();raf.shift()();
@@ -27,8 +27,8 @@ assert.equal(picker.clipHeight,20,'material must clip to the animated fold bound
 assert.equal(picker.clipY,520,'clip coordinates must stay in document space');
 expanded=false;ctx.__syncNativeCardGlass();raf.shift()();
 assert(!payloads.at(-1).some(x=>x.key==='id:materialModePicker'),'closing fold must remove native control before open becomes false');
-pickerStorage.set('youyou.theme.buttonColor.custom.light','1');pickerColor='#385170';ctx.__syncNativeCardGlass();raf.shift()();assert.equal(payloads.at(-1)[1].selectedColor,'#385170','custom picker color reaches UIKit');
-pickerStorage.delete('youyou.theme.buttonColor.custom.light');ctx.__syncNativeCardGlass();raf.shift()();assert.equal(payloads.at(-1)[1].selectedColor,'#007AFE','reset restores visible selection');
+pickerStorage.set('youyou.theme.buttonColor.custom.light','1');pickerColor='#385170';ctx.__syncNativeCardGlass();raf.shift()();assert.equal(payloads.at(-1)[1].selectedColor,'#FFFFFF','custom button colors must not change white selection');
+pickerStorage.delete('youyou.theme.buttonColor.custom.light');ctx.__syncNativeCardGlass();raf.shift()();assert.equal(payloads.at(-1)[1].selectedColor,'#FFFFFF','reset preserves white selection');
 assert(h.includes('id="specialThanks" hidden'));assert(!h.includes('data-material="solid"'));assert(h.includes('compact-category-and-system-dark-v103'));
 console.log('Passed: hidden and closing fold cleanup, native clipping bounds, compact capsule geometry, stable scroll coordinates, category selection and settings visibility.');
 

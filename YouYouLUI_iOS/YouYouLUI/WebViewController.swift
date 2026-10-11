@@ -72,6 +72,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     private var cardOrder: [String] = []
     private var nativeSegments: [String: UISegmentedControl] = [:]
     private var nativeSelectedPills: [String: UIView] = [:]
+    private var retainedTabs: [String: AnyObject] = [:]
     private var nativeSymbols: [String: UIImageView] = [:]
     private var nativeSegmentStyles: [String: UIUserInterfaceStyle] = [:]
     private var scrollOffsetObservation: NSKeyValueObservation?
@@ -524,10 +525,14 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             // controller is handed to a newly created UITab (see device .ips).
             // Give each newly-created tab its own, never-before-owned controller.
             var nativeTabs = pageItems.enumerated().map { index, item -> UITab in
+                let identifier = "page.\(index)"
+                if let existing = retainedTabs[identifier] as? UITab { return existing }
                 let controller = UIViewController()
                 controller.view.backgroundColor = .clear
-                return UITab(title: item.title ?? "", image: item.image,
-                             identifier: "page.\(index)") { _ in controller }
+                let tab = UITab(title: item.title ?? "", image: item.image,
+                                identifier: identifier) { _ in controller }
+                retainedTabs[identifier] = tab
+                return tab
             }
             if bottomSearchEnabled {
                 let controller = UIViewController()
@@ -541,7 +546,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
                                             identifier: "action.search") { _ in controller })
                 }
             }
-            tabs = nativeTabs
+            setTabs(nativeTabs, animated: false)
         } else {
             setViewControllers(pageControllers + (bottomSearchEnabled ? [searchController] : []), animated: false)
         }
@@ -567,10 +572,8 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     private func keepContentBelowNativeBar() {
         guard let webView, isViewLoaded else { return }
         let host: UIView
-        if let search = activeSearchPageController {
-            search.loadViewIfNeeded()
-            host = search.contentHost
-        } else if let selectedHost = selectedViewController?.view {
+        // Search overlays the existing page; never detach its live content.
+        if let selectedHost = selectedViewController?.view {
             host = selectedHost
         } else { return }
         // UIKit inserts selected tab content above UITabBarController.view's
@@ -591,7 +594,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             NSLayoutConstraint.activate(webHostConstraints)
             if activeSearchPageController == nil, #available(iOS 15.0, *) { selectedViewController?.setContentScrollView(webView.scrollView, for: .bottom) }
         }
-        if let parent = (activeSearchPageController as UIViewController?) ?? selectedViewController {
+        if let parent = selectedViewController {
             attachNativeHome(to: parent, host: host)
         }
     }
@@ -629,7 +632,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     }
 
     private func presentBottomSearch() {
-        guard bottomSearchEnabled, !openingSearch, presentedViewController == nil else { return }
+        guard bottomSearchEnabled, !openingSearch, activeSearchPageController == nil, presentedViewController == nil else { return }
         openingSearch = true
         webView.evaluateJavaScript("window.__bottomSearchState?.()") { [weak self] value, _ in
             guard let self else { return }
@@ -647,7 +650,11 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
                 guard let self else { return }
                 self.nativeHomeModel.query = ""
                 self.webView.evaluateJavaScript("window.__clearBottomSearch?.()")
+                let search = self.activeSearchPageController
                 self.activeSearchPageController = nil
+                search?.willMove(toParent: nil)
+                search?.view.removeFromSuperview()
+                search?.removeFromParent()
                 UIView.performWithoutAnimation {
                     self.keepContentBelowNativeBar()
                     self.view.layoutIfNeeded()
@@ -660,10 +667,15 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
                 let top = search.searchField.convert(search.searchField.bounds, to: self.webView).minY
                 self.webView.evaluateJavaScript("window.__setNativeTabTop?.(\(top));window.__syncNativeCardGlass?.()")
             }
-            page.modalPresentationStyle = .fullScreen
             self.activeSearchPageController = page
-            self.keepContentBelowNativeBar()
-            self.present(page, animated: false)
+            // A transparent child overlay leaves the live page and tab bar attached.
+            self.addChild(page)
+            page.view.frame = self.view.bounds
+            page.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            self.view.addSubview(page.view)
+            page.didMove(toParent: self)
+            page.view.layoutIfNeeded()
+            page.searchField.becomeFirstResponder()
         }
     }
 
@@ -1005,7 +1017,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             segment.setDividerImage(clear, forLeftSegmentState: .normal, rightSegmentState: .normal, barMetrics: .default)
             nativeSegmentStyles[key] = traitCollection.userInterfaceStyle
         }
-        let selectedColor = color(fromHex: spec["selectedColor"] as? String ?? "#007AFE") ?? .systemBlue
+        let selectedColor = UIColor.white
         segment.selectedSegmentTintColor = .clear
         var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
         let font = themeFont?.withSize(12) ?? UIFont.systemFont(ofSize: 12, weight: .semibold)
@@ -1031,7 +1043,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
                 pill.layer.cornerRadius = track.height / 2
                 pill.layer.cornerCurve = .continuous
                 pill.layer.borderWidth = 1
-                pill.layer.borderColor = UIColor.systemBlue.cgColor
+                pill.layer.borderColor = UIColor(white: 0.65, alpha: 1).cgColor
             }
         }
     }
@@ -1201,7 +1213,12 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         guard ["state", "category", "search"].contains(action) || isAuthorized else { showAuthorizationRequired(); return }
         guard let data = try? JSONSerialization.data(withJSONObject: [action, values]),
               let arguments = String(data: data, encoding: .utf8) else { return }
-        webView.evaluateJavaScript("window.__nativeHomeCommand?.(..." + arguments + ").catch(error => alert(error.message)); undefined;")
+        webView.evaluateJavaScript("Promise.resolve(window.__nativeHomeCommand?.(..." + arguments + ")).catch(error => alert(error.message)); undefined;") { [weak self] _, error in
+            guard let self, let error else { return }
+            let alert = UIAlertController(title: "操作失败", message: error.localizedDescription, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "好", style: .default))
+            if self.presentedViewController == nil { self.present(alert, animated: true) }
+        }
     }
 
     private func presentNativeFiles() {
@@ -1355,8 +1372,15 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         }
         if message.name == "bottomSearch" {
             guard let payload = message.body as? [String: Any] else { return }
-            if let layout = payload["layout"] as? String { setBottomSearchLayout(layout) }
-            if let enabled = payload["enabled"] as? Bool { setBottomSearchEnabled(enabled) }
+            let enabled = payload["enabled"] as? Bool ?? bottomSearchEnabled
+            let separate = (payload["layout"] as? String).map { $0 == "separate" } ?? separateSearch
+            if enabled != bottomSearchEnabled || separate != separateSearch {
+                bottomSearchEnabled = enabled
+                separateSearch = separate
+                UserDefaults.standard.set(enabled, forKey: "youyou.bottomSearchEnabled")
+                UserDefaults.standard.set(separate ? "separate" : "merged", forKey: "youyou.bottomSearchLayout")
+                UIView.performWithoutAnimation { refreshSearchTabItems() }
+            }
             if payload["open"] as? Bool == true { presentBottomSearch() }
             return
         }
@@ -1488,6 +1512,13 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
 
 
 /// Search keeps the current WebKit page visible and follows the keyboard.
+private final class NativeSearchOverlayView: UIView {
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        let target = super.hitTest(point, with: event)
+        return target === self ? nil : target
+    }
+}
+
 private final class LUIYoSearchViewController: UIViewController, UITextFieldDelegate {
     var query = ""
     var placeholder = "搜索"
@@ -1496,27 +1527,23 @@ private final class LUIYoSearchViewController: UIViewController, UITextFieldDele
     var onClose: (() -> Void)?
     var onLayout: (() -> Void)?
     var backgroundImage: UIImage?
-    let contentHost = UIView()
     let searchField = UITextField()
+
+    override func loadView() { view = NativeSearchOverlayView() }
 
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .clear
-        if let backgroundImage {
-            let imageView = UIImageView(image: backgroundImage)
-            imageView.frame = view.bounds
-            imageView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-            imageView.contentMode = .scaleAspectFill
-            imageView.clipsToBounds = true
-            imageView.isUserInteractionEnabled = false
-            view.addSubview(imageView)
-        }
         let effect: UIVisualEffect
         if #available(iOS 26.0, *) { effect = UIGlassEffect() }
         else { effect = UIBlurEffect(style: .systemMaterial) }
         let inputSurface = UIVisualEffectView(effect: effect)
-        inputSurface.layer.cornerRadius = 22
-        inputSurface.clipsToBounds = true
+        if #available(iOS 26.0, *) {
+            inputSurface.cornerConfiguration = .uniformCorners(radius: .fixed(22))
+        } else {
+            inputSurface.layer.cornerRadius = 22
+            inputSurface.clipsToBounds = true
+        }
         searchField.placeholder = placeholder
         searchField.text = query
         searchField.font = themeFont?.withSize(16) ?? .systemFont(ofSize: 16)
@@ -1554,8 +1581,8 @@ private final class LUIYoSearchViewController: UIViewController, UITextFieldDele
         close.tintColor = .label
         close.accessibilityIdentifier = "bottomSearchClose"
         close.accessibilityLabel = "关闭搜索"
-        close.addAction(UIAction { [weak self] _ in self?.searchField.resignFirstResponder(); self?.dismiss(animated: false) }, for: .touchUpInside)
-        for control in [contentHost, inputSurface, close] {
+        close.addAction(UIAction { [weak self] _ in self?.closeSearch() }, for: .touchUpInside)
+        for control in [inputSurface, close] {
             control.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview(control)
         }
@@ -1564,10 +1591,6 @@ private final class LUIYoSearchViewController: UIViewController, UITextFieldDele
             inputSurface.contentView.addSubview(control)
         }
         NSLayoutConstraint.activate([
-            contentHost.topAnchor.constraint(equalTo: view.topAnchor),
-            contentHost.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            contentHost.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            contentHost.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             inputSurface.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 20),
             inputSurface.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor, constant: -12),
             inputSurface.heightAnchor.constraint(equalToConstant: 44),
@@ -1603,7 +1626,14 @@ private final class LUIYoSearchViewController: UIViewController, UITextFieldDele
 
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
-        if isBeingDismissed || presentingViewController == nil { onClose?() }
+        if isBeingDismissed { closeSearch() }
+    }
+
+    private func closeSearch() {
+        searchField.resignFirstResponder()
+        let completion = onClose
+        onClose = nil
+        completion?()
     }
 
     @objc private func queryChanged() { onSearch?(searchField.text ?? "") }

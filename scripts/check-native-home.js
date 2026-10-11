@@ -20,6 +20,10 @@ const dom=new JSDOM(fs.readFileSync(root+'Web/index.html','utf8').replace('<scri
  for(const entry of catalog.entries){assert(!runtime[entry.id].hiddenFromUI);assert.equal(entry.category,runtime[entry.id].category);assert.equal(entry.title,runtime[entry.id].title.replace(/^LiquidUI\s*/,''));}
  assert.equal(catalog.entries.length,runtime.filter(x=>!x.hiddenFromUI).length);
  w.eval(injected);w.eval("thumbnailFor=async()=> 'data:image/png;base64,AQID'");
+ w.scrollTo=()=>{};w.appNavTo('settings');
+ const themeFold=d.querySelector('.themeFold');themeFold.open=true;themeFold.classList.add('is-expanded');
+ for(const mode of ['merged','separate','off']){w.__setBottomSearchMode(mode);w.appNavTo('settings');assert(themeFold.open&&themeFold.classList.contains('is-expanded'),'Search layout keeps theme expanded: '+mode)}
+ w.appNavTo('home');
  w.DataTransfer=class {constructor(){this.files=[];this.items={add:f=>this.files.push(f)}}};
  for(const id of ['batchInput','fillInput']){let files=[];Object.defineProperty(d.getElementById(id),'files',{get:()=>files,set:value=>files=value})}
  w.eval(fs.readFileSync(root+'Web/native-home-bridge.js','utf8'));

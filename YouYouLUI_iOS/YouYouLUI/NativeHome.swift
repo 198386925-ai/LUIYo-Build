@@ -243,15 +243,13 @@ struct LUIYoNativeHome: View {
                         Spacer()
                         Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold)).foregroundStyle(.secondary)
                     }
-                    .foregroundStyle(model.theme.customButton ? Color(UIColor(nativeHex: model.theme.actionText)) : Color.primary).frame(maxWidth: .infinity).padding(.vertical, 1)
+                    .foregroundStyle(Color.primary).frame(maxWidth: .infinity).padding(.vertical, 1)
                 }.modifier(NativeActionStyle()).controlSize(.large).accessibilityIdentifier("nativeColorSettings")
                 HStack(spacing: 8) {
-                    Button { model.send("clear", [:]) } label: {
-                        Label("清空", systemImage: "trash").frame(maxWidth: .infinity)
-                    }.modifier(NativeActionStyle(prominent: true, fill: "#007AFE")).controlSize(.large)
-                    Button { model.send("export", [:]) } label: {
-                        Label("导出 ZIP", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity)
-                    }.modifier(NativeActionStyle(prominent: true, fill: "#46D86A")).controlSize(.large)
+                    NativeGlassActionButton(title: "清空", symbol: "trash", color: "#007AFE", font: model.importedFont,
+                        useBlur: model.useBlur) { model.send("clear", [:]) }.frame(maxWidth: .infinity).frame(height: 48)
+                    NativeGlassActionButton(title: "导出 ZIP", symbol: "square.and.arrow.up", color: "#46D86A", font: model.importedFont,
+                        useBlur: model.useBlur) { model.send("export", [:]) }.frame(maxWidth: .infinity).frame(height: 48)
                 }.font(model.font(size: 13, weight: .semibold))
             }
         }
@@ -315,12 +313,10 @@ private struct NativeIconCatalog: Decodable {
 private struct NativeActionStyle: ViewModifier {
     @Environment(\.nativeUseBlur) private var useBlur
     @Environment(\.nativeHomeTheme) private var theme
-    var prominent = false
-    var fill: String?
     func body(content: Content) -> some View {
-        let color = UIColor(nativeHex: fill ?? theme.button)
-        let text = prominent ? Color.white : (theme.customButton ? Color(UIColor(nativeHex: theme.actionText)) : Color.blue)
-        return content.buttonStyle(NativeHomeActionButtonStyle(useBlur: useBlur, tint: color, text: text, opacity: theme.toolbarOpacity, solid: prominent))
+        let color = UIColor(nativeHex: theme.button)
+        let text = theme.customButton ? Color.primary : Color.blue
+        return content.buttonStyle(NativeHomeActionButtonStyle(useBlur: useBlur, tint: color, text: text, opacity: theme.toolbarOpacity))
     }
 }
 
@@ -329,18 +325,61 @@ private struct NativeHomeActionButtonStyle: ButtonStyle {
     var tint: UIColor
     var text: Color
     var opacity: Double
-    var solid: Bool
     func makeBody(configuration: Configuration) -> some View {
         configuration.label.foregroundStyle(text)
             .padding(.horizontal, 14).frame(minHeight: 48)
-            .background {
-                if solid {
-                    Capsule().fill(Color(uiColor: tint))
-                } else {
-                    NativeMaterialSurface(useBlur: useBlur, tint: tint, opacity: opacity, radius: -1)
-                }
-            }
+            .background(NativeMaterialSurface(useBlur: useBlur, tint: tint, opacity: opacity, radius: -1))
             .contentShape(Capsule())
+    }
+}
+
+// UIKit owns the tinted glass, hit target and pressed state. Semantic colors are fixed.
+private struct NativeGlassActionButton: UIViewRepresentable {
+    var title: String
+    var symbol: String
+    var color: String
+    var font: UIFont?
+    var useBlur: Bool
+    var action: () -> Void
+    func makeCoordinator() -> Coordinator { Coordinator(action) }
+    func makeUIView(context: Context) -> UIButton {
+        let button = UIButton(type: .system)
+        button.addTarget(context.coordinator, action: #selector(Coordinator.tap), for: .touchUpInside)
+        button.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        return button
+    }
+    func updateUIView(_ button: UIButton, context: Context) {
+        context.coordinator.action = action
+        let tint = UIColor(nativeHex: color)
+        var configuration: UIButton.Configuration
+        if #available(iOS 26.0, *), !useBlur {
+            configuration = .prominentGlass()
+        } else {
+            configuration = .plain()
+            configuration.background.visualEffect = UIBlurEffect(style: .systemMaterial)
+            configuration.background.backgroundColor = tint.withAlphaComponent(0.72)
+        }
+        configuration.title = title
+        configuration.image = UIImage(systemName: symbol, withConfiguration: UIImage.SymbolConfiguration(pointSize: 18, weight: .regular))
+        configuration.imagePadding = 8
+        configuration.cornerStyle = .capsule
+        configuration.baseBackgroundColor = tint
+        configuration.baseForegroundColor = .white
+        let titleFont = font?.withSize(13) ?? UIFont.systemFont(ofSize: 13, weight: .semibold)
+        configuration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
+            var result = attributes
+            result.font = titleFont
+            result.foregroundColor = .white
+            return result
+        }
+        button.tintColor = tint
+        button.configuration = configuration
+        button.accessibilityLabel = title
+    }
+    final class Coordinator: NSObject {
+        var action: () -> Void
+        init(_ action: @escaping () -> Void) { self.action = action }
+        @objc func tap() { action() }
     }
 }
 
@@ -357,7 +396,6 @@ private struct NativeMaterialSurface: UIViewRepresentable {
     var tint: UIColor
     var opacity: Double
     var radius: CGFloat
-    var solid = false
     func makeUIView(context: Context) -> NativeMaterialView {
         let view = NativeMaterialView()
         view.isUserInteractionEnabled = false
@@ -368,16 +406,16 @@ private struct NativeMaterialSurface: UIViewRepresentable {
         view.shapeRadius = radius
         var blur = useBlur
         if #available(iOS 26.0, *) {} else { blur = true }
-        let signature = "\(blur)|\(tint.nativeHex)|\(solid)"
+        let signature = "\(blur)|\(tint.nativeHex)"
         if signature != view.materialSignature {
             view.materialSignature = signature
             if #available(iOS 26.0, *), !blur {
                 let glass = UIGlassEffect(style: .regular)
-                if solid || tint.nativeHex.uppercased() != "#FFFFFF" { glass.tintColor = tint.withAlphaComponent(solid ? 0.85 : 0.12) }
+                if tint.nativeHex.uppercased() != "#FFFFFF" { glass.tintColor = tint.withAlphaComponent(0.12) }
                 glass.isInteractive = true
                 view.effect = glass
             } else { view.effect = UIBlurEffect(style: .systemMaterial) }
-            view.contentView.backgroundColor = solid ? tint.withAlphaComponent(0.90) : (blur ? tint.withAlphaComponent(0.24) : .clear)
+            view.contentView.backgroundColor = blur ? tint.withAlphaComponent(0.24) : .clear
         }
         view.alpha = CGFloat(opacity)
         view.setNeedsLayout()
@@ -477,12 +515,12 @@ private final class NativeCategoryGlassView: UIView {
             }
         }
         control.selectedSegmentTintColor = .clear
-        selectedPill.backgroundColor = theme.customButton ? UIColor(nativeHex: theme.button) : UIColor(nativeHex: "#007AFE")
-        selectedPill.layer.borderWidth = theme.customButton ? 1 : 0
-        selectedPill.layer.borderColor = UIColor.systemBlue.cgColor
+        selectedPill.backgroundColor = .white
+        selectedPill.layer.borderWidth = 1
+        selectedPill.layer.borderColor = UIColor(white: 0.65, alpha: 1).cgColor
         let textFont = font?.withSize(13) ?? UIFont.systemFont(ofSize: 13, weight: .semibold)
         control.setTitleTextAttributes([.font: textFont, .foregroundColor: UIColor.label], for: .normal)
-        control.setTitleTextAttributes([.font: textFont, .foregroundColor: theme.customButton ? UIColor(nativeHex: theme.actionText) : UIColor.white], for: .selected)
+        control.setTitleTextAttributes([.font: textFont, .foregroundColor: UIColor(nativeHex: "#202832")], for: .selected)
         material.setNeedsLayout()
         setNeedsLayout()
     }
