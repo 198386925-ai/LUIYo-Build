@@ -89,5 +89,5 @@ const dom=new JSDOM(fs.readFileSync(root+'Web/index.html','utf8').replace('<scri
  assert.equal(scrollTargets.at(-1),'luiyoSettingsHero');
  console.log('Passed: hero stays above authorization; info/changelog open, scroll to content, close on a second tap and cancel stale scrolling.');
  console.log('Passed: native single/batch upload, 199 stock entries, removal, 325 visible/396 original filenames / 388 engine fill, colors, revocation, real ZIP and native rename/share.');
- clearTimeout(watchdog);dom.window.close();
+ await new Promise(r=>setTimeout(r,120));clearTimeout(watchdog);dom.window.close();
 })().catch(error=>{console.error(error);clearTimeout(watchdog);dom.window.close();process.exitCode=1});
