@@ -65,6 +65,21 @@ const dom=new JSDOM(fs.readFileSync(root+'Web/index.html','utf8').replace('<scri
  w.__shareZipWithName('原生首页验证');await new Promise(r=>setTimeout(r,100));
  const share=messages.find(m=>m.name==='shareZip');assert(share?.body.base64.startsWith('UEs'));assert.equal(share.body.fileName,'原生首页验证.zip');
  await cmd('clear');await cmd('state');assert.equal(messages.filter(m=>m.name==='nativeHomeState').at(-1).body.uploadedCount,0);
+ const scrollTargets=[];w.HTMLElement.prototype.scrollIntoView=function(){scrollTargets.push(this.id||this.className)};
+ w.appNavTo('settings');
+ const hero=d.getElementById('luiyoSettingsHero');assert.equal(hero.nextElementSibling.id,'luiyoActivationCard');
+ for(const selector of ['.changelogInline','.guideInline']) {
+  const fold=d.querySelector(selector).closest('.settingsFold');
+  assert.equal(w.__toggleHeroSection(selector),true);assert.equal(fold.open,true);
+  await new Promise(r=>setTimeout(r,30));assert(scrollTargets.at(-1).includes('settingsFold'));
+  assert.equal(w.__toggleHeroSection(selector),false);assert.equal(fold.open,false);
+  await new Promise(r=>setTimeout(r,30));assert.equal(scrollTargets.at(-1),'luiyoSettingsHero');
+ }
+ const before=scrollTargets.length;
+ w.__toggleHeroSection('.changelogInline');w.__toggleHeroSection('.changelogInline');
+ await new Promise(r=>setTimeout(r,30));assert.equal(scrollTargets.length,before+1,'Rapid taps retain only the final scroll target');
+ assert.equal(scrollTargets.at(-1),'luiyoSettingsHero');
+ console.log('Passed: hero stays above authorization; info/changelog open, scroll to content, close on a second tap and cancel stale scrolling.');
  console.log('Passed: native single/batch upload, 199 stock entries, removal, 325 visible/396 original filenames / 388 engine fill, colors, revocation, real ZIP and native rename/share.');
  clearTimeout(watchdog);dom.window.close();
 })().catch(error=>{console.error(error);clearTimeout(watchdog);dom.window.close();process.exitCode=1});

@@ -51,6 +51,8 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     private var separateSearch = false
     private weak var activeSearchPageController: LUIYoSearchViewController?
     private var webHostConstraints: [NSLayoutConstraint] = []
+    private let contentContainer = LUIYoStableContentView()
+    private var boundScrollViews: [ObjectIdentifier: UIScrollView] = [:]
     private let backgroundImageView = UIImageView()
     private var scrollMinimizeEnabled = false
     private var nativePageName = "home"
@@ -585,31 +587,37 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
 
     private func keepContentBelowNativeBar() {
         guard let webView, isViewLoaded else { return }
-        let host: UIView
-        // Search overlays the existing page; never detach its live content.
-        if let selectedHost = selectedViewController?.view {
-            host = selectedHost
-        } else { return }
-        // UIKit inserts selected tab content above UITabBarController.view's
-        // custom subviews. Hosting WKWebView on the controller root therefore
-        // covers the native floating bar and steals all its touches.
-        // Place WebKit inside the selected tab's content view instead.
+        // The renderer and SwiftUI homepage stay in one persistent container.
+        // Tab selection no longer detaches either view or recreates their layout.
+        let host = contentContainer
+        host.tabBarReference = tabBar
+        if host.superview !== view {
+            view.addSubview(host)
+            host.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([host.topAnchor.constraint(equalTo: view.topAnchor),
+                host.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+                host.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+                host.trailingAnchor.constraint(equalTo: view.trailingAnchor)])
+        }
+        view.bringSubviewToFront(host)
+        host.layer.zPosition = 1
+        var barBranch: UIView = tabBar
+        while let parent = barBranch.superview, parent !== view { barBranch = parent }
+        if barBranch !== view, barBranch !== host { barBranch.layer.zPosition = 2; barBranch.backgroundColor = .clear }
         if webView.superview !== host {
-            NSLayoutConstraint.deactivate(webHostConstraints)
-            webView.removeFromSuperview()
             host.addSubview(webView)
             webView.translatesAutoresizingMaskIntoConstraints = false
-            webHostConstraints = [
-                webView.topAnchor.constraint(equalTo: host.topAnchor),
+            webHostConstraints = [webView.topAnchor.constraint(equalTo: host.topAnchor),
                 webView.leadingAnchor.constraint(equalTo: host.leadingAnchor),
                 webView.trailingAnchor.constraint(equalTo: host.trailingAnchor),
-                webView.bottomAnchor.constraint(equalTo: host.bottomAnchor)
-            ]
+                webView.bottomAnchor.constraint(equalTo: host.bottomAnchor)]
             NSLayoutConstraint.activate(webHostConstraints)
-            if activeSearchPageController == nil, #available(iOS 15.0, *) { selectedViewController?.setContentScrollView(webView.scrollView, for: .bottom) }
         }
-        if let parent = selectedViewController {
-            attachNativeHome(to: parent, host: host)
+        attachNativeHome(to: self, host: host)
+        let scroll = nativePageName == "home" ? (nativeHomeScrollView ?? webView.scrollView) : webView.scrollView
+        if let page = selectedViewController, boundScrollViews[ObjectIdentifier(page)] !== scroll {
+            page.setContentScrollView(scroll, for: .bottom)
+            boundScrollViews[ObjectIdentifier(page)] = scroll
         }
     }
 
@@ -645,26 +653,26 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         guard nativeHomeReady, tag != activePageTag else { return true }
         guard !switchingNativePage else { return false }
         switchingNativePage = true
-        let transitionCover = selectedViewController?.view.snapshotView(afterScreenUpdates: false)
-        if let cover = transitionCover, let content = selectedViewController?.view {
-            cover.frame = content.convert(content.bounds, to: view)
+        let cover = contentContainer.snapshotView(afterScreenUpdates: false)
+        if let cover {
+            cover.frame = contentContainer.bounds
             cover.isUserInteractionEnabled = false
-            view.addSubview(cover)
+            contentContainer.addSubview(cover)
         }
-        // Keep the existing controller mounted until WebKit finishes changing pages.
-        // UIKit otherwise exposes an empty destination before appNavTo completes.
         let page = tag == 1 ? "rules" : tag == 2 ? "settings" : "home"
-        webView.evaluateJavaScript("appNavTo('" + page + "')") { [weak self] _, error in
-            guard let self else { return }
+        // Wait for the destination's WebKit paint, rather than the JS evaluation
+        // callback. The cover is below the native bar and cannot move its geometry.
+        webView.callAsyncJavaScript("appNavTo(page);await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));window.__syncNativeCardGlass?.();", arguments: ["page": page], in: nil, in: .page) { [weak self] result in
+            guard let self else { cover?.removeFromSuperview(); return }
             self.switchingNativePage = false
-            guard error == nil else { transitionCover?.removeFromSuperview(); return }
+            if case .failure = result { cover?.removeFromSuperview(); return }
             UIView.performWithoutAnimation {
                 self.selectNativePage(tag)
                 self.updatePageScroll(page)
                 self.view.layoutIfNeeded()
                 self.updateLayoutMetrics(force: true)
+                cover?.removeFromSuperview()
             }
-            DispatchQueue.main.async { transitionCover?.removeFromSuperview() }
         }
         return false
     }
@@ -717,6 +725,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             page.view.frame = self.view.bounds
             page.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
             self.view.addSubview(page.view)
+            page.view.layer.zPosition = 3
             page.didMove(toParent: self)
             page.view.layoutIfNeeded()
             page.searchField.becomeFirstResponder()
@@ -742,7 +751,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     }
 
     private func openHeroSection(_ selector: String) {
-        webView.evaluateJavaScript("(()=>{const section=document.querySelector('" + selector + "')?.closest('details');if(section&&!section.open)section.querySelector('summary')?.click();section?.scrollIntoView({block:'start',behavior:'smooth'})})()")
+        webView.evaluateJavaScript("window.__toggleHeroSection?.('" + selector + "')")
     }
 
     private func navigateFromNativeTab(_ tag: Int) {
@@ -1092,9 +1101,9 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
                 pill.layer.cornerCurve = .continuous
                 pill.layer.borderWidth = 0
                 pill.layer.shadowColor = UIColor.black.cgColor
-                pill.layer.shadowOpacity = 0.12
-                pill.layer.shadowRadius = 2
-                pill.layer.shadowOffset = CGSize(width: 0, height: 1)
+                pill.layer.shadowOpacity = kind == "category" ? 0.035 : 0
+                pill.layer.shadowRadius = 1
+                pill.layer.shadowOffset = CGSize(width: 0, height: 0.5)
             }
         }
     }
@@ -1102,10 +1111,6 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     private func renderVisibleNativeMaterials() {
         guard let webView else { return }
         let scroll = webView.scrollView
-        if let cell = settingsHero as? UITableViewCell, let material = cell.backgroundView as? UIVisualEffectView {
-            material.effect = nativeCardEffect()
-            if #available(iOS 26.0, *) { material.cornerConfiguration = .uniformCorners(radius: .fixed(24)) }
-        }
         // This observer only manages visibility. It NEVER moves a card with an
         // asynchronously sampled scroll offset.
         glassContainer.frame = CGRect(origin: .zero, size: CGSize(
@@ -1236,26 +1241,13 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         webView.isHidden = false
         webView.isUserInteractionEnabled = !visible
         webView.accessibilityElementsHidden = visible
-        if !visible {
-            if let controller = nativeHomeHost, controller.parent != nil {
-                NSLayoutConstraint.deactivate(nativeHomeConstraints)
-                controller.willMove(toParent: nil)
-                controller.view.removeFromSuperview()
-                controller.removeFromParent()
-            }
-            return
-        }
         if nativeHomeHost == nil {
             let controller = UIHostingController(rootView: LUIYoNativeHome(model: nativeHomeModel))
             controller.view.backgroundColor = backgroundImageView.image == nil ? view.backgroundColor : .clear
             nativeHomeHost = controller
         }
         guard let controller = nativeHomeHost else { return }
-        if controller.parent !== parent {
-            NSLayoutConstraint.deactivate(nativeHomeConstraints)
-            controller.willMove(toParent: nil)
-            controller.view.removeFromSuperview()
-            controller.removeFromParent()
+        if controller.parent == nil {
             parent.addChild(controller)
             host.addSubview(controller.view)
             controller.view.translatesAutoresizingMaskIntoConstraints = false
@@ -1266,10 +1258,8 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             NSLayoutConstraint.activate(nativeHomeConstraints)
             controller.didMove(toParent: parent)
         }
-        if let scroll = nativeHomeScrollView {
-            parent.setContentScrollView(scroll, for: .bottom)
-            controller.setContentScrollView(scroll, for: .bottom)
-        }
+        controller.view.isHidden = !visible
+        controller.view.accessibilityElementsHidden = !visible
     }
 
     private func nativeHomeCommand(_ action: String, _ values: [String: Any]) {
@@ -1310,6 +1300,43 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         }
     }
 
+    private var heroAvatarURL: URL {
+        FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("SettingsAvatar.png")
+    }
+
+    private func editHeroAvatar() {
+        guard presentedViewController == nil else { return }
+        nativeUploadKind = "heroAvatar"
+        presentNativePhotos()
+    }
+
+    private func editHeroName() {
+        guard presentedViewController == nil else { return }
+        let alert = UIAlertController(title: "修改名字", message: nil, preferredStyle: .alert)
+        alert.addTextField { field in field.text = UserDefaults.standard.string(forKey: "youyou.hero.name") ?? "Liquid UI"; field.placeholder = "输入名字" }
+        alert.addAction(UIAlertAction(title: "取消", style: .cancel))
+        alert.addAction(UIAlertAction(title: "保存", style: .default) { [weak self, weak alert] _ in
+            guard let self, let name = alert?.textFields?.first?.text?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty else { return }
+            UserDefaults.standard.set(String(name.prefix(32)), forKey: "youyou.hero.name")
+            if let hero = self.settingsHero { LUIYoRefreshSettingsHero(hero) }
+        })
+        present(alert, animated: true)
+    }
+
+    private func saveHeroAvatar(_ data: Data) {
+        guard let image = UIImage(data: data), image.size.width > 0, image.size.height > 0 else { showErrorAlert("无法读取所选头像。"); return }
+        let scale = min(1, 512 / max(image.size.width, image.size.height))
+        let size = CGSize(width: image.size.width * scale, height: image.size.height * scale)
+        let format = UIGraphicsImageRendererFormat(); format.scale = 1
+        let normalized = UIGraphicsImageRenderer(size: size, format: format).image { _ in image.draw(in: CGRect(origin: .zero, size: size)) }
+        guard let png = normalized.pngData() else { showErrorAlert("无法保存头像。"); return }
+        do {
+            try FileManager.default.createDirectory(at: heroAvatarURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try png.write(to: heroAvatarURL, options: .atomic)
+            if let hero = settingsHero { LUIYoRefreshSettingsHero(hero) }
+        } catch { showErrorAlert("头像保存失败，请重试。") }
+    }
+
     private func presentNativeFiles() {
         let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.image], asCopy: true)
         picker.allowsMultipleSelection = nativeUploadKind == "batch"
@@ -1347,6 +1374,11 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             guard let self else { return }
             let file = data.flatMap { self.nativeImageFile($0, name: provider.suggestedName ?? "图片.png") }
             DispatchQueue.main.async {
+                if kind == "heroAvatar" {
+                    guard let data else { self.showErrorAlert("无法读取头像，请换一张图片。"); return }
+                    self.saveHeroAvatar(data)
+                    return
+                }
                 guard let file else { self.showErrorAlert("无法读取照片，请使用文件选择或换一张图片。"); return }
                 self.receiveNativeFiles([file], kind: kind, index: index)
             }
@@ -1432,7 +1464,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         if message.name == "settingsHeroFrame" {
             guard let payload = message.body as? [String: Any] else { return }
             if settingsHero == nil {
-                let hero = LUIYoCreateSettingsHero({ [weak self] in self?.openHeroSection(".guideInline") }, { [weak self] in self?.openHeroSection(".changelogInline") })
+                let hero = LUIYoCreateSettingsHero({ [weak self] in self?.openHeroSection(".guideInline") }, { [weak self] in self?.openHeroSection(".changelogInline") }, { [weak self] in self?.editHeroAvatar() }, { [weak self] in self?.editHeroName() })
                 hero.accessibilityIdentifier = "settingsBrandHero"
                 webView.scrollView.addSubview(hero)
                 settingsHero = hero
@@ -1440,10 +1472,6 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             guard let hero = settingsHero else { return }
             hero.isHidden = !(payload["visible"] as? Bool ?? false)
             hero.frame = CGRect(x: (payload["x"] as? NSNumber)?.doubleValue ?? 0, y: (payload["y"] as? NSNumber)?.doubleValue ?? 0, width: (payload["width"] as? NSNumber)?.doubleValue ?? 0, height: 116)
-            if let cell = hero as? UITableViewCell, let material = cell.backgroundView as? UIVisualEffectView {
-                material.effect = nativeCardEffect()
-                if #available(iOS 26.0, *) { material.cornerConfiguration = .uniformCorners(radius: .fixed(24)) }
-            }
             hero.setNeedsLayout()
             hero.layoutIfNeeded()
             return
@@ -1451,7 +1479,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         if message.name == "pageState" {
             if let payload = message.body as? [String: Any] {
                 let page = payload["page"] as? String ?? "home"
-                updatePageScroll(page)
+                if !switchingNativePage { updatePageScroll(page) }
                 if ["home", "rules", "settings"].contains(page) { onPageChanged?(page) }
             }
             return
@@ -1757,3 +1785,17 @@ private final class LUIYoSearchViewController: UIViewController, UITextFieldDele
 }
 
 
+
+/// The persistent content draws below UIKit's bar but remains the hit-test target
+/// above empty tab pages. The footer passes touches to the native bar/search tab.
+private final class LUIYoStableContentView: UIView {
+    weak var tabBarReference: UIView?
+    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+        guard super.point(inside: point, with: event) else { return false }
+        if let bar = tabBarReference, bar.window != nil {
+            let top = bar.convert(bar.bounds, to: self).minY
+            if point.y >= top { return false }
+        }
+        return true
+    }
+}

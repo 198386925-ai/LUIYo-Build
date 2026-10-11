@@ -131,7 +131,7 @@ struct LUIYoNativeHome: View {
                             .font(model.font(size: 12, weight: .medium)).foregroundStyle(model.authorized ? Color.green : Color.secondary)
                         Text("已上传项目：\(model.uploadedCount) 项").accessibilityIdentifier("nativeUploadedCount").font(model.font(size: 12)).foregroundStyle(.secondary)
                         Link(destination: URL(string: "https://qm.qq.com/q/th1QshgzHW")!) {
-                            Label("反馈问题 · 联系客服", systemImage: "headphones")
+                            HStack(spacing: 6) { ToolbarAssetIcon(name: "ToolbarSupport", size: 17); Text("反馈问题 · 联系客服") }
                         }
                             .font(model.font(size: 12, weight: .medium))
                             .buttonStyle(.plain)
@@ -224,11 +224,11 @@ struct LUIYoNativeHome: View {
             VStack(spacing: 8) {
                 HStack(spacing: 8) {
                     Button { model.send("batch", [:]) } label: {
-                        Label("关键词批量导入", systemImage: "tray.and.arrow.down")
+                        HStack(spacing: 7) { ToolbarAssetIcon(name: "ToolbarImport", size: 18); Text("关键词批量导入") }
                             .font(model.font(size: 13, weight: .medium)).frame(maxWidth: .infinity)
                     }.modifier(NativeActionStyle()).controlSize(.large)
                     Button { model.send("fillImage", [:]) } label: {
-                        Label("补全图片", systemImage: "photo.badge.plus")
+                        HStack(spacing: 7) { ToolbarAssetIcon(name: "ToolbarFill", size: 18); Text("补全图片") }
                             .font(model.font(size: 13, weight: .medium)).frame(maxWidth: .infinity)
                     }.modifier(NativeActionStyle()).controlSize(.large)
                 }
@@ -249,9 +249,9 @@ struct LUIYoNativeHome: View {
                     .foregroundStyle(Color.primary).frame(maxWidth: .infinity).padding(.vertical, 1)
                 }.modifier(NativeActionStyle()).controlSize(.large).accessibilityIdentifier("nativeColorSettings")
                 HStack(spacing: 8) {
-                    NativeGlassActionButton(title: "清空", symbol: "trash", color: "#007AFE", font: model.importedFont,
+                    NativeGlassActionButton(title: "清空", asset: "ToolbarClear", color: "#007AFE", font: model.importedFont,
                         useBlur: model.useBlur) { model.send("clear", [:]) }.frame(maxWidth: .infinity).frame(height: 44)
-                    NativeGlassActionButton(title: "导出 ZIP", symbol: "square.and.arrow.up", color: "#46D86A", font: model.importedFont,
+                    NativeGlassActionButton(title: "导出 ZIP", asset: "ToolbarExport", color: "#46D86A", font: model.importedFont,
                         useBlur: model.useBlur) { model.send("export", [:]) }.frame(maxWidth: .infinity).frame(height: 44)
                 }.font(model.font(size: 13, weight: .semibold))
             }
@@ -337,9 +337,18 @@ private struct NativeHomeActionButtonStyle: ButtonStyle {
 }
 
 // UIKit owns the tinted glass, hit target and pressed state. Semantic colors are fixed.
+private struct ToolbarAssetIcon: View {
+    var name: String
+    var size: CGFloat
+    var body: some View {
+        Image(name).resizable().renderingMode(.original).scaledToFit()
+            .frame(width: size, height: size).accessibilityHidden(true)
+    }
+}
+
 private struct NativeGlassActionButton: UIViewRepresentable {
     var title: String
-    var symbol: String
+    var asset: String
     var color: String
     var font: UIFont?
     var useBlur: Bool
@@ -363,7 +372,7 @@ private struct NativeGlassActionButton: UIViewRepresentable {
             configuration.background.backgroundColor = tint.withAlphaComponent(0.72)
         }
         configuration.title = title
-        configuration.image = UIImage(systemName: symbol, withConfiguration: UIImage.SymbolConfiguration(pointSize: 18, weight: .regular))
+        configuration.image = UIImage(named: asset)?.preparingThumbnail(of: CGSize(width: 18, height: 18))?.withRenderingMode(.alwaysOriginal)
         configuration.imagePadding = 8
         configuration.cornerStyle = .capsule
         configuration.baseBackgroundColor = tint
@@ -521,9 +530,9 @@ private final class NativeCategoryGlassView: UIView {
         selectedPill.backgroundColor = .white
         selectedPill.layer.borderWidth = 0
         selectedPill.layer.shadowColor = UIColor.black.cgColor
-        selectedPill.layer.shadowOpacity = 0.12
-        selectedPill.layer.shadowRadius = 2
-        selectedPill.layer.shadowOffset = CGSize(width: 0, height: 1)
+        selectedPill.layer.shadowOpacity = 0.035
+        selectedPill.layer.shadowRadius = 1
+        selectedPill.layer.shadowOffset = CGSize(width: 0, height: 0.5)
         let textFont = font?.withSize(13) ?? UIFont.systemFont(ofSize: 13, weight: .semibold)
         control.setTitleTextAttributes([.font: textFont, .foregroundColor: UIColor.label], for: .normal)
         control.setTitleTextAttributes([.font: textFont, .foregroundColor: UIColor(nativeHex: "#202832")], for: .selected)
