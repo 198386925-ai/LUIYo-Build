@@ -158,7 +158,7 @@ struct LUIYoNativeHome: View {
                 if !model.status.isEmpty && !model.status.hasPrefix("已上传 ") {
                     Text(model.status).font(model.font(size: 12)).foregroundStyle(.secondary).accessibilityIdentifier("nativeHomeStatus")
                 }
-                NativeHomeCategoryPicker(selection: $category, theme: model.theme, font: model.importedFont).frame(height: 34)
+                NativeHomeCategoryPicker(selection: $category, theme: model.theme, font: model.importedFont, useBlur: model.useBlur).frame(height: 34)
                 HStack {
                     Text(category == 0 ? "LiquidUI 图标" : "原版微信图标").font(model.font(size: 17, weight: .semibold))
                     Spacer()
@@ -221,23 +221,23 @@ struct LUIYoNativeHome: View {
                 HStack(spacing: 8) {
                     Button { model.send("batch", [:]) } label: {
                         Label("关键词批量导入", systemImage: "square.and.arrow.down")
-                            .font(model.font(size: 15, weight: .medium)).frame(maxWidth: .infinity)
+                            .font(model.font(size: 13, weight: .medium)).frame(maxWidth: .infinity)
                     }.modifier(NativeActionStyle()).controlSize(.large)
                     Button { model.send("fillImage", [:]) } label: {
                         Label("补全图片", systemImage: "photo")
-                            .font(model.font(size: 15, weight: .medium)).frame(maxWidth: .infinity)
+                            .font(model.font(size: 13, weight: .medium)).frame(maxWidth: .infinity)
                     }.modifier(NativeActionStyle()).controlSize(.large)
                 }
                 Button { model.send("fill", [:]) } label: {
                     Label("双分类补全", systemImage: "square.3.layers.3d")
-                        .font(model.font(size: 16, weight: .semibold)).frame(maxWidth: .infinity)
+                        .font(model.font(size: 13, weight: .semibold)).frame(maxWidth: .infinity)
                 }.modifier(NativeActionStyle()).controlSize(.large)
                 Button { if model.authorized { showColors = true } else { model.send("authorize", [:]) } } label: {
                     HStack(spacing: 10) {
                         Image(systemName: "paintpalette").font(.system(size: 18)).frame(width: 20, height: 20).foregroundStyle(.secondary)
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("自定义修改颜色").font(model.font(size: 16, weight: .medium))
-                            Text("浅色 / 深色 / 全部图标").font(model.font(size: 11)).foregroundStyle(.secondary)
+                            Text("自定义修改颜色").font(model.font(size: 13, weight: .medium))
+                            Text("浅色 / 深色 / 全部图标").font(model.font(size: 10)).foregroundStyle(.secondary)
                         }
                         Spacer()
                         Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold)).foregroundStyle(.secondary)
@@ -251,7 +251,7 @@ struct LUIYoNativeHome: View {
                     Button { model.send("export", [:]) } label: {
                         Label("导出 ZIP", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity)
                     }.modifier(NativeActionStyle(prominent: true, fill: "#46D86A")).controlSize(.large)
-                }.font(model.font(size: 16, weight: .semibold))
+                }.font(model.font(size: 13, weight: .semibold))
             }
         }
     }
@@ -366,11 +366,11 @@ private struct NativeMaterialSurface: UIViewRepresentable {
             view.materialSignature = signature
             if #available(iOS 26.0, *), !blur {
                 let glass = UIGlassEffect(style: .regular)
-                glass.tintColor = tint.withAlphaComponent(solid ? 0.85 : 0.12)
+                if solid || tint.nativeHex.uppercased() != "#FFFFFF" { glass.tintColor = tint.withAlphaComponent(solid ? 0.85 : 0.12) }
                 glass.isInteractive = true
                 view.effect = glass
             } else { view.effect = UIBlurEffect(style: .systemMaterial) }
-            view.contentView.backgroundColor = tint.withAlphaComponent(solid ? 0.90 : (blur ? 0.24 : 0.10))
+            view.contentView.backgroundColor = solid ? tint.withAlphaComponent(0.90) : (blur ? tint.withAlphaComponent(0.24) : .clear)
         }
         view.alpha = CGFloat(opacity)
         view.setNeedsLayout()
@@ -382,10 +382,17 @@ private final class NativeMaterialView: UIVisualEffectView {
     var shapeRadius: CGFloat = 20
     override func layoutSubviews() {
         super.layoutSubviews()
-        clipsToBounds = true
         removeExtraLayerShadows(layer)
-        layer.cornerCurve = .continuous
-        layer.cornerRadius = shapeRadius < 0 ? bounds.height / 2 : min(shapeRadius, bounds.height / 2)
+        let radius = shapeRadius < 0 ? bounds.height / 2 : min(shapeRadius, bounds.height / 2)
+        if #available(iOS 26.0, *), effect is UIGlassEffect {
+            // Let UIKit generate the optical rounded edge; never crop its layers.
+            clipsToBounds = false
+            cornerConfiguration = .fixed(radius)
+        } else {
+            clipsToBounds = true
+            layer.cornerCurve = .continuous
+            layer.cornerRadius = radius
+        }
     }
 }
 
@@ -393,25 +400,68 @@ private struct NativeHomeCategoryPicker: UIViewRepresentable {
     @Binding var selection: Int
     var theme: NativeHomeTheme
     var font: UIFont?
+    var useBlur: Bool
     func makeCoordinator() -> Coordinator { Coordinator(self) }
-    func makeUIView(context: Context) -> UISegmentedControl {
-        let control = UISegmentedControl(items: ["LiquidUI", "原版微信"])
-        control.addTarget(context.coordinator, action: #selector(Coordinator.changed(_:)), for: .valueChanged)
-        return control
+    func makeUIView(context: Context) -> NativeCategoryGlassView {
+        let view = NativeCategoryGlassView()
+        view.control.addTarget(context.coordinator, action: #selector(Coordinator.changed(_:)), for: .valueChanged)
+        return view
     }
-    func updateUIView(_ control: UISegmentedControl, context: Context) {
+    func updateUIView(_ view: NativeCategoryGlassView, context: Context) {
         context.coordinator.parent = self
-        control.selectedSegmentIndex = selection
-        control.backgroundColor = UIColor(nativeHex: theme.card)
-        control.selectedSegmentTintColor = UIColor(nativeHex: theme.button)
-        let font = self.font?.withSize(13) ?? UIFont.systemFont(ofSize: 13, weight: .semibold)
-        control.setTitleTextAttributes([.font: font, .foregroundColor: UIColor.label], for: .normal)
-        control.setTitleTextAttributes([.font: font, .foregroundColor: UIColor(nativeHex: theme.actionText)], for: .selected)
+        view.update(theme: theme, font: font, useBlur: useBlur)
+        view.control.selectedSegmentIndex = selection
     }
     final class Coordinator: NSObject {
         var parent: NativeHomeCategoryPicker
         init(_ parent: NativeHomeCategoryPicker) { self.parent = parent }
         @objc func changed(_ control: UISegmentedControl) { parent.selection = control.selectedSegmentIndex }
+    }
+}
+
+// Native glass below the unselected category; UIKit draws the selected segment.
+private final class NativeCategoryGlassView: UIView {
+    let material = NativeMaterialView()
+    let control = UISegmentedControl(items: ["LiquidUI", "原版微信"])
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        backgroundColor = .clear
+        material.shapeRadius = -1
+        material.isUserInteractionEnabled = false
+        material.accessibilityElementsHidden = true
+        addSubview(material)
+        material.contentView.addSubview(control)
+        let transparent = UIGraphicsImageRenderer(size: CGSize(width: 1, height: 1)).image { _ in }
+        control.backgroundColor = .clear
+        control.setBackgroundImage(transparent, for: .normal, barMetrics: .default)
+        control.setDividerImage(transparent, forLeftSegmentState: .normal, rightSegmentState: .normal, barMetrics: .default)
+    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    func update(theme: NativeHomeTheme, font: UIFont?, useBlur: Bool) {
+        let signature = "\(useBlur)|\(theme.card)|\(theme.dark)"
+        if material.materialSignature != signature {
+            material.materialSignature = signature
+            let tint = UIColor(nativeHex: theme.card)
+            if #available(iOS 26.0, *), !useBlur {
+                let effect = UIGlassEffect(style: .regular)
+                if !["#FFFFFF", "#1C1C1E"].contains(theme.card.uppercased()) { effect.tintColor = tint.withAlphaComponent(0.12) }
+                material.effect = effect
+                material.contentView.backgroundColor = .clear
+            } else {
+                material.effect = UIBlurEffect(style: .systemMaterial)
+                material.contentView.backgroundColor = tint.withAlphaComponent(0.24)
+            }
+        }
+        control.selectedSegmentTintColor = UIColor(nativeHex: theme.button)
+        let textFont = font?.withSize(13) ?? UIFont.systemFont(ofSize: 13, weight: .semibold)
+        control.setTitleTextAttributes([.font: textFont, .foregroundColor: UIColor.label], for: .normal)
+        control.setTitleTextAttributes([.font: textFont, .foregroundColor: UIColor(nativeHex: theme.actionText)], for: .selected)
+        material.setNeedsLayout()
+    }
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        material.frame = bounds
+        control.frame = bounds.insetBy(dx: 2, dy: 2)
     }
 }
 
@@ -480,5 +530,5 @@ func removeExtraLayerShadows(_ layer: CALayer) {
     if layer.shadowOpacity != 0 { layer.shadowOpacity = 0 }
     if layer.shadowRadius != 0 { layer.shadowRadius = 0 }
     if layer.shadowPath != nil { layer.shadowPath = nil }
-    for child in layer.sublayers ?? [] { removeExtraLayerShadows(child) }
+    // UIKit owns its effect sublayers. Preserve their optical rendering.
 }

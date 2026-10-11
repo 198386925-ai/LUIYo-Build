@@ -73,7 +73,6 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     private var nativeSegments: [String: UISegmentedControl] = [:]
     private var nativeSymbols: [String: UIImageView] = [:]
     private var nativeSegmentStyles: [String: UIUserInterfaceStyle] = [:]
-    private var nativeSelectedCapsules: [String: UIView] = [:]
     private var scrollOffsetObservation: NSKeyValueObservation?
     private enum CardMaterialMode { case liquid, blur }
     private var cardMaterialMode: CardMaterialMode = .liquid
@@ -745,7 +744,10 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         switch cardMaterialMode {
         case .liquid:
             if #available(iOS 26.0, *) {
-                return UIGlassEffect()
+                let glass = UIGlassEffect(style: .regular)
+                let hex = cardTintColor.nativeHex.uppercased()
+                if !["#FFFFFF", "#1C1C1E"].contains(hex) { glass.tintColor = cardTintColor.withAlphaComponent(0.12) }
+                return glass
             }
             return UIBlurEffect(style: .systemMaterial)
         case .blur:
@@ -777,7 +779,9 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     }
 
     private func setCardTintColor(_ color: UIColor) {
+        guard !cardTintColor.isEqual(color) else { return }
         cardTintColor = color
+        for (key, surface) in cardMaterialViews { surface.effect = effect(for: cardSpecs[key] ?? [:]) }
         updateNativeCardTint()
     }
 
@@ -789,11 +793,10 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     }
 
     private func applyTint(to surface: UIVisualEffectView, spec: [String: Any]) {
-        let isSegment = (spec["segment"] as? String) != nil
-        let isAction = (spec["homeControl"] as? Bool) == true
-        let alpha: CGFloat = isAction ? (cardMaterialMode == .blur ? 0.70 : 0.22)
-            : (cardMaterialMode == .blur ? 0.24 : 0.10)
-        surface.contentView.backgroundColor = isSegment ? .clear : cardTintColor.withAlphaComponent(alpha)
+        // Glass supplies its own fill/refraction. A painted fill conceals it.
+        if #available(iOS 26.0, *), surface.effect is UIGlassEffect {
+            surface.contentView.backgroundColor = .clear
+        } else { surface.contentView.backgroundColor = cardTintColor.withAlphaComponent(0.24) }
     }
 
     private func updateNativeCardTint() {
@@ -985,32 +988,18 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             surface.contentView.addSubview(segment)
             nativeSegments[key] = segment
         }
-        // The track follows the card tint with a slight tonal adjustment so
-        // the selected capsule remains distinct even when both colors are white.
         segment.backgroundColor = .clear
-        let dark = traitCollection.userInterfaceStyle == .dark
-        let card = storedColor("cardColor", lightDefault: "#FFFFFF", darkDefault: "#1C1C1E").resolvedColor(with: traitCollection)
-        var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
-        card.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
-        let tone: CGFloat = dark ? 1.4 : 0.9
-        surface.contentView.backgroundColor = UIColor(red: min(1, red * tone), green: min(1, green * tone), blue: min(1, blue * tone), alpha: 0.6)
         // All three pickers share one translucent track and selected capsule.
         // Clear the built-in background so UIKit doesn't stack a darker pill.
         if nativeSegmentStyles[key] != traitCollection.userInterfaceStyle {
             let clear = UIGraphicsImageRenderer(size: CGSize(width: 1, height: 1)).image { _ in }
             segment.setBackgroundImage(clear, for: .normal, barMetrics: .default)
-            segment.setBackgroundImage(clear, for: .selected, barMetrics: .default)
             segment.setDividerImage(clear, forLeftSegmentState: .normal, rightSegmentState: .normal, barMetrics: .default)
             nativeSegmentStyles[key] = traitCollection.userInterfaceStyle
         }
-        if nativeSelectedCapsules[key] == nil {
-            let capsule = UIView()
-            capsule.isUserInteractionEnabled = false
-            surface.contentView.insertSubview(capsule, belowSubview: segment)
-            nativeSelectedCapsules[key] = capsule
-        }
         let selectedColor = storedColor("buttonColor", lightDefault: "#FFFFFF", darkDefault: "#FFFFFF").resolvedColor(with: traitCollection)
-        nativeSelectedCapsules[key]?.backgroundColor = selectedColor
+        segment.selectedSegmentTintColor = selectedColor
+        var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
         let font = themeFont?.withSize(12) ?? UIFont.systemFont(ofSize: 12, weight: .semibold)
         segment.setTitleTextAttributes([.font: font, .foregroundColor: UIColor.label], for: .normal)
         selectedColor.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
@@ -1024,13 +1013,6 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         let selected = (spec["selected"] as? NSNumber)?.intValue ?? 0
         if segment.selectedSegmentIndex != selected {
             segment.selectedSegmentIndex = selected
-        }
-        if let capsule = nativeSelectedCapsules[key] {
-            let width = surface.bounds.width / CGFloat(segment.numberOfSegments)
-            capsule.frame = CGRect(x: CGFloat(selected) * width + 2, y: 2,
-                width: width - 4, height: surface.bounds.height - 4)
-            capsule.layer.cornerRadius = capsule.bounds.height / 2
-            capsule.clipsToBounds = true
         }
     }
 
@@ -1074,16 +1056,19 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
                 }
                 cardMaterialHosts[key]?.isHidden = false
                 cardMaterialHosts[key]?.frame = clip
-                // Crop the external native shadow while preserving the system material.
-                cardMaterialHosts[key]?.clipsToBounds = true
+                // Clip only animated fold overflow; let UIKit render the glass edge.
                 let cropped = clip.minX > frame.minX + 0.5 || clip.minY > frame.minY + 0.5
                     || clip.maxX < frame.maxX - 0.5 || clip.maxY < frame.maxY - 0.5
                 surface.frame = CGRect(x: frame.minX - clip.minX, y: frame.minY - clip.minY, width: frame.width, height: frame.height)
                 let requested = CGFloat((spec["radius"] as? NSNumber)?.doubleValue ?? 24)
                 // CSS uses 999px for pills; CALayer needs the actual finite radius.
                 surface.layer.cornerRadius = min(max(0, requested), min(frame.width, frame.height) / 2)
-                cardMaterialHosts[key]?.layer.cornerCurve = .continuous
-                cardMaterialHosts[key]?.layer.cornerRadius = cropped ? 0 : surface.layer.cornerRadius
+                if #available(iOS 26.0, *), surface.effect is UIGlassEffect {
+                    surface.cornerConfiguration = .fixed(surface.layer.cornerRadius)
+                    surface.clipsToBounds = false
+                } else { surface.clipsToBounds = true }
+                cardMaterialHosts[key]?.clipsToBounds = cropped
+                cardMaterialHosts[key]?.layer.cornerRadius = 0
                 applyTint(to: surface, spec: spec)
                 configureSymbol(in: surface, key: key, spec: spec)
                 removeExtraLayerShadows(surface.layer)
@@ -1115,7 +1100,6 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             nativeSymbols.removeValue(forKey: key)?.removeFromSuperview()
             nativeSegments.removeValue(forKey: key)
             nativeSegmentStyles.removeValue(forKey: key)
-            nativeSelectedCapsules.removeValue(forKey: key)?.removeFromSuperview()
         }
         cardDocumentFrames = frames
         cardSpecs = specs

@@ -13,7 +13,7 @@ let payloads=[],listeners={},raf=[],selected=0,expanded=false;
 const ctx={scrollX:0,scrollY:0,WeakMap,Math,JSON,parseFloat,setTimeout:()=>{},requestAnimationFrame:f=>{raf.push(f);return raf.length},addEventListener:(name,f)=>listeners[name]=f,getComputedStyle:e=>e.css||({display:'block',visibility:'visible',opacity:'1',borderTopLeftRadius:'999px'}),MutationObserver:class{observe(){}},ResizeObserver:class{observe(){}}};
 const fold={tagName:'DETAILS',open:false,parentElement:null,classList:{contains:c=>c==='settingsFold'||(c==='is-expanded'&&expanded)},css:{display:'block',visibility:'visible',opacity:'1',overflow:'hidden'},getBoundingClientRect:()=>({left:0,top:400-ctx.scrollY,width:380,height:140})};
 const nodes=specs.map((spec,i)=>({id:spec.id,dataset:{},parentElement:i===3?fold:null,classList:{contains:c=>spec.classes.includes(c)},matches:()=>spec.home,getBoundingClientRect:()=>({...spec,top:spec.top-ctx.scrollY,left:spec.left-ctx.scrollX}),querySelector:()=>i===2?{dataset:{systemIcon:'heart'},textContent:'♡',getBoundingClientRect:()=>({left:29-ctx.scrollX,top:3214-ctx.scrollY,width:28,height:28})}:null,querySelectorAll:()=>[0,1].map(i=>({classList:{contains:c=>c==='active'&&selected===i}}))}));
-ctx.document={body:{classList:{add(){}}},addEventListener(){},querySelectorAll:()=>nodes};
+ctx.document={documentElement:{classList:{add(){}}},body:{classList:{add(){}}},addEventListener(){},querySelectorAll:()=>nodes};
 ctx.window=ctx;ctx.webkit={messageHandlers:{cardGlassRects:{postMessage:r=>payloads.push(r)}}};
 vm.runInNewContext(bridge,ctx);raf.shift()();
 assert.equal(payloads[0].length,3,'closed fold must omit descendants despite their nonzero rectangles');
