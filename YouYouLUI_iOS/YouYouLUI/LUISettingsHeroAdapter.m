@@ -26,8 +26,8 @@ static CGFloat LUISettingsSafeLineHeight(UIFont *font) { return font.lineHeight;
 - (instancetype)initWithSwitch:(UISwitch *)toggle {
     if (!(self = [super initWithFrame:CGRectMake(0,0,44,26)])) return nil;
     self.sourceSwitch = toggle; toggle.hidden = YES; [self addSubview:toggle];
-    self.track = [UIView new]; self.track.isUserInteractionEnabled = NO; self.track.layer.cornerRadius = 10; self.track.layer.borderWidth = 1; [self addSubview:self.track];
-    self.knob = [UIView new]; self.knob.isUserInteractionEnabled = NO; self.knob.layer.cornerRadius = 9; self.knob.layer.borderWidth = 1; [self.track addSubview:self.knob];
+    self.track = [UIView new]; self.track.userInteractionEnabled = NO; self.track.layer.cornerRadius = 10; self.track.layer.borderWidth = 1; [self addSubview:self.track];
+    self.knob = [UIView new]; self.knob.userInteractionEnabled = NO; self.knob.layer.cornerRadius = 9; self.knob.layer.borderWidth = 1; [self.track addSubview:self.knob];
     self.cloud = [[UIImageView alloc] initWithImage:[UIImage systemImageNamed:@"cloud.fill"]];self.cloud.tintColor = UIColor.whiteColor;self.cloud.contentMode = UIViewContentModeScaleAspectFit;[self.track addSubview:self.cloud];
     self.moon = [[UIImageView alloc] initWithImage:[UIImage systemImageNamed:@"moon.fill"]];self.moon.tintColor = UIColor.whiteColor;self.moon.contentMode = UIViewContentModeScaleAspectFit;[self.knob addSubview:self.moon];
     [self addTarget:self action:@selector(toggleValue) forControlEvents:UIControlEventTouchUpInside];
