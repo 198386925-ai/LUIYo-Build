@@ -86,7 +86,7 @@ struct LUIYoNativeHome: View {
     @State private var darkSelectedEnabled = false
     @State private var allEnabled = false
     private let catalog = NativeIconCatalog.load()
-    private var activeCategory: String { category == 0 ? "liquidui" : "wechat" }
+    private var activeCategory: String { category == 0 ? "wechat" : "liquidui" }
     private var categoryEntries: [NativeIconEntry] { catalog.entries.filter { $0.category == activeCategory } }
     private var visibleEntries: [NativeIconEntry] {
         let tokens = query.split(whereSeparator: { $0.isWhitespace }).map(String.init)
@@ -101,7 +101,7 @@ struct LUIYoNativeHome: View {
             .environment(\.nativeUseBlur, model.useBlur)
             .environment(\.nativeHomeTheme, model.theme)
             .sheet(isPresented: $showColors) { colorSettings }
-            .onChange(of: category) { value in model.send("category", ["category": value == 0 ? "liquidui" : "wechat"]) }
+            .onChange(of: category) { value in model.send("category", ["category": value == 0 ? "wechat" : "liquidui"]) }
             .onChange(of: showColors) { value in
                 if value {
                     let colors = model.savedColors
@@ -161,7 +161,7 @@ struct LUIYoNativeHome: View {
                     Text(model.status).font(model.font(size: 12)).foregroundStyle(.secondary).accessibilityIdentifier("nativeHomeStatus")
                 }
                 HStack {
-                    Text(category == 0 ? "LiquidUI 图标" : "原版微信图标").font(model.font(size: 17, weight: .semibold))
+                    Text(category == 0 ? "原版微信图标" : "LiquidUI 图标").font(model.font(size: 17, weight: .semibold))
                     Spacer()
                     Text("\(categoryEntries.count) 项").font(model.font(size: 12)).foregroundStyle(.secondary)
                 }
@@ -437,7 +437,7 @@ private struct NativeHomeCategoryPicker: UIViewRepresentable {
 // A solid selected pill sits above native glass; the control remains independently tappable.
 private final class NativeCategoryGlassView: UIView {
     let material = NativeMaterialView()
-    let control = UISegmentedControl(items: ["LiquidUI", "原版微信"])
+    let control = UISegmentedControl(items: ["原版微信", "LiquidUI"])
     private let selectedPill = UIView()
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -477,10 +477,12 @@ private final class NativeCategoryGlassView: UIView {
             }
         }
         control.selectedSegmentTintColor = .clear
-        selectedPill.backgroundColor = UIColor(nativeHex: theme.button)
+        selectedPill.backgroundColor = theme.customButton ? UIColor(nativeHex: theme.button) : UIColor(nativeHex: "#007AFE")
+        selectedPill.layer.borderWidth = theme.customButton ? 1 : 0
+        selectedPill.layer.borderColor = UIColor.systemBlue.cgColor
         let textFont = font?.withSize(13) ?? UIFont.systemFont(ofSize: 13, weight: .semibold)
         control.setTitleTextAttributes([.font: textFont, .foregroundColor: UIColor.label], for: .normal)
-        control.setTitleTextAttributes([.font: textFont, .foregroundColor: UIColor(nativeHex: theme.actionText)], for: .selected)
+        control.setTitleTextAttributes([.font: textFont, .foregroundColor: theme.customButton ? UIColor(nativeHex: theme.actionText) : UIColor.white], for: .selected)
         material.setNeedsLayout()
         setNeedsLayout()
     }

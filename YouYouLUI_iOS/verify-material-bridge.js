@@ -10,14 +10,15 @@ const specs=[
 {id:'fillBtn',left:15,top:300,width:340,height:48,classes:[],home:true}
 ];
 let payloads=[],listeners={},raf=[],selected=0,expanded=false;
-const ctx={scrollX:0,scrollY:0,WeakMap,Math,JSON,parseFloat,setTimeout:()=>{},requestAnimationFrame:f=>{raf.push(f);return raf.length},addEventListener:(name,f)=>listeners[name]=f,getComputedStyle:e=>e.css||({display:'block',visibility:'visible',opacity:'1',borderTopLeftRadius:'999px'}),MutationObserver:class{observe(){}},ResizeObserver:class{observe(){}}};
+const pickerStorage=new Map();let pickerColor="#FFFFFF";
+const ctx={localStorage:{getItem:key=>pickerStorage.get(key)||null},scrollX:0,scrollY:0,WeakMap,Math,JSON,parseFloat,setTimeout:()=>{},requestAnimationFrame:f=>{raf.push(f);return raf.length},addEventListener:(name,f)=>listeners[name]=f,getComputedStyle:e=>e.css||({display:'block',visibility:'visible',opacity:'1',borderTopLeftRadius:'999px',getPropertyValue:()=>pickerColor}),MutationObserver:class{observe(){}},ResizeObserver:class{observe(){}}};
 const fold={tagName:'DETAILS',open:false,parentElement:null,classList:{contains:c=>c==='settingsFold'||(c==='is-expanded'&&expanded)},css:{display:'block',visibility:'visible',opacity:'1',overflow:'hidden'},getBoundingClientRect:()=>({left:0,top:400-ctx.scrollY,width:380,height:140})};
 const nodes=specs.map((spec,i)=>({id:spec.id,dataset:{},parentElement:i===3?fold:null,classList:{contains:c=>spec.classes.includes(c)},matches:()=>spec.home,getBoundingClientRect:()=>({...spec,top:spec.top-ctx.scrollY,left:spec.left-ctx.scrollX}),querySelector:()=>i===2?{dataset:{systemIcon:'heart'},textContent:'♡',getBoundingClientRect:()=>({left:29-ctx.scrollX,top:3214-ctx.scrollY,width:28,height:28})}:null,querySelectorAll:()=>[0,1].map(i=>({classList:{contains:c=>c==='active'&&selected===i}}))}));
-ctx.document={documentElement:{classList:{add(){}}},body:{classList:{add(){}}},addEventListener(){},querySelectorAll:()=>nodes};
+ctx.document={documentElement:{dataset:{appearance:"light"},classList:{add(){}}},body:{classList:{add(){}}},addEventListener(){},querySelectorAll:()=>nodes};
 ctx.window=ctx;ctx.webkit={messageHandlers:{cardGlassRects:{postMessage:r=>payloads.push(r)}}};
 vm.runInNewContext(bridge,ctx);raf.shift()();
 assert.equal(payloads[0].length,3,'closed fold must omit descendants despite their nonzero rectangles');
-assert.equal(payloads[0][0].radius,24);assert.equal(payloads[0][0].forceLiquid,false);assert(!payloads[0].some(x=>x.key==='id:fillBtn'));assert.equal(payloads[0][1].radius,17);assert.equal(payloads[0][1].segment,'category');assert.equal(payloads[0][2].y,3200);assert.equal(payloads[0][2].systemIcon,'heart');assert.equal(payloads[0][2].iconX,14);assert.equal(payloads[0][2].iconY,14);assert.equal(payloads[0][2].iconWidth,28);assert.equal(listeners.scroll,undefined);
+assert.equal(payloads[0][0].radius,24);assert.equal(payloads[0][0].forceLiquid,false);assert(!payloads[0].some(x=>x.key==='id:fillBtn'));assert.equal(payloads[0][1].radius,17);assert.equal(payloads[0][1].segment,'category');assert.equal(payloads[0][2].y,3200);assert.equal(payloads[0][2].systemIcon,'heart');assert.equal(payloads[0][2].iconX,14);assert.equal(payloads[0][2].iconY,14);assert.equal(payloads[0][2].iconWidth,28);assert.equal(listeners.scroll,undefined);assert.equal(payloads[0][1].selectedColor,'#007AFE');
 ctx.scrollY=600;ctx.__syncNativeCardGlass();raf.shift()();assert.equal(payloads.length,1,'scroll must not send different document frames');
 selected=1;ctx.__syncNativeCardGlass();raf.shift()();assert.equal(payloads[1][1].selected,1);assert.equal(payloads[1][0].y,240);
 fold.open=true;expanded=true;ctx.__syncNativeCardGlass();raf.shift()();
@@ -26,6 +27,8 @@ assert.equal(picker.clipHeight,20,'material must clip to the animated fold bound
 assert.equal(picker.clipY,520,'clip coordinates must stay in document space');
 expanded=false;ctx.__syncNativeCardGlass();raf.shift()();
 assert(!payloads.at(-1).some(x=>x.key==='id:materialModePicker'),'closing fold must remove native control before open becomes false');
+pickerStorage.set('youyou.theme.buttonColor.custom.light','1');pickerColor='#385170';ctx.__syncNativeCardGlass();raf.shift()();assert.equal(payloads.at(-1)[1].selectedColor,'#385170','custom picker color reaches UIKit');
+pickerStorage.delete('youyou.theme.buttonColor.custom.light');ctx.__syncNativeCardGlass();raf.shift()();assert.equal(payloads.at(-1)[1].selectedColor,'#007AFE','reset restores visible selection');
 assert(h.includes('id="specialThanks" hidden'));assert(!h.includes('data-material="solid"'));assert(h.includes('compact-category-and-system-dark-v103'));
 console.log('Passed: hidden and closing fold cleanup, native clipping bounds, compact capsule geometry, stable scroll coordinates, category selection and settings visibility.');
 

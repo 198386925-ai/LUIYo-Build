@@ -11,6 +11,10 @@ const dom=new JSDOM(fs.readFileSync(root+'Web/index.html','utf8').replace('<scri
   w.webkit={messageHandlers:new Proxy({},{get:(_,name)=>({postMessage:body=>messages.push({name,body})})})};
  }});
 (async()=>{const w=dom.window,d=w.document;await new Promise(r=>setTimeout(r,100));assert.deepEqual(errors,[]);
+ assert.deepEqual([...d.querySelectorAll('.categorytabs button')].map(el=>el.id),['tabWechat','tabLui']);
+ assert.equal(d.querySelector('.categorytabs button.active').id,'tabWechat');
+ assert.equal(d.getElementById('sectionTitle').textContent,'原版微信图标');
+ assert.equal(d.querySelectorAll('#list .card').length,199);
  const catalog=JSON.parse(fs.readFileSync(root+'Web/native-preview-catalog.json','utf8'));
  const runtime=JSON.parse(w.eval('JSON.stringify(items)'));
  for(const entry of catalog.entries){assert(!runtime[entry.id].hiddenFromUI);assert.equal(entry.category,runtime[entry.id].category);assert.equal(entry.title,runtime[entry.id].title.replace(/^LiquidUI\s*/,''));}

@@ -71,6 +71,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     private var cardSpecs: [String: [String: Any]] = [:]
     private var cardOrder: [String] = []
     private var nativeSegments: [String: UISegmentedControl] = [:]
+    private var nativeSelectedPills: [String: UIView] = [:]
     private var nativeSymbols: [String: UIImageView] = [:]
     private var nativeSegmentStyles: [String: UIUserInterfaceStyle] = [:]
     private var scrollOffsetObservation: NSKeyValueObservation?
@@ -371,7 +372,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             const bg=document.getElementById('appBackgroundColor');bg.value='#325A70';bg.dispatchEvent(new Event('input'));
             const card=document.getElementById('appCardColor');card.value=\(rawScenario.hasPrefix("dark-") ? "'#503B48'" : "'#F2C9B0'");card.dispatchEvent(new Event('input'));
             const color=document.getElementById('appButtonColor');color.value=\(rawScenario.hasPrefix("dark-") ? "'#446078'" : "'#C58C48'");color.dispatchEvent(new Event('input'));
-            if ('\(page)' === 'home') document.querySelectorAll('.categorytabs button')[1].click();
+            if ('\(page)' === 'home') document.getElementById('tabWechat').click();
         }
         if (\(rawScenario.contains("buttons-reset"))) {
             const color=document.getElementById('appButtonColor');color.value='#446078';color.dispatchEvent(new Event('input'));
@@ -461,13 +462,13 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
                 result["pageTitlesMatch"] = titlesMatch
                 result["webContentInSelectedPage"] = self.webView.superview === self.selectedViewController?.view
                 result["passed"] = (!folded || !hasPicker) && titlesMatch && readable && nativeTitlesOnly && compactCategory && compactMaterial && creditCorrect && smooth && nativeSurfacesVisible && solidActions && solidToolCard && bottomCorrect && searchDialogCorrect && noNativeActions && searchCorrect && dark == expectedDark && (styles["dark"] as? Bool) == dark
-                result["selectedCapsuleAlphas"] = self.nativeSegments.values.map { Double($0.selectedSegmentTintColor?.cgColor.alpha ?? 1) }
+                result["selectedCapsuleAlphas"] = self.nativeSelectedPills.values.map { Double($0.backgroundColor?.cgColor.alpha ?? 1) }
                 result["pickerStyles"] = self.nativeSegments.map { key, segment -> [String: Any] in
                     let attributes = segment.titleTextAttributes(for: .selected) ?? [:]
                     let text = attributes[.foregroundColor] as? UIColor
                     return ["kind": self.cardSpecs[key]?["segment"] as? String ?? "", "selected": segment.selectedSegmentIndex,
                         "track": segment.superview?.backgroundColor?.cgColor.components?.map { Double($0) } ?? [],
-                        "capsule": segment.selectedSegmentTintColor?.cgColor.components?.map { Double($0) } ?? [],
+                        "capsule": self.nativeSelectedPills[key]?.backgroundColor?.cgColor.components?.map { Double($0) } ?? [],
                         "selectedText": text?.resolvedColor(with: self.traitCollection).cgColor.components?.map { Double($0) } ?? []]
                 }
                 result["nativeFontRestoredOnLoad"] = self.restoredNativeFont
@@ -971,7 +972,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
 
     private func configureSegment(in surface: UIVisualEffectView, key: String, spec: [String: Any]) {
         guard let kind = spec["segment"] as? String else { return }
-        let titles = kind == "category" ? ["LiquidUI", "原版微信"]
+        let titles = kind == "category" ? ["原版微信", "LiquidUI"]
             : (kind == "appearance" ? ["跟随系统", "浅色", "深色"] : kind == "search" ? ["关闭", "合并", "分开"] : ["液态玻璃", "原生磨砂"])
         let segment: UISegmentedControl
         if let existing = nativeSegments[key] {
@@ -985,6 +986,11 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             let font = UIFont.systemFont(ofSize: 12, weight: .semibold)
             segment.setTitleTextAttributes([.font: font, .foregroundColor: UIColor.label], for: .normal)
             segment.setTitleTextAttributes([.font: font, .foregroundColor: UIColor.label], for: .selected)
+            let pill = UIView()
+            pill.isUserInteractionEnabled = false
+            pill.accessibilityElementsHidden = true
+            surface.contentView.addSubview(pill)
+            nativeSelectedPills[key] = pill
             surface.contentView.addSubview(segment)
             nativeSegments[key] = segment
         }
@@ -994,11 +1000,13 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         if nativeSegmentStyles[key] != traitCollection.userInterfaceStyle {
             let clear = UIGraphicsImageRenderer(size: CGSize(width: 1, height: 1)).image { _ in }
             segment.setBackgroundImage(clear, for: .normal, barMetrics: .default)
+            segment.setBackgroundImage(clear, for: .selected, barMetrics: .default)
+            segment.setBackgroundImage(clear, for: [.selected, .highlighted], barMetrics: .default)
             segment.setDividerImage(clear, forLeftSegmentState: .normal, rightSegmentState: .normal, barMetrics: .default)
             nativeSegmentStyles[key] = traitCollection.userInterfaceStyle
         }
-        let selectedColor = storedColor("buttonColor", lightDefault: "#FFFFFF", darkDefault: "#FFFFFF").resolvedColor(with: traitCollection)
-        segment.selectedSegmentTintColor = selectedColor
+        let selectedColor = color(fromHex: spec["selectedColor"] as? String ?? "#007AFE") ?? .systemBlue
+        segment.selectedSegmentTintColor = .clear
         var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
         let font = themeFont?.withSize(12) ?? UIFont.systemFont(ofSize: 12, weight: .semibold)
         segment.setTitleTextAttributes([.font: font, .foregroundColor: UIColor.label], for: .normal)
@@ -1013,6 +1021,18 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         let selected = (spec["selected"] as? NSNumber)?.intValue ?? 0
         if segment.selectedSegmentIndex != selected {
             segment.selectedSegmentIndex = selected
+        }
+        if let pill = nativeSelectedPills[key], surface.bounds.width > 4, surface.bounds.height > 4 {
+            let track = surface.bounds.insetBy(dx: 2, dy: 2)
+            let width = track.width / CGFloat(segment.numberOfSegments)
+            UIView.performWithoutAnimation {
+                pill.frame = CGRect(x: track.minX + CGFloat(selected) * width, y: track.minY, width: width, height: track.height)
+                pill.backgroundColor = selectedColor
+                pill.layer.cornerRadius = track.height / 2
+                pill.layer.cornerCurve = .continuous
+                pill.layer.borderWidth = 1
+                pill.layer.borderColor = UIColor.systemBlue.cgColor
+            }
         }
     }
 
@@ -1099,6 +1119,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             cardMaterialHosts.removeValue(forKey: key)?.removeFromSuperview()
             nativeSymbols.removeValue(forKey: key)?.removeFromSuperview()
             nativeSegments.removeValue(forKey: key)
+            nativeSelectedPills.removeValue(forKey: key)?.removeFromSuperview()
             nativeSegmentStyles.removeValue(forKey: key)
         }
         cardDocumentFrames = frames
