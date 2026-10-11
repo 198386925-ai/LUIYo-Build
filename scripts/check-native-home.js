@@ -5,9 +5,11 @@ const messages=[],errors=[],vc=new VirtualConsole();vc.on('jsdomError',e=>errors
 const watchdog=setTimeout(()=>{console.error('Native home test timed out');process.exit(1)},15000);
 const dom=new JSDOM(fs.readFileSync(root+'Web/index.html','utf8').replace('<script src="jszip.min.js"></script>',''),{
  url:'https://test.local',runScripts:'dangerously',pretendToBeVisual:true,virtualConsole:vc,beforeParse(w){
-  // This harness validates synchronous DOM/native bridge behavior; disable jsdom's
-  // animation-frame pump so closing the test window cannot race a queued callback.
-  w.requestAnimationFrame=()=>0;w.cancelAnimationFrame=()=>{};
+  // Drive animation frames with cancellable timers so scroll assertions remain deterministic.
+  const rafTimers=new Map();let rafId=0;
+  w.requestAnimationFrame=cb=>{const id=++rafId;const timer=setTimeout(()=>{rafTimers.delete(id);cb(Date.now())},0);rafTimers.set(id,timer);return id};
+  w.cancelAnimationFrame=id=>{clearTimeout(rafTimers.get(id));rafTimers.delete(id)};
+  w.__clearTestRafs=()=>{for(const timer of rafTimers.values())clearTimeout(timer);rafTimers.clear()};
   w.matchMedia=()=>({matches:false,addEventListener(){}});w.alert=()=>{};w.setImmediate=setImmediate;w.clearImmediate=clearImmediate;
   w.URL.createObjectURL=()=> 'blob:test';w.URL.revokeObjectURL=()=>{};
   w.indexedDB={open(){const r={};setTimeout(()=>r.onerror?.(),1);return r}};
@@ -92,5 +94,5 @@ const dom=new JSDOM(fs.readFileSync(root+'Web/index.html','utf8').replace('<scri
  assert.equal(scrollTargets.at(-1),'luiyoSettingsHero');
  console.log('Passed: hero stays above authorization; info/changelog open, scroll to content, close on a second tap and cancel stale scrolling.');
  console.log('Passed: native single/batch upload, 199 stock entries, removal, 325 visible/396 original filenames / 388 engine fill, colors, revocation, real ZIP and native rename/share.');
- await new Promise(r=>setTimeout(r,120));clearTimeout(watchdog);dom.window.close();
+ await new Promise(r=>setTimeout(r,120));w.__clearTestRafs();clearTimeout(watchdog);dom.window.close();
 })().catch(error=>{console.error(error);clearTimeout(watchdog);dom.window.close();process.exitCode=1});
