@@ -51,12 +51,12 @@ struct NativeHomeTheme: Equatable {
     init(_ values: [String: Any]) {
         background = values["background"] as? String ?? background
         card = values["card"] as? String ?? card
-        button = values["button"] as? String ?? button
-        actionText = values["actionText"] as? String ?? actionText
+        button = "#FFFFFF"
+        actionText = "#202832"
         dark = values["dark"] as? Bool ?? dark
-        customButton = values["customButton"] as? Bool ?? customButton
+        customButton = false
         bottomSearchEnabled = values["bottomSearchEnabled"] as? Bool ?? bottomSearchEnabled
-        toolbarOpacity = min(1, max(0, values["toolbarOpacity"] as? Double ?? toolbarOpacity))
+        toolbarOpacity = 1
     }
 }
 
@@ -165,6 +165,9 @@ struct LUIYoNativeHome: View {
                     Spacer()
                     Text("\(categoryEntries.count) 项").font(model.font(size: 12)).foregroundStyle(.secondary)
                 }
+                if visibleEntries.isEmpty && !query.isEmpty {
+                    Text("没有匹配的图标").font(model.font(size: 13)).foregroundStyle(.secondary)
+                }
                 NativeGlassGroup {
                     LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible())], spacing: 10) {
                         ForEach(visibleEntries) { item in
@@ -247,9 +250,9 @@ struct LUIYoNativeHome: View {
                 }.modifier(NativeActionStyle()).controlSize(.large).accessibilityIdentifier("nativeColorSettings")
                 HStack(spacing: 8) {
                     NativeGlassActionButton(title: "清空", symbol: "trash", color: "#007AFE", font: model.importedFont,
-                        useBlur: model.useBlur) { model.send("clear", [:]) }.frame(maxWidth: .infinity).frame(height: 48)
+                        useBlur: model.useBlur) { model.send("clear", [:]) }.frame(maxWidth: .infinity).frame(height: 44)
                     NativeGlassActionButton(title: "导出 ZIP", symbol: "square.and.arrow.up", color: "#46D86A", font: model.importedFont,
-                        useBlur: model.useBlur) { model.send("export", [:]) }.frame(maxWidth: .infinity).frame(height: 48)
+                        useBlur: model.useBlur) { model.send("export", [:]) }.frame(maxWidth: .infinity).frame(height: 44)
                 }.font(model.font(size: 13, weight: .semibold))
             }
         }
@@ -327,7 +330,7 @@ private struct NativeHomeActionButtonStyle: ButtonStyle {
     var opacity: Double
     func makeBody(configuration: Configuration) -> some View {
         configuration.label.foregroundStyle(text)
-            .padding(.horizontal, 14).frame(minHeight: 48)
+            .padding(.horizontal, 14).frame(minHeight: 44)
             .background(NativeMaterialSurface(useBlur: useBlur, tint: tint, opacity: opacity, radius: -1))
             .contentShape(Capsule())
     }
@@ -516,7 +519,7 @@ private final class NativeCategoryGlassView: UIView {
         }
         control.selectedSegmentTintColor = .clear
         selectedPill.backgroundColor = .white
-        selectedPill.layer.borderWidth = 1
+        selectedPill.layer.borderWidth = 0
         selectedPill.layer.borderColor = UIColor(white: 0.65, alpha: 1).cgColor
         let textFont = font?.withSize(13) ?? UIFont.systemFont(ofSize: 13, weight: .semibold)
         control.setTitleTextAttributes([.font: textFont, .foregroundColor: UIColor.label], for: .normal)

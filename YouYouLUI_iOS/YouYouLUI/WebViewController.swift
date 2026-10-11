@@ -72,6 +72,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     private var cardOrder: [String] = []
     private var nativeSegments: [String: UISegmentedControl] = [:]
     private var nativeSelectedPills: [String: UIView] = [:]
+    private var nativeLicenseButtons: [String: UIButton] = [:]
     private var retainedTabs: [String: AnyObject] = [:]
     private var nativeSymbols: [String: UIImageView] = [:]
     private var nativeSegmentStyles: [String: UIUserInterfaceStyle] = [:]
@@ -89,12 +90,14 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     (() => {
       let authorized = false;
       const css = document.createElement('style');
-      css.textContent = `.luiyoActivationEntry{margin:0 0 14px;padding:17px 18px;border:0;border-radius:28px;background:var(--card-color,#fff)}
+      css.textContent = `.luiyoActivationEntry{margin:0 0 8px;padding:17px 18px;border:0;border-radius:28px;background:var(--card-color,#fff)}
         body.native-card-glass .luiyoActivationEntry{background:transparent!important;box-shadow:none!important}
         .luiyoActivationEntry strong{display:block;font-size:15px}.luiyoActivationEntry small{display:block;margin-top:5px;color:var(--muted,#8b8f98);font-size:12px}
-        .luiyoActivationForm{display:flex;gap:8px;margin-top:14px;align-items:center}.luiyoActivationForm[hidden]{display:none!important}
-        #luiyoLicenseCode{flex:1;min-width:0;height:44px;box-sizing:border-box;padding:0 12px;border:1px solid rgba(130,130,140,.25);border-radius:14px;background:transparent;color:inherit;font-size:14px}
-        #luiyoLicenseSubmit{height:44px;border:0;border-radius:14px;padding:0 14px;background:#6968e8;color:white;font-weight:600;white-space:nowrap}`;
+        .luiyoActivationForm{display:flex;gap:8px;margin:8px 12px 12px!important;align-items:center}.luiyoActivationForm[hidden]{display:none!important}
+        #luiyoLicenseCode{flex:1;min-width:0;height:44px;box-sizing:border-box;padding:0 12px;border:0;border-radius:22px;background:transparent;color:inherit;font-size:14px}
+        #luiyoLicenseSubmit{height:44px;border:0;border-radius:22px;padding:0 14px;background:#6968e8;color:white;font-weight:600;white-space:nowrap}
+        body.native-card-glass #luiyoLicenseSubmit{background:transparent!important;color:transparent!important}
+        body.native-card-glass #luiyoLicenseCode{background:transparent!important;border:0!important}`;
       document.head.appendChild(css);
       const settings = document.getElementById('settingsTarget');
       if (settings) {
@@ -1042,7 +1045,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
                 pill.backgroundColor = selectedColor
                 pill.layer.cornerRadius = track.height / 2
                 pill.layer.cornerCurve = .continuous
-                pill.layer.borderWidth = 1
+                pill.layer.borderWidth = 0
                 pill.layer.borderColor = UIColor(white: 0.65, alpha: 1).cgColor
             }
         }
@@ -1103,6 +1106,39 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
                 cardMaterialHosts[key]?.layer.cornerRadius = 0
                 applyTint(to: surface, spec: spec)
                 configureSymbol(in: surface, key: key, spec: spec)
+                if spec["ruleSurface"] as? Bool == true, let host = cardMaterialHosts[key] {
+                    host.layer.cornerRadius = cropped ? 0 : surface.layer.cornerRadius
+                    host.clipsToBounds = true
+                }
+                if spec["licenseButton"] as? Bool == true {
+                    let button = nativeLicenseButtons[key] ?? UIButton(type: .system)
+                    if nativeLicenseButtons[key] == nil {
+                        button.isUserInteractionEnabled = false
+                        button.accessibilityElementsHidden = true
+                        surface.contentView.addSubview(button)
+                        nativeLicenseButtons[key] = button
+                    }
+                    var configuration: UIButton.Configuration
+                    if #available(iOS 26.0, *), cardMaterialMode == .liquid { configuration = .prominentGlass() }
+                    else {
+                        configuration = .plain()
+                        configuration.background.visualEffect = UIBlurEffect(style: .systemMaterial)
+                    }
+                    configuration.title = spec["licenseTitle"] as? String ?? "激活"
+                    configuration.baseBackgroundColor = UIColor(nativeHex: "#6968E8")
+                    configuration.baseForegroundColor = .white
+                    configuration.cornerStyle = .capsule
+                    let font = themeFont?.withSize(13) ?? UIFont.systemFont(ofSize: 13, weight: .semibold)
+                    configuration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
+                        var result = attributes; result.font = font; return result
+                    }
+                    button.configuration = configuration
+                    button.tintColor = UIColor(nativeHex: "#6968E8")
+                    button.frame = surface.bounds
+                    surface.effect = nil
+                    surface.contentView.backgroundColor = .clear
+                    surface.clipsToBounds = false
+                }
                 removeExtraLayerShadows(surface.layer)
                 if let host = cardMaterialHosts[key] { removeExtraLayerShadows(host.layer) }
                 configureSegment(in: surface, key: key, spec: spec)
@@ -1131,6 +1167,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             cardMaterialHosts.removeValue(forKey: key)?.removeFromSuperview()
             nativeSymbols.removeValue(forKey: key)?.removeFromSuperview()
             nativeSegments.removeValue(forKey: key)
+            nativeLicenseButtons.removeValue(forKey: key)?.removeFromSuperview()
             nativeSelectedPills.removeValue(forKey: key)?.removeFromSuperview()
             nativeSegmentStyles.removeValue(forKey: key)
         }
@@ -1590,9 +1627,12 @@ private final class LUIYoSearchViewController: UIViewController, UITextFieldDele
             control.translatesAutoresizingMaskIntoConstraints = false
             inputSurface.contentView.addSubview(control)
         }
+        let keyboardBottom = inputSurface.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor, constant: -12)
+        keyboardBottom.priority = .defaultHigh
         NSLayoutConstraint.activate([
+            keyboardBottom,
+            inputSurface.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -90),
             inputSurface.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 20),
-            inputSurface.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor, constant: -12),
             inputSurface.heightAnchor.constraint(equalToConstant: 44),
             close.leadingAnchor.constraint(equalTo: inputSurface.trailingAnchor, constant: 10),
             close.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
