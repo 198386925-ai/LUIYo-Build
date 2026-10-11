@@ -6,7 +6,7 @@ final class NativeHomeModel: ObservableObject {
     @Published var authorized = false
     @Published var uploadedCount = 0
     @Published var images: [Int: UIImage] = [:]
-    @Published var status = "正在加载图标…"
+    @Published var status = ""
     @Published var query = ""
     @Published var useBlur = false
     @Published var backgroundImage: UIImage?
@@ -155,10 +155,11 @@ struct LUIYoNativeHome: View {
                     }.padding(.horizontal, 14).frame(height: 48).modifier(NativeCardSurface())
                 }
                 tools
+                NativeHomeCategoryPicker(selection: $category, theme: model.theme, font: model.importedFont, useBlur: model.useBlur).frame(height: 34)
+                // Progress belongs after the picker, so loading cannot move the categories.
                 if !model.status.isEmpty && !model.status.hasPrefix("已上传 ") {
                     Text(model.status).font(model.font(size: 12)).foregroundStyle(.secondary).accessibilityIdentifier("nativeHomeStatus")
                 }
-                NativeHomeCategoryPicker(selection: $category, theme: model.theme, font: model.importedFont, useBlur: model.useBlur).frame(height: 34)
                 HStack {
                     Text(category == 0 ? "LiquidUI 图标" : "原版微信图标").font(model.font(size: 17, weight: .semibold))
                     Spacer()
@@ -332,7 +333,13 @@ private struct NativeHomeActionButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label.foregroundStyle(text)
             .padding(.horizontal, 14).frame(minHeight: 48)
-            .background(NativeMaterialSurface(useBlur: useBlur, tint: tint, opacity: opacity, radius: -1, solid: solid))
+            .background {
+                if solid {
+                    Capsule().fill(Color(uiColor: tint))
+                } else {
+                    NativeMaterialSurface(useBlur: useBlur, tint: tint, opacity: opacity, radius: -1)
+                }
+            }
             .contentShape(Capsule())
     }
 }
@@ -385,6 +392,7 @@ private final class NativeMaterialView: UIVisualEffectView {
     override func layoutSubviews() {
         super.layoutSubviews()
         removeExtraLayerShadows(layer)
+        guard bounds.width > 0, bounds.height > 0 else { return }
         let radius = shapeRadius < 0 ? bounds.height / 2 : min(shapeRadius, bounds.height / 2)
         if #available(iOS 26.0, *), effect is UIGlassEffect {
             // Let UIKit generate the optical rounded edge; never crop its layers.
@@ -417,7 +425,7 @@ private struct NativeHomeCategoryPicker: UIViewRepresentable {
     func updateUIView(_ view: NativeCategoryGlassView, context: Context) {
         context.coordinator.parent = self
         view.update(theme: theme, font: font, useBlur: useBlur)
-        view.control.selectedSegmentIndex = selection
+        view.setSelection(selection)
     }
     final class Coordinator: NSObject {
         var parent: NativeHomeCategoryPicker
@@ -426,10 +434,11 @@ private struct NativeHomeCategoryPicker: UIViewRepresentable {
     }
 }
 
-// Native glass below the unselected category; UIKit draws the selected segment.
+// A solid selected pill sits above native glass; the control remains independently tappable.
 private final class NativeCategoryGlassView: UIView {
     let material = NativeMaterialView()
     let control = UISegmentedControl(items: ["LiquidUI", "原版微信"])
+    private let selectedPill = UIView()
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = .clear
@@ -437,10 +446,18 @@ private final class NativeCategoryGlassView: UIView {
         material.isUserInteractionEnabled = false
         material.accessibilityElementsHidden = true
         addSubview(material)
-        material.contentView.addSubview(control)
+        selectedPill.isUserInteractionEnabled = false
+        selectedPill.accessibilityElementsHidden = true
+        addSubview(selectedPill)
+        // Never put an interactive control inside a noninteractive material view.
+        addSubview(control)
+        control.selectedSegmentIndex = 0
+        control.addTarget(self, action: #selector(selectionChanged), for: .valueChanged)
         let transparent = UIGraphicsImageRenderer(size: CGSize(width: 1, height: 1)).image { _ in }
         control.backgroundColor = .clear
         control.setBackgroundImage(transparent, for: .normal, barMetrics: .default)
+        control.setBackgroundImage(transparent, for: .selected, barMetrics: .default)
+        control.setBackgroundImage(transparent, for: [.selected, .highlighted], barMetrics: .default)
         control.setDividerImage(transparent, forLeftSegmentState: .normal, rightSegmentState: .normal, barMetrics: .default)
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
@@ -459,16 +476,35 @@ private final class NativeCategoryGlassView: UIView {
                 material.contentView.backgroundColor = tint.withAlphaComponent(0.24)
             }
         }
-        control.selectedSegmentTintColor = UIColor(nativeHex: theme.button)
+        control.selectedSegmentTintColor = .clear
+        selectedPill.backgroundColor = UIColor(nativeHex: theme.button)
         let textFont = font?.withSize(13) ?? UIFont.systemFont(ofSize: 13, weight: .semibold)
         control.setTitleTextAttributes([.font: textFont, .foregroundColor: UIColor.label], for: .normal)
         control.setTitleTextAttributes([.font: textFont, .foregroundColor: UIColor(nativeHex: theme.actionText)], for: .selected)
         material.setNeedsLayout()
+        setNeedsLayout()
+    }
+    func setSelection(_ index: Int) {
+        if control.selectedSegmentIndex != index { control.selectedSegmentIndex = index }
+        layoutSelectedPill()
+    }
+    @objc private func selectionChanged() { layoutSelectedPill() }
+    private func layoutSelectedPill() {
+        guard bounds.width > 4, bounds.height > 4 else { return }
+        let track = bounds.insetBy(dx: 2, dy: 2)
+        let width = track.width / CGFloat(control.numberOfSegments)
+        let index = max(0, control.selectedSegmentIndex)
+        UIView.performWithoutAnimation {
+            selectedPill.frame = CGRect(x: track.minX + CGFloat(index) * width, y: track.minY, width: width, height: track.height)
+            selectedPill.layer.cornerRadius = track.height / 2
+            selectedPill.layer.cornerCurve = .continuous
+        }
     }
     override func layoutSubviews() {
         super.layoutSubviews()
         material.frame = bounds
         control.frame = bounds.insetBy(dx: 2, dy: 2)
+        layoutSelectedPill()
     }
 }
 

@@ -37,7 +37,9 @@ const dom=new JSDOM(fs.readFileSync(root+'Web/index.html','utf8').replace('<scri
  w.__luiyoSetAuthorized(true);
  const id=w.eval("items.findIndex(x=>!x.hiddenFromUI&&x.category==='wechat')");
  await cmd('files',{kind:'upload',id,files:[file]});assert(w.eval(`chosen.has(${id})`));
- await cmd('category',{category:'wechat'});assert.equal(d.querySelectorAll('#list .card').length,199);
+ for(const [category,count] of [['wechat',199],['liquidui',126],['wechat',199]]) {
+  await cmd('category',{category});assert.equal(d.querySelectorAll('#list .card').length,count,category+' switches the complete catalog');
+ }
  await cmd('remove',{id});assert(!w.eval(`chosen.has(${id})`));
  await cmd('clear');
  await cmd('files',{kind:'batch',files:[file]});assert(w.eval('chosen.size')>0,'Batch keeps original filename keyword matching');
