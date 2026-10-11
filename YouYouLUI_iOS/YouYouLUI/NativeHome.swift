@@ -380,6 +380,8 @@ private struct NativeMaterialSurface: UIViewRepresentable {
 private final class NativeMaterialView: UIVisualEffectView {
     var materialSignature = ""
     var shapeRadius: CGFloat = 20
+    private var appliedRadius: CGFloat = -1
+    private var appliedGlassMode = false
     override func layoutSubviews() {
         super.layoutSubviews()
         removeExtraLayerShadows(layer)
@@ -387,12 +389,17 @@ private final class NativeMaterialView: UIVisualEffectView {
         if #available(iOS 26.0, *), effect is UIGlassEffect {
             // Let UIKit generate the optical rounded edge; never crop its layers.
             clipsToBounds = false
-            cornerConfiguration = .fixed(radius)
+            if abs(appliedRadius - radius) > 0.1 || !appliedGlassMode {
+                cornerConfiguration = .uniformCorners(radius: .fixed(Double(radius)))
+            }
+            appliedGlassMode = true
         } else {
             clipsToBounds = true
             layer.cornerCurve = .continuous
             layer.cornerRadius = radius
+            appliedGlassMode = false
         }
+        appliedRadius = radius
     }
 }
 

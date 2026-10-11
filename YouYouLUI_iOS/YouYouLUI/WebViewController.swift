@@ -461,7 +461,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
                 result["pageTitlesMatch"] = titlesMatch
                 result["webContentInSelectedPage"] = self.webView.superview === self.selectedViewController?.view
                 result["passed"] = (!folded || !hasPicker) && titlesMatch && readable && nativeTitlesOnly && compactCategory && compactMaterial && creditCorrect && smooth && nativeSurfacesVisible && solidActions && solidToolCard && bottomCorrect && searchDialogCorrect && noNativeActions && searchCorrect && dark == expectedDark && (styles["dark"] as? Bool) == dark
-                result["selectedCapsuleAlphas"] = self.nativeSelectedCapsules.values.map { Double($0.backgroundColor?.cgColor.alpha ?? 1) }
+                result["selectedCapsuleAlphas"] = self.nativeSegments.values.map { Double($0.selectedSegmentTintColor?.cgColor.alpha ?? 1) }
                 result["pickerStyles"] = self.nativeSegments.map { key, segment -> [String: Any] in
                     let attributes = segment.titleTextAttributes(for: .selected) ?? [:]
                     let text = attributes[.foregroundColor] as? UIColor
@@ -1064,7 +1064,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
                 // CSS uses 999px for pills; CALayer needs the actual finite radius.
                 surface.layer.cornerRadius = min(max(0, requested), min(frame.width, frame.height) / 2)
                 if #available(iOS 26.0, *), surface.effect is UIGlassEffect {
-                    surface.cornerConfiguration = .fixed(surface.layer.cornerRadius)
+                    surface.cornerConfiguration = .uniformCorners(radius: .fixed(Double(surface.layer.cornerRadius)))
                     surface.clipsToBounds = false
                 } else { surface.clipsToBounds = true }
                 cardMaterialHosts[key]?.clipsToBounds = cropped
