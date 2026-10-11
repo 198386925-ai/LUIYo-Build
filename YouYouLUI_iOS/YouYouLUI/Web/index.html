@@ -2198,3 +2198,66 @@ function closeInfoPage(kind){
  new MutationObserver(schedule).observe(document.body,{subtree:true,attributes:true,childList:true});
  window.__setBrandSwitch=(id,on)=>{const input=document.getElementById(id);if(!input||input.disabled)return;input.checked=on;input.dispatchEvent(new Event('change',{bubbles:true}));schedule()};schedule();
 })();</script>
+
+<style id="v106-wallpaper-layout-and-appearance-hotfix">
+/* Keep upload cards in normal grid flow when a wallpaper is active. */
+#list.grid{align-items:start;grid-auto-rows:auto}
+#list.grid>.card{box-sizing:border-box;min-width:0;min-height:0;height:auto;align-self:start;overflow:hidden}
+#list.grid>.card>.title{min-width:0;overflow-wrap:anywhere}
+#list.grid>.card>.pick,#list.grid>.card>.preview{grid-column:1;grid-row:1/3}
+#list.grid>.card>.preview{width:54px;height:54px;margin:0}
+#list.grid>.card>.removeIcon{z-index:4}
+html.has-background-image #webBackgroundImage{z-index:0!important}
+html.has-background-image body>.app{position:relative;z-index:1}
+html.has-background-image body>.appBottomNav{position:fixed;z-index:80}
+/* Make the selected appearance win over legacy light-surface declarations. */
+:root[data-appearance="light"]{color-scheme:light;--surface:#FFFFFF;--card-color:#FFFFFF}
+:root[data-appearance="dark"]{color-scheme:dark;--surface:#1C1C1E;--card-color:#1C1C1E;--yy-card:#1C1C1E;--card-bg:#1C1C1E}
+:root[data-appearance="dark"] body,
+:root[data-appearance="dark"] .homeHero h1,
+:root[data-appearance="dark"] .settingsHead h1,
+:root[data-appearance="dark"] .pageHead h1,
+:root[data-appearance="dark"] .title,
+:root[data-appearance="dark"] .ruleName,
+:root[data-appearance="dark"] .settingsFoldText b,
+:root[data-appearance="dark"] .settingsToggleText b,
+:root[data-appearance="dark"] .themeRow b,
+:root[data-appearance="dark"] .settingsFoldBody,
+:root[data-appearance="dark"] .settingsAuthHeading,
+:root[data-appearance="dark"] .themeRow{color:#F5F5F7!important}
+:root[data-appearance="dark"] #homeTools,
+:root[data-appearance="dark"] .homePill,
+:root[data-appearance="dark"] .card,
+:root[data-appearance="dark"] .ruleSearch,
+:root[data-appearance="dark"] .ruleCard,
+:root[data-appearance="dark"] .settingsToggleCard,
+:root[data-appearance="dark"] .settingsFold,
+:root[data-appearance="dark"] .settingsFoldBody,
+:root[data-appearance="dark"] .infobox,
+:root[data-appearance="dark"] .uploadbox,
+:root[data-appearance="dark"] .categorytabs,
+:root[data-appearance="dark"] .categorytabs button:not(.active),
+:root[data-appearance="dark"] .modeTabs,
+:root[data-appearance="dark"] #homeTools .fillpick,
+:root[data-appearance="dark"] #searchInput,
+:root[data-appearance="dark"] #homeTools .colorfold,
+:root[data-appearance="dark"] #homeTools .colorrow,
+:root[data-appearance="dark"] #homeTools .clear,
+:root[data-appearance="dark"] .pick{
+ background:rgba(28,28,30,.94)!important;
+ border-color:rgba(255,255,255,.12)!important;
+ color:#F5F5F7!important
+}
+:root[data-appearance="dark"] .settingsFoldBody p,
+:root[data-appearance="dark"] .settingsFoldText small,
+:root[data-appearance="dark"] .settingsToggleText small,
+:root[data-appearance="dark"] .ruleFile,
+:root[data-appearance="dark"] .ruleDesc,
+:root[data-appearance="dark"] .pageHead p,
+:root[data-appearance="dark"] .homeSub,
+:root[data-appearance="dark"] .sub,
+:root[data-appearance="dark"] .sectiontitle,
+:root[data-appearance="dark"] .status{color:#A9A9B0!important}
+/* The hero/version card keeps its deliberately separate visual treatment. */
+:root[data-appearance="dark"] .inlineVersion{color:inherit}
+</style>
