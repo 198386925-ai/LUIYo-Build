@@ -5,6 +5,9 @@ const messages=[],errors=[],vc=new VirtualConsole();vc.on('jsdomError',e=>errors
 const watchdog=setTimeout(()=>{console.error('Native home test timed out');process.exit(1)},15000);
 const dom=new JSDOM(fs.readFileSync(root+'Web/index.html','utf8').replace('<script src="jszip.min.js"></script>',''),{
  url:'https://test.local',runScripts:'dangerously',pretendToBeVisual:true,virtualConsole:vc,beforeParse(w){
+  // This harness validates synchronous DOM/native bridge behavior; disable jsdom's
+  // animation-frame pump so closing the test window cannot race a queued callback.
+  w.requestAnimationFrame=()=>0;w.cancelAnimationFrame=()=>{};
   w.matchMedia=()=>({matches:false,addEventListener(){}});w.alert=()=>{};w.setImmediate=setImmediate;w.clearImmediate=clearImmediate;
   w.URL.createObjectURL=()=> 'blob:test';w.URL.revokeObjectURL=()=>{};
   w.indexedDB={open(){const r={};setTimeout(()=>r.onerror?.(),1);return r}};
