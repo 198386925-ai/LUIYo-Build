@@ -72,6 +72,8 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     private var cardOrder: [String] = []
     private var nativeSegments: [String: UISegmentedControl] = [:]
     private var nativeSelectedPills: [String: UIView] = [:]
+    private var settingsHero: UIView?
+    private var switchingNativePage = false
     private var nativeLicenseButtons: [String: UIButton] = [:]
     private var retainedTabs: [String: AnyObject] = [:]
     private var nativeSymbols: [String: UIImageView] = [:]
@@ -105,6 +107,13 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         box.className = 'luiyoActivationEntry';box.id='luiyoActivationCard';
         box.innerHTML = '<div class="settingsAuthHeading"><span class="settingsFoldIcon" data-system-icon="checkmark.shield">✓</span><span class="settingsFoldText"><b>激活授权</b><small id="luiyoAuthState">未激活 · 仅可浏览</small></span></div><form class="luiyoActivationForm" id="luiyoActivationForm"><input id="luiyoLicenseCode" aria-label="卡密" placeholder="输入卡密" autocomplete="one-time-code" autocapitalize="characters" spellcheck="false"><button id="luiyoLicenseSubmit" type="submit">激活</button></form>';
         settings.querySelector('.settingsHead')?.insertAdjacentElement('afterend', box);
+        const hero=document.createElement('div');hero.id='luiyoSettingsHero';hero.style.cssText='height:116px;margin-bottom:8px';
+        box.insertAdjacentElement('beforebegin',hero);
+        let queued=false,last='';
+        const syncHero=()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;const r=hero.getBoundingClientRect();const payload={visible:!!hero.getClientRects().length,x:r.left+scrollX,y:r.top+scrollY,width:r.width,height:r.height};const signature=JSON.stringify(payload);if(signature!==last){last=signature;window.webkit?.messageHandlers?.settingsHeroFrame?.postMessage(payload)}})};
+        if(window.ResizeObserver)new ResizeObserver(syncHero).observe(settings);
+        new MutationObserver(syncHero).observe(document.body,{subtree:true,attributes:true,childList:true,characterData:true});
+        window.addEventListener('resize',syncHero);syncHero();
         box.querySelector('form').addEventListener('submit', e => {
           e.preventDefault();const code=box.querySelector('input').value.trim();
           if(code)window.webkit?.messageHandlers?.activationSubmit?.postMessage({code});
@@ -188,6 +197,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         configuration.userContentController.add(self, name: "backgroundImage")
         configuration.userContentController.add(self, name: "minimizeBottomBar")
         configuration.userContentController.add(self, name: "pageState")
+        configuration.userContentController.add(self, name: "settingsHeroFrame")
         configuration.userContentController.add(self, name: "bottomSearch")
         configuration.userContentController.add(self, name: "activationOpen")
         configuration.userContentController.add(self, name: "activationSubmit")
@@ -301,6 +311,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "backgroundImage")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "minimizeBottomBar")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "pageState")
+        webView?.configuration.userContentController.removeScriptMessageHandler(forName: "settingsHeroFrame")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "bottomSearch")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "activationOpen")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "activationSubmit")
@@ -614,7 +625,8 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             presentBottomSearch()
             return false
         }
-        return true
+        guard let tag = pageControllers.firstIndex(of: viewController) else { return true }
+        return prepareNativePageSelection(tag)
     }
 
     @available(iOS 18.0, *)
@@ -625,7 +637,36 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             presentBottomSearch()
             return false
         }
-        return true
+        guard let tag = Int(tab.identifier.replacingOccurrences(of: "page.", with: "")) else { return true }
+        return prepareNativePageSelection(tag)
+    }
+
+    private func prepareNativePageSelection(_ tag: Int) -> Bool {
+        guard nativeHomeReady, tag != activePageTag else { return true }
+        guard !switchingNativePage else { return false }
+        switchingNativePage = true
+        let transitionCover = selectedViewController?.view.snapshotView(afterScreenUpdates: false)
+        if let cover = transitionCover, let content = selectedViewController?.view {
+            cover.frame = content.convert(content.bounds, to: view)
+            cover.isUserInteractionEnabled = false
+            view.addSubview(cover)
+        }
+        // Keep the existing controller mounted until WebKit finishes changing pages.
+        // UIKit otherwise exposes an empty destination before appNavTo completes.
+        let page = tag == 1 ? "rules" : tag == 2 ? "settings" : "home"
+        webView.evaluateJavaScript("appNavTo('" + page + "')") { [weak self] _, error in
+            guard let self else { return }
+            self.switchingNativePage = false
+            guard error == nil else { transitionCover?.removeFromSuperview(); return }
+            UIView.performWithoutAnimation {
+                self.selectNativePage(tag)
+                self.updatePageScroll(page)
+                self.view.layoutIfNeeded()
+                self.updateLayoutMetrics(force: true)
+            }
+            DispatchQueue.main.async { transitionCover?.removeFromSuperview() }
+        }
+        return false
     }
 
     @available(iOS 18.0, *)
@@ -698,6 +739,10 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         }
         guard let tag = pageControllers.firstIndex(of: viewController) else { return }
         navigateFromNativeTab(tag)
+    }
+
+    private func openHeroSection(_ selector: String) {
+        webView.evaluateJavaScript("(()=>{const section=document.querySelector('" + selector + "')?.closest('details');if(section&&!section.open)section.querySelector('summary')?.click();section?.scrollIntoView({block:'start',behavior:'smooth'})})()")
     }
 
     private func navigateFromNativeTab(_ tag: Int) {
@@ -1046,7 +1091,10 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
                 pill.layer.cornerRadius = track.height / 2
                 pill.layer.cornerCurve = .continuous
                 pill.layer.borderWidth = 0
-                pill.layer.borderColor = UIColor(white: 0.65, alpha: 1).cgColor
+                pill.layer.shadowColor = UIColor.black.cgColor
+                pill.layer.shadowOpacity = 0.12
+                pill.layer.shadowRadius = 2
+                pill.layer.shadowOffset = CGSize(width: 0, height: 1)
             }
         }
     }
@@ -1054,6 +1102,10 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     private func renderVisibleNativeMaterials() {
         guard let webView else { return }
         let scroll = webView.scrollView
+        if let cell = settingsHero as? UITableViewCell, let material = cell.backgroundView as? UIVisualEffectView {
+            material.effect = nativeCardEffect()
+            if #available(iOS 26.0, *) { material.cornerConfiguration = .uniformCorners(radius: .fixed(24)) }
+        }
         // This observer only manages visibility. It NEVER moves a card with an
         // asynchronously sampled scroll offset.
         glassContainer.frame = CGRect(origin: .zero, size: CGSize(
@@ -1375,6 +1427,25 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         }
         if message.name == "activationOpen" {
             onActivationRequested?()
+            return
+        }
+        if message.name == "settingsHeroFrame" {
+            guard let payload = message.body as? [String: Any] else { return }
+            if settingsHero == nil {
+                let hero = LUIYoCreateSettingsHero({ [weak self] in self?.openHeroSection(".guideInline") }, { [weak self] in self?.openHeroSection(".changelogInline") })
+                hero.accessibilityIdentifier = "settingsBrandHero"
+                webView.scrollView.addSubview(hero)
+                settingsHero = hero
+            }
+            guard let hero = settingsHero else { return }
+            hero.isHidden = !(payload["visible"] as? Bool ?? false)
+            hero.frame = CGRect(x: (payload["x"] as? NSNumber)?.doubleValue ?? 0, y: (payload["y"] as? NSNumber)?.doubleValue ?? 0, width: (payload["width"] as? NSNumber)?.doubleValue ?? 0, height: 116)
+            if let cell = hero as? UITableViewCell, let material = cell.backgroundView as? UIVisualEffectView {
+                material.effect = nativeCardEffect()
+                if #available(iOS 26.0, *) { material.cornerConfiguration = .uniformCorners(radius: .fixed(24)) }
+            }
+            hero.setNeedsLayout()
+            hero.layoutIfNeeded()
             return
         }
         if message.name == "pageState" {

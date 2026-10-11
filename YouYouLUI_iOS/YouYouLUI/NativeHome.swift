@@ -131,7 +131,7 @@ struct LUIYoNativeHome: View {
                             .font(model.font(size: 12, weight: .medium)).foregroundStyle(model.authorized ? Color.green : Color.secondary)
                         Text("已上传项目：\(model.uploadedCount) 项").accessibilityIdentifier("nativeUploadedCount").font(model.font(size: 12)).foregroundStyle(.secondary)
                         Link(destination: URL(string: "https://qm.qq.com/q/th1QshgzHW")!) {
-                            Label("反馈问题 · 联系客服", systemImage: "bubble.left.and.bubble.right")
+                            Label("反馈问题 · 联系客服", systemImage: "headphones")
                         }
                             .font(model.font(size: 12, weight: .medium))
                             .buttonStyle(.plain)
@@ -224,11 +224,11 @@ struct LUIYoNativeHome: View {
             VStack(spacing: 8) {
                 HStack(spacing: 8) {
                     Button { model.send("batch", [:]) } label: {
-                        Label("关键词批量导入", systemImage: "square.and.arrow.down")
+                        Label("关键词批量导入", systemImage: "tray.and.arrow.down")
                             .font(model.font(size: 13, weight: .medium)).frame(maxWidth: .infinity)
                     }.modifier(NativeActionStyle()).controlSize(.large)
                     Button { model.send("fillImage", [:]) } label: {
-                        Label("补全图片", systemImage: "photo")
+                        Label("补全图片", systemImage: "photo.badge.plus")
                             .font(model.font(size: 13, weight: .medium)).frame(maxWidth: .infinity)
                     }.modifier(NativeActionStyle()).controlSize(.large)
                 }
@@ -520,7 +520,10 @@ private final class NativeCategoryGlassView: UIView {
         control.selectedSegmentTintColor = .clear
         selectedPill.backgroundColor = .white
         selectedPill.layer.borderWidth = 0
-        selectedPill.layer.borderColor = UIColor(white: 0.65, alpha: 1).cgColor
+        selectedPill.layer.shadowColor = UIColor.black.cgColor
+        selectedPill.layer.shadowOpacity = 0.12
+        selectedPill.layer.shadowRadius = 2
+        selectedPill.layer.shadowOffset = CGSize(width: 0, height: 1)
         let textFont = font?.withSize(13) ?? UIFont.systemFont(ofSize: 13, weight: .semibold)
         control.setTitleTextAttributes([.font: textFont, .foregroundColor: UIColor.label], for: .normal)
         control.setTitleTextAttributes([.font: textFont, .foregroundColor: UIColor(nativeHex: "#202832")], for: .selected)
