@@ -262,19 +262,19 @@ struct LUIYoNativeHome: View {
         NavigationView {
             Form {
                 Section {
-                    Toggle("启用自定义颜色", isOn: $selectedEnabled)
+                    Toggle("启用自定义颜色", isOn: $selectedEnabled).toggleStyle(BrandSwitchStyle())
                     ColorPicker("选中颜色", selection: $selectedColor, supportsOpacity: false)
                         .disabled(!selectedEnabled)
                 } header: { Text("选中 · 浅色模式") }
                   footer: { Text("关闭时自动加深上传图片的颜色。") }
                 Section {
-                    Toggle("启用自定义颜色", isOn: $darkSelectedEnabled)
+                    Toggle("启用自定义颜色", isOn: $darkSelectedEnabled).toggleStyle(BrandSwitchStyle())
                     ColorPicker("选中颜色", selection: $darkSelectedColor, supportsOpacity: false)
                         .disabled(!darkSelectedEnabled)
                 } header: { Text("选中 · 深色模式") }
                   footer: { Text("关闭时自动反转上传图片的颜色。") }
                 Section {
-                    Toggle("启用统一颜色", isOn: $allEnabled)
+                    Toggle("启用统一颜色", isOn: $allEnabled).toggleStyle(BrandSwitchStyle())
                     ColorPicker("图标颜色", selection: $allColor, supportsOpacity: false)
                         .disabled(!allEnabled)
                 } header: { Text("全部图标") }
@@ -665,4 +665,17 @@ func removeExtraLayerShadows(_ layer: CALayer) {
     if layer.shadowRadius != 0 { layer.shadowRadius = 0 }
     if layer.shadowPath != nil { layer.shadowPath = nil }
     // UIKit owns its effect sublayers. Preserve their optical rendering.
+}
+
+private struct BrandSwitchStyle: ToggleStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        HStack { configuration.label; Spacer(); BrandSwitch(isOn: configuration.$isOn).frame(width:44,height:26) }
+    }
+}
+private struct BrandSwitch: UIViewRepresentable {
+    @Binding var isOn: Bool
+    func makeUIView(context: Context) -> UIControl {
+        LUIYoCreateThemeSwitch(isOn) { value in isOn = value }
+    }
+    func updateUIView(_ view: UIControl, context: Context) { LUIYoSetThemeSwitch(view, isOn) }
 }

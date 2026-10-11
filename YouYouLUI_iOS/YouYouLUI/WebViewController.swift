@@ -74,6 +74,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     private var nativeSegments: [String: UISegmentedControl] = [:]
     private var nativeSelectedPills: [String: UIView] = [:]
     private var settingsHero: UIView?
+    private var nativeThemeSwitches: [String: UIControl] = [:]
     private var switchingNativePage = false
     private var nativeLicenseButtons: [String: UIButton] = [:]
     private var retainedTabs: [String: AnyObject] = [:]
@@ -191,6 +192,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         configuration.userContentController.add(self, name: "cardGlassRects")
         configuration.userContentController.add(self, name: "themeBackground")
         configuration.userContentController.add(self, name: "cardColor")
+        configuration.userContentController.add(self, name: "nativeToggleRects")
         configuration.userContentController.add(self, name: "buttonColor")
         configuration.userContentController.add(self, name: "appearanceMode")
         configuration.userContentController.add(self, name: "themeFont")
@@ -305,6 +307,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "cardGlassRects")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "themeBackground")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "cardColor")
+        webView?.configuration.userContentController.removeScriptMessageHandler(forName: "nativeToggleRects")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "buttonColor")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "appearanceMode")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "themeFont")
@@ -638,29 +641,18 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
 
     private func prepareNativePageSelection(_ tag: Int) -> Bool {
         guard nativeHomeReady, tag != activePageTag else { return true }
-        guard !switchingNativePage else { return false }
-        switchingNativePage = true
-        let currentHost = selectedViewController?.view
-        let cover = currentHost?.snapshotView(afterScreenUpdates: false)
-        if let cover {
-            cover.frame = currentHost?.bounds ?? .zero
-            cover.isUserInteractionEnabled = false
-            currentHost?.addSubview(cover)
-        }
         let page = tag == 1 ? "rules" : tag == 2 ? "settings" : "home"
-        // Wait for the destination's WebKit paint, rather than the JS evaluation
-        // callback. The cover is below the native bar and cannot move its geometry.
-        webView.callAsyncJavaScript("appNavTo(page);await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));window.__syncNativeCardGlass?.();", arguments: ["page": page], in: nil, in: .page) { [weak self] result in
-            guard let self else { cover?.removeFromSuperview(); return }
+        // Respond to the tab immediately. The homepage stays mounted in its own
+        // controller; no snapshot, two-frame barrier, or expensive tree rebuild.
+        switchingNativePage = true
+        UIView.performWithoutAnimation {
+            selectNativePage(tag)
+            updatePageScroll(page)
+        }
+        webView.evaluateJavaScript("appNavTo('" + page + "');window.__syncNativeCardGlass?.();") { [weak self] _, _ in
+            guard let self else { return }
             self.switchingNativePage = false
-            if case .failure = result { cover?.removeFromSuperview(); return }
-            UIView.performWithoutAnimation {
-                self.selectNativePage(tag)
-                self.updatePageScroll(page)
-                self.view.layoutIfNeeded()
-                self.updateLayoutMetrics(force: true)
-                cover?.removeFromSuperview()
-            }
+            self.updateLayoutMetrics(force: true)
         }
         return false
     }
@@ -785,7 +777,8 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     private func applyStoredPalette() {
         view.backgroundColor = storedColor("background", lightDefault: "#F2F2F7", darkDefault: "#121214")
         nativeHomeHost?.view.backgroundColor = backgroundImageView.image == nil ? view.backgroundColor : .clear
-        cardTintColor = storedColor("cardColor", lightDefault: "#FFFFFF", darkDefault: "#1C1C1E")
+        cardTintColor = UIColor { $0.userInterfaceStyle == .dark ? UIColor(nativeHex: "#1C1C1E") : .white }
+        if let hero = settingsHero { LUIYoRefreshSettingsHero(hero) }
         updateNativeCardTint()
         renderVisibleNativeMaterials()
     }
@@ -1538,11 +1531,37 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             return
         }
 
+        if message.name == "nativeToggleRects" {
+            guard let rows = message.body as? [[String: Any]] else { return }
+            var visible = Set<String>()
+            for row in rows {
+                guard let id = row["id"] as? String, row["visible"] as? Bool == true else { continue }
+                visible.insert(id)
+                let control: UIControl
+                if let existing = nativeThemeSwitches[id] { control = existing }
+                else {
+                    control = LUIYoCreateThemeSwitch(row["on"] as? Bool ?? false) { [weak self] enabled in
+                        guard let data = try? JSONSerialization.data(withJSONObject: [id, enabled]), let args = String(data: data, encoding: .utf8) else { return }
+                        self?.webView.evaluateJavaScript("window.__setBrandSwitch?.(..." + args + ")")
+                    }
+                    nativeThemeSwitches[id] = control
+                    webView.scrollView.addSubview(control)
+                }
+                control.isHidden = false
+                control.isEnabled = !(row["disabled"] as? Bool ?? false)
+                control.accessibilityLabel = id == "minimizeBottomBar" ? "滚动时缩小底栏" : "启用自定义颜色"
+                control.frame = CGRect(x: (row["x"] as? NSNumber)?.doubleValue ?? 0, y: (row["y"] as? NSNumber)?.doubleValue ?? 0, width: 44, height: 26)
+                LUIYoSetThemeSwitch(control, row["on"] as? Bool ?? false)
+            }
+            for (id, control) in nativeThemeSwitches where !visible.contains(id) { control.isHidden = true }
+            return
+        }
+
         if message.name == "themeBackground" || message.name == "cardColor" || message.name == "buttonColor" {
             if let payload = message.body as? [String: Any],
                let hex = payload["color"] as? String, color(fromHex: hex) != nil {
                 let appearance = payload["appearance"] as? String == "dark" ? "dark" : "light"
-                let kind = message.name == "themeBackground" ? "background" : (message.name == "buttonColor" ? "buttonColor" : "cardColor")
+                let kind = message.name == "themeBackground" ? "background" : (message.name == "buttonColor" ? "buttonColor" : "heroCardColor")
                 UserDefaults.standard.set(hex, forKey: "youyou.\(kind).\(appearance)")
                 applyStoredPalette()
             }

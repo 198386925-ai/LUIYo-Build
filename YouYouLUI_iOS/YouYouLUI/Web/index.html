@@ -1064,10 +1064,20 @@ html.native-material-host[data-appearance],html.native-material-host[data-appear
 #ruleList .ruleRow,#ruleList .ruleGroupHead{border:0!important;box-shadow:none!important}
 </style>
 <style id="v106-selection-refinement">
-#ruleList .ruleRow{padding:8px 0!important}
+#ruleList .ruleRow{padding:5px 0!important}
+#ruleList .ruleGroupHead{padding-bottom:5px!important}
+#ruleList .ruleFile{margin-top:2px!important}
 #settingsTarget .themeColor button,#settingsTarget .themeFontControls button{background:#fff!important;color:#202832!important}
 .themeColor input[type=color]{border:1px solid rgba(110,115,125,.35)!important;border-radius:50%;box-sizing:border-box}
-</style></head><body><div class="app"><section class="homeHero" id="homeTarget">
+</style><style id="day-night-switch-v106">
+input[type=checkbox]{appearance:none!important;-webkit-appearance:none!important;width:44px!important;height:26px!important;flex-shrink:0;position:relative;cursor:pointer;margin:0;background:transparent!important;border:0!important;border-radius:0!important;overflow:visible}
+input[type=checkbox]::before{content:"";position:absolute;left:0;top:3px;width:44px;height:20px;border:1px solid #85bac9;border-radius:10px;background:#363d61;box-sizing:border-box}
+input[type=checkbox]::after{content:"☾";position:absolute;left:2px;top:4px;width:18px;height:18px;border:1px solid #d9bd61;border-radius:50%;background:#7582b8;color:white;text-align:center;font:12px/16px system-ui;box-sizing:border-box;transition:transform .15s ease}
+input[type=checkbox]:checked::before{background:radial-gradient(ellipse at center,white 0 65%,transparent 70%) 14px 9px/13px 7px no-repeat,#a6e0f0}
+input[type=checkbox]:checked::after{content:"";background:#ffde63;transform:translateX(22px)}
+input[type=checkbox]:checked{background:radial-gradient(ellipse at center,white 0 65%,transparent 70%) 14px 12px/13px 7px no-repeat!important}
+input[type=checkbox]:focus-visible{outline:2px solid #007afe;outline-offset:3px}
+</style><style>body.native-day-night-switches input[type=checkbox]{opacity:0!important}</style></head><body><div class="app"><section class="homeHero" id="homeTarget">
   <div class="homeEyebrow">LIQUIDUI ICON STUDIO</div>
   <h1>微信图标生成器</h1>
   <div class="homeSub">上传一次，自动处理 LiquidUI / 微信图标补全与打包。</div>
@@ -1086,7 +1096,7 @@ html.native-material-host[data-appearance],html.native-material-host[data-appear
       <div class="themeRow appearanceThemeRow"><div><b>外观模式</b><small id="appearanceHint">跟随系统</small></div><div id="appearanceModePicker" class="appearanceModePicker" role="radiogroup" aria-label="外观模式"><button type="button" data-appearance-mode="system">跟随系统</button><button type="button" data-appearance-mode="light">浅色</button><button type="button" data-appearance-mode="dark">深色</button></div></div>
       <div class="themeRow materialThemeRow"><div><b>卡片材质</b><small id="cardMaterialHint">iOS 26+ 原生液态玻璃 / UIKit 原生磨砂</small></div><div class="materialModePicker" id="materialModePicker" role="radiogroup" aria-label="卡片材质"><button type="button" data-material="liquid">液态玻璃</button><button type="button" data-material="blur">原生磨砂</button></div></div>
       <div class="themeRow"><div><b>背景颜色</b><small id="backgroundHint">浅色背景</small></div><div class="themeColor"><input id="appBackgroundColor" type="color" value="#F4F2EE"><button type="button" id="resetBackgroundColor">恢复</button></div></div>
-      <div class="themeRow"><div><b>卡片颜色</b><small>工具卡片使用纯色；其他卡片作为原生材质色调</small></div><div class="themeColor"><input id="appCardColor" type="color" value="#FFFFFF"><button type="button" id="resetCardColor">恢复</button></div></div>
+      <div class="themeRow"><div><b>卡片颜色</b><small>仅修改激活授权上方的品牌卡</small></div><div class="themeColor"><input id="appCardColor" type="color" value="#FFFFFF"><button type="button" id="resetCardColor">恢复</button></div></div>
       <div class="themeRow" hidden><div><b>按钮颜色</b><small>首页工具按钮与上传图标；选中保持白色，清空、导出 ZIP 颜色固定</small></div><div class="themeColor"><input id="appButtonColor" type="color" value="#FFFFFF"><button type="button" id="resetButtonColor">恢复</button></div></div>
       <div class="themeRow appearanceThemeRow bottomSearchThemeRow"><div><b>底栏搜索按钮</b><small id="bottomSearchModeHint">关闭后使用顶部搜索框</small></div><div id="bottomSearchModePicker" role="radiogroup" aria-label="底栏搜索按钮"><button type="button" data-bottom-search-mode="off">关闭</button><button type="button" data-bottom-search-mode="merged">合并</button><button type="button" data-bottom-search-mode="separate">分开</button></div></div>
       <div class="themeRow themeSliderRow" hidden><div><b>工具栏卡片透明度</b><small>仅调整首页工具栏卡片，不影响文字和按钮</small></div><div class="themeSliderLine"><input id="toolbarTransparency" aria-label="工具栏卡片透明度" type="range" min="0" max="100" step="1" value="0"><output id="toolbarTransparencyValue">0%</output></div></div>
@@ -1115,7 +1125,7 @@ html.native-material-host[data-appearance],html.native-material-host[data-appear
   <details class="settingsFold">
     <summary><span class="settingsFoldIcon" data-system-icon="clock.arrow.circlepath">↻</span><span class="settingsFoldText"><b>更新日志</b><small>Version 1.0.6 · 当前版本</small></span><span class="settingsFoldChevron"></span></summary>
     <div class="settingsFoldBody changelogInline">
-<section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.6 <span>当前版本</span></div><p><b class="add">新增</b> 原生首页接入完整图标上传、关键词批量导入、双分类补全与 ZIP 导出。</p><p><b class="add">新增</b> 设置页授权卡片上方接入原生品牌卡，保留上传源码原样；更新首页导入、补全与客服图标。</p><p><b class="add">新增</b> 设置品牌卡改为普通卡片并按参考图调整；支持点击更换头像和修改名字，重启后保留。</p><p><b class="opt">优化</b> 首页采用系统原生玻璃，低版本系统自动使用原生磨砂；缩小工具与上传卡片。</p><p><b class="opt">优化</b> 反馈与客服联系入口增加图标，保留普通文字链接。</p><p><b class="opt">优化</b> 放大首页工具栏按钮，首页、规则与设置统一主题颜色。</p><p><b class="opt">优化</b> 移除全界面额外阴影，统一图标尺寸与文字对齐；默认底色恢复上一版首页颜色。</p><p><b class="opt">优化</b> 恢复完整历史更新日志，仅最新版本标注“当前版本”。</p><p><b class="opt">优化</b> 缩小首页工具栏文字，分类栏底层、规则页和设置页使用系统原生玻璃；低版本自动回退原生磨砂。</p><p><b class="opt">优化</b> 缩小主题、使用说明与更新日志入口卡片，分类选中使用纯色胶囊。</p><p><b class="opt">优化</b> 首页原版微信与 LiquidUI 分类及导入入口互换，默认显示原版微信；分类选中改为清晰纯色。</p><p><b class="opt">优化</b> 首页分类及主题选项统一为白色选中胶囊与细灰边线；清空、导出使用固定蓝绿色原生玻璃按钮。</p><p><b class="opt">优化</b> 移除分类选中描边与规则分割线，裁切规则卡片外部阴影；缩小首页工具按钮，移除按钮颜色及工具栏透明度设置。</p><p><b class="opt">优化</b> 白色选中项增加轻微阴影；缩短规则行间距，主题操作按钮改为白色并为颜色圆点添加细描边。</p><p><b class="opt">优化</b> 首页白色选中项进一步减轻阴影，主题选中项取消阴影；五个首页入口改用上传的小尺寸图标。</p><p><b class="fix">修复</b> 恢复修改后的更新日志；修复首页删除图标、滚动缩小底栏及设置同步。</p><p><b class="fix">修复</b> 首页工具按钮、分类和底栏文字同步主题字体，恢复默认及重新打开后保持一致。</p><p><b class="fix">修复</b> 修复清空与导出按钮方形色块、分类无法点击，以及启动时加载提示造成分类栏上移。</p><p><b class="fix">修复</b> 恢复主题外观、卡片材质和底栏搜索选项的纯色选中标记，保持颜色与字体同步。</p><p><b class="fix">修复</b> 切换底栏搜索布局保留主题展开状态；搜索以透明覆盖层打开与关闭，避免移动页面造成闪屏；修复自定义按钮色下浅色玻璃文字对比度。</p><p><b class="fix">修复</b> 搜索收起键盘后保持在底栏上方；未授权卡密输入框与激活按钮接入原生玻璃，统一授权卡片间距。</p><p><b class="fix">修复</b> 底栏切换先准备目标页面，再切换内容，避免空白画面闪现。</p><p><b class="fix">修复</b> 品牌卡的插件信息和更新日志支持跳转及再次点击收起；底栏切换使用固定内容容器，避免重复挂载和布局跳动。</p><p><b class="fix">修复</b> 恢复原生悬浮底栏与首页安全区，首页保持在自己的页面内；导入、补全与客服图标恢复蓝色，清空和导出图标恢复白色，分类选中阴影轻微增强。</p></section>
+<section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.6 <span>当前版本</span></div><p><b class="add">新增</b> 支持图标上传、关键词批量导入、双分类补全与 ZIP 导出。</p><p><b class="opt">优化</b> 首页、规则与设置采用系统原生玻璃，低版本自动使用原生磨砂；缩小工具栏文字与规则条目间距。</p><p><b class="opt">优化</b> 原版微信与 LiquidUI 分类及导入入口互换，默认显示原版微信；统一反馈与客服联系入口图标。</p><p><b class="opt">优化</b> 移除分类描边、规则分割线及多余阴影；卡片颜色仅作用于授权上方的品牌卡，统一开关样式。</p><p><b class="fix">修复</b> 修复导入图片删除、补全导出、主题字体保存及底栏搜索布局切换。</p><p><b class="fix">修复</b> 优化底栏切换响应，恢复悬浮底栏与首页安全区，保持设置展开状态。</p><p><b class="fix">修复</b> 插件信息与更新日志支持定位展开，再次点击收起。</p></section>
 <section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.5</div><p><b class="opt">优化</b> 修复已知问题。</p><p>该版本为首发测试。</p></section>
 <section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.4</div><p><b class="add">新增</b> 主题支持工具栏卡片透明度、滚动缩小底栏及自定义背景图片；设置自动保存。</p><p><b class="add">新增</b> 底栏搜索改为关闭、合并、分开三段切换，保留已保存的搜索布局；关闭后恢复顶部搜索框。</p><p><b class="opt">优化</b> 相同或相近用途的图标合并为一个上传入口，共用图标归原版微信；LiquidUI 分类保留专属入口，导出保留全部对应文件名。</p><p><b class="opt">优化</b> 首页上传项每排两列，左图右标题；LiquidUI 与原版微信的导入项和规则分组标题统一缩小；更新规则按大标题合并展示。</p><p><b class="opt">优化</b> 导出 ZIP 改名使用系统原生弹窗。</p><p><b class="opt">优化</b> 补全图片和自定义颜色入口略微加粗描边，增加柔和淡色底。</p><p><b class="opt">优化</b> 首页工具卡片改用纯色，其他卡片保持原生材质。</p><p><b class="opt">优化</b> 清空固定蓝色、白色文字；导出 ZIP 固定绿色、白色文字。</p><p><b class="opt">优化</b> 首页分类和设置切换同步配色：未选中底色跟随卡片颜色，选中底色跟随按钮颜色。</p><p><b class="fix">修复</b> 合并和分开底栏搜索均可点击，打开原生全屏搜索页，自动弹出键盘，关闭后返回原页面。</p><p><b class="fix">修复</b> 深色液态玻璃下六个按钮不明显，按钮保持独立纯色并自动适配文字颜色。</p><p><b class="fix">修复</b> 原生底栏文字跟随导入字体，恢复默认和重新打开也同步生效。</p><p><b class="fix">修复</b> 分开搜索改用系统原生独立搜索标签，底栏与搜索统一对齐、尺寸及安全区位置。</p></section>
 <section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.3</div><p><b class="add">新增</b> 主题增加按钮颜色，首页按钮与分类底色同步；浅色、深色分别保存。</p><p><b class="add">新增</b> 跟随系统、浅色与深色外观；背景颜色分别保存并随外观切换。</p><p><b class="opt">优化</b> 搜索框位于反馈问题下方，随材质切换为液态玻璃或原生磨砂。</p><p><b class="opt">优化</b> 首页六个操作按钮保持纯色，其他卡片保留原有材质。</p><p><b class="opt">优化</b> 分类未选中底色使用按钮颜色，增加透明度以呈现柔和层次。</p><p><b class="opt">优化</b> 分类、材质与外观使用紧凑原生分段控件；缩短设置卡片。</p><p><b class="opt">优化</b> 移除自定义卡片描边，鸣谢仅在设置页随内容排布。</p><p><b class="fix">修复</b> 展开动画结束时的高度跳动和重复点击状态。</p></section>
@@ -1764,7 +1774,7 @@ function appNavTo(name){
   document.body.classList.remove('nav-rules','nav-settings');
   if(name==='rules'){
     document.body.classList.add('nav-rules');
-    renderRuleReference();
+    // The reference is built once; search input refreshes it when needed.
   }else if(name==='settings'){
     document.body.classList.add('nav-settings');
     window.__resetSettingsFolds?.();
@@ -1792,7 +1802,7 @@ renderRuleReference();
 <div class="nativeInfoPage" id="logInfoPage" aria-hidden="true">
   <div class="nativeInfoHeader"><h2>更新日志</h2><button type="button" onclick="closeInfoPage('log')" aria-label="关闭">×</button></div>
   <div class="logCards">
-<article class="logCard"><div class="logTitle">Version 1.0.6 <span>当前版本</span></div><p><b class="add">新增</b> 原生首页接入完整图标上传、关键词批量导入、双分类补全与 ZIP 导出。</p><p><b class="add">新增</b> 设置页授权卡片上方接入原生品牌卡，保留上传源码原样；更新首页导入、补全与客服图标。</p><p><b class="add">新增</b> 设置品牌卡改为普通卡片并按参考图调整；支持点击更换头像和修改名字，重启后保留。</p><p><b class="opt">优化</b> 首页采用系统原生玻璃，低版本系统自动使用原生磨砂；缩小工具与上传卡片。</p><p><b class="opt">优化</b> 反馈与客服联系入口增加图标，保留普通文字链接。</p><p><b class="opt">优化</b> 放大首页工具栏按钮，首页、规则与设置统一主题颜色。</p><p><b class="opt">优化</b> 移除全界面额外阴影，统一图标尺寸与文字对齐；默认底色恢复上一版首页颜色。</p><p><b class="opt">优化</b> 恢复完整历史更新日志，仅最新版本标注“当前版本”。</p><p><b class="opt">优化</b> 缩小首页工具栏文字，分类栏底层、规则页和设置页使用系统原生玻璃；低版本自动回退原生磨砂。</p><p><b class="opt">优化</b> 缩小主题、使用说明与更新日志入口卡片，分类选中使用纯色胶囊。</p><p><b class="opt">优化</b> 首页原版微信与 LiquidUI 分类及导入入口互换，默认显示原版微信；分类选中改为清晰纯色。</p><p><b class="opt">优化</b> 首页分类及主题选项统一为白色选中胶囊与细灰边线；清空、导出使用固定蓝绿色原生玻璃按钮。</p><p><b class="opt">优化</b> 移除分类选中描边与规则分割线，裁切规则卡片外部阴影；缩小首页工具按钮，移除按钮颜色及工具栏透明度设置。</p><p><b class="opt">优化</b> 白色选中项增加轻微阴影；缩短规则行间距，主题操作按钮改为白色并为颜色圆点添加细描边。</p><p><b class="opt">优化</b> 首页白色选中项进一步减轻阴影，主题选中项取消阴影；五个首页入口改用上传的小尺寸图标。</p><p><b class="fix">修复</b> 恢复修改后的更新日志；修复首页删除图标、滚动缩小底栏及设置同步。</p><p><b class="fix">修复</b> 首页工具按钮、分类和底栏文字同步主题字体，恢复默认及重新打开后保持一致。</p><p><b class="fix">修复</b> 修复清空与导出按钮方形色块、分类无法点击，以及启动时加载提示造成分类栏上移。</p><p><b class="fix">修复</b> 恢复主题外观、卡片材质和底栏搜索选项的纯色选中标记，保持颜色与字体同步。</p><p><b class="fix">修复</b> 切换底栏搜索布局保留主题展开状态；搜索以透明覆盖层打开与关闭，避免移动页面造成闪屏；修复自定义按钮色下浅色玻璃文字对比度。</p><p><b class="fix">修复</b> 搜索收起键盘后保持在底栏上方；未授权卡密输入框与激活按钮接入原生玻璃，统一授权卡片间距。</p><p><b class="fix">修复</b> 底栏切换先准备目标页面，再切换内容，避免空白画面闪现。</p><p><b class="fix">修复</b> 品牌卡的插件信息和更新日志支持跳转及再次点击收起；底栏切换使用固定内容容器，避免重复挂载和布局跳动。</p><p><b class="fix">修复</b> 恢复原生悬浮底栏与首页安全区，首页保持在自己的页面内；导入、补全与客服图标恢复蓝色，清空和导出图标恢复白色，分类选中阴影轻微增强。</p></article>
+<article class="logCard"><div class="logTitle">Version 1.0.6 <span>当前版本</span></div><p><b class="add">新增</b> 支持图标上传、关键词批量导入、双分类补全与 ZIP 导出。</p><p><b class="opt">优化</b> 首页、规则与设置采用系统原生玻璃，低版本自动使用原生磨砂；缩小工具栏文字与规则条目间距。</p><p><b class="opt">优化</b> 原版微信与 LiquidUI 分类及导入入口互换，默认显示原版微信；统一反馈与客服联系入口图标。</p><p><b class="opt">优化</b> 移除分类描边、规则分割线及多余阴影；卡片颜色仅作用于授权上方的品牌卡，统一开关样式。</p><p><b class="fix">修复</b> 修复导入图片删除、补全导出、主题字体保存及底栏搜索布局切换。</p><p><b class="fix">修复</b> 优化底栏切换响应，恢复悬浮底栏与首页安全区，保持设置展开状态。</p><p><b class="fix">修复</b> 插件信息与更新日志支持定位展开，再次点击收起。</p></article>
 <article class="logCard"><div class="logTitle">Version 1.0.5</div><p><b class="opt">优化</b> 修复已知问题。</p><p>该版本为首发测试。</p></article>
 <article class="logCard"><div class="logTitle">Version 1.0.4</div><p><b class="add">新增</b> 主题支持工具栏卡片透明度、滚动缩小底栏及自定义背景图片；设置自动保存。</p><p><b class="add">新增</b> 底栏搜索改为关闭、合并、分开三段切换，保留已保存的搜索布局；关闭后恢复顶部搜索框。</p><p><b class="opt">优化</b> 相同或相近用途的图标合并为一个上传入口，共用图标归原版微信；LiquidUI 分类保留专属入口，导出保留全部对应文件名。</p><p><b class="opt">优化</b> 首页上传项每排两列，左图右标题；LiquidUI 与原版微信的导入项和规则分组标题统一缩小；更新规则按大标题合并展示。</p><p><b class="opt">优化</b> 导出 ZIP 改名使用系统原生弹窗。</p><p><b class="opt">优化</b> 补全图片和自定义颜色入口略微加粗描边，增加柔和淡色底。</p><p><b class="opt">优化</b> 首页工具卡片改用纯色，其他卡片保持原生材质。</p><p><b class="opt">优化</b> 清空固定蓝色、白色文字；导出 ZIP 固定绿色、白色文字。</p><p><b class="opt">优化</b> 首页分类和设置切换同步配色：未选中底色跟随卡片颜色，选中底色跟随按钮颜色。</p><p><b class="fix">修复</b> 合并和分开底栏搜索均可点击，打开原生全屏搜索页，自动弹出键盘，关闭后返回原页面。</p><p><b class="fix">修复</b> 深色液态玻璃下六个按钮不明显，按钮保持独立纯色并自动适配文字颜色。</p><p><b class="fix">修复</b> 原生底栏文字跟随导入字体，恢复默认和重新打开也同步生效。</p><p><b class="fix">修复</b> 分开搜索改用系统原生独立搜索标签，底栏与搜索统一对齐、尺寸及安全区位置。</p></article>
 <article class="logCard"><div class="logTitle">Version 1.0.3</div><p><b class="add">新增</b> 主题增加按钮颜色，首页按钮与分类底色同步；浅色、深色分别保存。</p><p><b class="add">新增</b> 跟随系统、浅色与深色外观；背景颜色分别保存并随外观切换。</p><p><b class="opt">优化</b> 搜索框位于反馈问题下方，随材质切换为液态玻璃或原生磨砂。</p><p><b class="opt">优化</b> 首页六个操作按钮保持纯色，其他卡片保留原有材质。</p><p><b class="opt">优化</b> 分类未选中底色使用按钮颜色，增加透明度以呈现柔和层次。</p><p><b class="opt">优化</b> 分类、材质与外观使用紧凑原生分段控件；缩短设置卡片。</p><p><b class="opt">优化</b> 移除自定义卡片描边，鸣谢仅在设置页随内容排布。</p><p><b class="fix">修复</b> 展开动画结束时的高度跳动和重复点击状态。</p></article>
@@ -1925,7 +1935,7 @@ function closeInfoPage(kind){
    }
    save('youyou.theme.homeBackground.v106','1');
  }
- const colors={light:{bg:get('youyou.theme.background.light',get('youyou.theme.background','#F2F2F7')),card:get('youyou.theme.cardColor.light',get('youyou.theme.cardColor','#FFFFFF')),button:get('youyou.theme.buttonColor.light','#FFFFFF')},dark:{bg:get('youyou.theme.background.dark','#121214'),card:get('youyou.theme.cardColor.dark','#1C1C1E'),button:get('youyou.theme.buttonColor.dark','#FFFFFF')}};
+ const colors={light:{bg:get('youyou.theme.background.light',get('youyou.theme.background','#F2F2F7')),card:get('youyou.theme.heroCardColor.light','#FFFFFF'),button:get('youyou.theme.buttonColor.light','#FFFFFF')},dark:{bg:get('youyou.theme.background.dark','#121214'),card:get('youyou.theme.heroCardColor.dark','#1C1C1E'),button:get('youyou.theme.buttonColor.dark','#FFFFFF')}};
  for(const appearance of ['light','dark']){
    colors[appearance].custom=get('youyou.theme.buttonColor.custom.'+appearance,colors[appearance].button.toUpperCase()==='#FFFFFF'?'0':'1')==='1';
  }
@@ -1936,7 +1946,7 @@ function closeInfoPage(kind){
    const appearance=effective(),values=colors[appearance];
    root.dataset.appearance=appearance;root.style.colorScheme=appearance;
    root.style.setProperty('--app-bg',values.bg,'important');root.style.setProperty('--yy-page',values.bg,'important');
-   root.style.setProperty('--card-rgb',[1,3,5].map(i=>parseInt(values.card.slice(i,i+2),16)).join(','));root.style.setProperty('--card-color',values.card,'important');root.style.setProperty('--surface',values.card,'important');
+   const fixedCard=appearance==='dark'?'#1C1C1E':'#FFFFFF';root.style.setProperty('--card-rgb',appearance==='dark'?'28,28,30':'255,255,255');root.style.setProperty('--card-color',fixedCard,'important');root.style.setProperty('--surface',fixedCard,'important');
    bg.value=values.bg;card.value=values.card;buttonColor.value=values.button;
    root.style.setProperty('--home-action-fill',values.button,'important');
    root.style.setProperty('--home-action-text',actionText(values.button),'important');
@@ -1956,11 +1966,11 @@ function closeInfoPage(kind){
  buttons.forEach(b=>b.addEventListener('click',()=>applyMode(b.dataset.appearanceMode)));
  media.addEventListener('change',()=>{if(mode==='system')applyColors()});
  bg.addEventListener('input',()=>{const a=effective();colors[a].bg=bg.value;save('youyou.theme.background.custom.'+a,'1');save('youyou.theme.background.'+a,bg.value);applyColors()});
- card.addEventListener('input',()=>{const a=effective();colors[a].card=card.value;save('youyou.theme.cardColor.'+a,card.value);applyColors()});
+ card.addEventListener('input',()=>{const a=effective();colors[a].card=card.value;save('youyou.theme.heroCardColor.'+a,card.value);applyColors()});
  buttonColor.addEventListener('input',()=>{const a=effective();colors[a].button=buttonColor.value;colors[a].custom=true;save('youyou.theme.buttonColor.custom.'+a,'1');save('youyou.theme.buttonColor.'+a,buttonColor.value);applyColors()});
  resetButton.addEventListener('click',()=>{const a=effective();colors[a].button='#FFFFFF';colors[a].custom=false;save('youyou.theme.buttonColor.custom.'+a,'0');save('youyou.theme.buttonColor.'+a,colors[a].button);applyColors()});
  reset.addEventListener('click',()=>{const a=effective();colors[a].bg=a==='dark'?'#121214':'#F2F2F7';save('youyou.theme.background.custom.'+a,'0');save('youyou.theme.background.'+a,colors[a].bg);applyColors()});
- resetCard.addEventListener('click',()=>{const a=effective();colors[a].card=a==='dark'?'#1C1C1E':'#FFFFFF';save('youyou.theme.cardColor.'+a,colors[a].card);applyColors()});
+ resetCard.addEventListener('click',()=>{const a=effective();colors[a].card=a==='dark'?'#1C1C1E':'#FFFFFF';save('youyou.theme.heroCardColor.'+a,colors[a].card);applyColors()});
  root.style.setProperty('--surface-border','transparent','important');root.style.setProperty('--yy-card-border','transparent','important');
  try{localStorage.removeItem('youyou.theme.border.enabled');localStorage.removeItem('youyou.theme.border.color')}catch(e){}
  applyMode(mode);
@@ -2178,3 +2188,13 @@ function closeInfoPage(kind){
 })();</script></body></html>
 
 
+<script id="native-day-night-switch-bridge">
+(()=>{
+ const handler=window.webkit?.messageHandlers?.nativeToggleRects;if(!handler)return;
+ document.body.classList.add('native-day-night-switches');let pending=false,last='';
+ function update(){pending=false;const rows=[...document.querySelectorAll('input[type=checkbox][id]')].map(input=>{const r=input.getBoundingClientRect();return {id:input.id,x:r.left+scrollX,y:r.top+scrollY,width:r.width,height:r.height,on:input.checked,visible:r.width>0&&r.height>0&&r.bottom>0&&r.top<innerHeight,disabled:input.disabled}});const encoded=JSON.stringify(rows);if(encoded!==last){last=encoded;handler.postMessage(rows)}}
+ function schedule(){if(!pending){pending=true;requestAnimationFrame(update)}}
+ addEventListener('scroll',schedule,{passive:true});addEventListener('resize',schedule);document.addEventListener('change',schedule,true);
+ new MutationObserver(schedule).observe(document.body,{subtree:true,attributes:true,childList:true});
+ window.__setBrandSwitch=(id,on)=>{const input=document.getElementById(id);if(!input||input.disabled)return;input.checked=on;input.dispatchEvent(new Event('change',{bubbles:true}));schedule()};schedule();
+})();</script>

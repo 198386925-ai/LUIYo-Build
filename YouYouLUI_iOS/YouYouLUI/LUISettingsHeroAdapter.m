@@ -49,6 +49,15 @@ static CGFloat LUISettingsSafeLineHeight(UIFont *font) { return font.lineHeight;
     self.accessibilityValue = on ? @"已启用" : @"未启用";
 }
 @end
+UIControl *LUIYoCreateThemeSwitch(BOOL enabled, void (^onChange)(BOOL)) {
+    UISwitch *source = [UISwitch new];source.on = enabled;
+    [source addAction:[UIAction actionWithHandler:^(__kindof UIAction *action) { onChange(((UISwitch *)action.sender).on); }] forControlEvents:UIControlEventValueChanged];
+    return [[LUIYoHeroSwitchHost alloc] initWithSwitch:source];
+}
+void LUIYoSetThemeSwitch(UIControl *view, BOOL enabled) {
+    if (![view isKindOfClass:LUIYoHeroSwitchHost.class]) return;
+    ((LUIYoHeroSwitchHost *)view).sourceSwitch.on = enabled;[view setNeedsLayout];
+}
 static UIView *LUISettingsLiquidWrapSwitch(UISwitch *toggle) { return [[LUIYoHeroSwitchHost alloc] initWithSwitch:toggle]; }
 static NSURL *LUIYoHeroAvatarURL(void) { return [[NSFileManager.defaultManager URLsForDirectory:NSApplicationSupportDirectory inDomains:NSUserDomainMask].firstObject URLByAppendingPathComponent:@"SettingsAvatar.png"]; }
 static UIImage *LUISettingsAvatarImage(void) {
@@ -87,6 +96,18 @@ void LUIYoRefreshSettingsHero(UIView *view) {
     cell.nameLabel.attributedText = [[NSAttributedString alloc] initWithString:name attributes:@{NSFontAttributeName:cell.nameLabel.font,NSStrokeColorAttributeName:LUISettingsInkColor(),NSStrokeWidthAttributeName:@1.8}];
     cell.nameLabel.accessibilityValue = name;
     cell.versionChip.layer.cornerRadius = 9;
+    UIColor *fill = [UIColor colorWithDynamicProvider:^UIColor *(UITraitCollection *traits) {
+        NSString *appearance = traits.userInterfaceStyle == UIUserInterfaceStyleDark ? @"dark" : @"light";
+        NSString *key = [@"youyou.heroCardColor." stringByAppendingString:appearance];
+        NSString *hex = [NSUserDefaults.standardUserDefaults stringForKey:key] ?: ([appearance isEqualToString:@"dark"] ? @"#1C1C1E" : @"#FFFFFF");
+        unsigned int value = 0;[[NSScanner scannerWithString:[hex stringByReplacingOccurrencesOfString:@"#" withString:@""]] scanHexInt:&value];
+        return [UIColor colorWithRed:((value>>16)&255)/255.0 green:((value>>8)&255)/255.0 blue:(value&255)/255.0 alpha:1];
+    }];
+    UIColor *resolved = [fill resolvedColorWithTraitCollection:cell.superview.traitCollection ?: cell.traitCollection];
+    cell.backgroundView.backgroundColor = resolved;
+    CGFloat red=1,green=1,blue=1,alpha=1;[resolved getRed:&red green:&green blue:&blue alpha:&alpha];
+    BOOL darkInk = .2126*red + .7152*green + .0722*blue > .5;
+    cell.overrideUserInterfaceStyle = darkInk ? UIUserInterfaceStyleLight : UIUserInterfaceStyleDark;
     [cell setNeedsLayout];
 }
 UIView *LUIYoCreateSettingsHero(void (^onInfo)(void), void (^onChangelog)(void), void (^onAvatar)(void), void (^onName)(void)) {

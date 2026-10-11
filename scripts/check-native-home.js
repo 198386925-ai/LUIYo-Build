@@ -31,13 +31,21 @@ const dom=new JSDOM(fs.readFileSync(root+'Web/index.html','utf8').replace('<scri
  const input=(id,value)=>{d.getElementById(id).value=value;d.getElementById(id).dispatchEvent(new w.Event('input',{bubbles:true}))};
  input('appBackgroundColor','#dce7f2');input('appCardColor','#f3e8dc');input('appButtonColor','#385170');
  w.__applyToolbarTransparency(35);w.__setBottomSearchMode('off');await w.__nativeHomeCommand('state');
- assert.equal(lastState().theme.background,'#dce7f2');assert.equal(lastState().theme.card,'#f3e8dc');
+ assert.equal(lastState().theme.background,'#dce7f2');assert.equal(lastState().theme.card,'#FFFFFF','Brand card color must not tint homepage cards');
+ assert.equal(w.localStorage.getItem('youyou.theme.heroCardColor.light'),'#f3e8dc');
+ assert.equal(messages.filter(m=>m.name==='cardColor').at(-1).body.color,'#f3e8dc');
  assert.equal(lastState().theme.button,'#385170');assert.equal(lastState().theme.toolbarOpacity,.65);
  assert.equal(lastState().theme.customButton,true);assert.equal(lastState().theme.bottomSearchEnabled,false);
  d.querySelector('[data-appearance-mode=dark]').click();input('appBackgroundColor','#182b40');await w.__nativeHomeCommand('state');
  assert.equal(lastState().theme.dark,true);assert.equal(lastState().theme.background,'#182b40');
  d.querySelector('[data-appearance-mode=light]').click();await w.__nativeHomeCommand('state');
  assert.equal(lastState().theme.background,'#dce7f2','Light customization survives appearance switching');
+ input('appCardColor','#223344');await w.__nativeHomeCommand('state');assert.equal(lastState().theme.card,'#FFFFFF');assert.equal(w.localStorage.getItem('youyou.theme.heroCardColor.light'),'#223344');
+ d.querySelector('[data-appearance-mode=dark]').click();input('appCardColor','#ddeeff');await w.__nativeHomeCommand('state');assert.equal(lastState().theme.card,'#1C1C1E');assert.equal(w.localStorage.getItem('youyou.theme.heroCardColor.dark'),'#ddeeff');
+ d.getElementById('resetCardColor').click();assert.equal(w.localStorage.getItem('youyou.theme.heroCardColor.dark'),'#1C1C1E');d.querySelector('[data-appearance-mode=light]').click();
+ w.__setBrandSwitch('minimizeBottomBar',true);assert(d.getElementById('minimizeBottomBar').checked);w.__setBrandSwitch('minimizeBottomBar',false);assert(!d.getElementById('minimizeBottomBar').checked);
+ assert(d.body.classList.contains('native-day-night-switches'));
+
  await w.__nativeHomeCommand('search',{query:'test'});assert.equal(d.getElementById('searchInput').value,'test');
  await w.__nativeHomeCommand('search',{query:''});
  const file={base64:'AQID',name:'底栏微信.png',type:'image/png'},cmd=w.__nativeHomeCommand;
