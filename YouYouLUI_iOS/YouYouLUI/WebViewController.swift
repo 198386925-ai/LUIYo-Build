@@ -467,7 +467,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
                     let text = attributes[.foregroundColor] as? UIColor
                     return ["kind": self.cardSpecs[key]?["segment"] as? String ?? "", "selected": segment.selectedSegmentIndex,
                         "track": segment.superview?.backgroundColor?.cgColor.components?.map { Double($0) } ?? [],
-                        "capsule": self.nativeSelectedCapsules[key]?.backgroundColor?.cgColor.components?.map { Double($0) } ?? [],
+                        "capsule": segment.selectedSegmentTintColor?.cgColor.components?.map { Double($0) } ?? [],
                         "selectedText": text?.resolvedColor(with: self.traitCollection).cgColor.components?.map { Double($0) } ?? []]
                 }
                 result["nativeFontRestoredOnLoad"] = self.restoredNativeFont
