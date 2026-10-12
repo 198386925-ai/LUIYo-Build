@@ -6,10 +6,12 @@ const watchdog=setTimeout(()=>{console.error('Native home test timed out');proce
 const dom=new JSDOM(fs.readFileSync(root+'Web/index.html','utf8').replace('<script src="jszip.min.js"></script>',''),{
  url:'https://test.local',runScripts:'dangerously',pretendToBeVisual:true,virtualConsole:vc,beforeParse(w){
   // Drive animation frames with cancellable timers so scroll assertions remain deterministic.
-  const rafTimers=new Map();let rafId=0;
-  w.requestAnimationFrame=cb=>{const id=++rafId;const timer=setTimeout(()=>{rafTimers.delete(id);cb(Date.now())},0);rafTimers.set(id,timer);return id};
-  w.cancelAnimationFrame=id=>{clearTimeout(rafTimers.get(id));rafTimers.delete(id)};
-  w.__clearTestRafs=()=>{for(const timer of rafTimers.values())clearTimeout(timer);rafTimers.clear()};
+  const rafTimers=new Map(),pageTimers=new Set();let rafId=0,originalSetTimeout=w.setTimeout.bind(w),originalClearTimeout=w.clearTimeout.bind(w);
+  w.setTimeout=(cb,delay,...args)=>{let timer;timer=originalSetTimeout(()=>{pageTimers.delete(timer);cb(...args)},delay);pageTimers.add(timer);return timer};
+  w.clearTimeout=timer=>{pageTimers.delete(timer);originalClearTimeout(timer)};
+  w.requestAnimationFrame=cb=>{const id=++rafId;const timer=w.setTimeout(()=>{rafTimers.delete(id);cb(Date.now())},0);rafTimers.set(id,timer);return id};
+  w.cancelAnimationFrame=id=>{w.clearTimeout(rafTimers.get(id));rafTimers.delete(id)};
+  w.__clearTestRafs=()=>{for(const timer of pageTimers)originalClearTimeout(timer);pageTimers.clear();rafTimers.clear()};
   w.matchMedia=()=>({matches:false,addEventListener(){}});w.alert=()=>{};w.setImmediate=setImmediate;w.clearImmediate=clearImmediate;
   w.URL.createObjectURL=()=> 'blob:test';w.URL.revokeObjectURL=()=>{};
   w.indexedDB={open(){const r={};setTimeout(()=>r.onerror?.(),1);return r}};
