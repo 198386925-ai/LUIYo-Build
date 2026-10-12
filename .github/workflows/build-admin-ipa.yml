@@ -1,0 +1,62 @@
+name: Build LUIYoAdmin IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/build-admin-ipa.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    if: github.event.repository.private == false
+    runs-on: macos-15-intel
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Xcode 26
+        shell: bash
+        run: |
+          test -d /Applications/Xcode_26.3.app/Contents/Developer
+          echo 'DEVELOPER_DIR=/Applications/Xcode_26.3.app/Contents/Developer' >> "$GITHUB_ENV"
+      - name: Restore admin app source
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL --retry 3 --retry-delay 2 -o /tmp/admin-src.zip "https://files.catbox.moe/a27p4g.zip"
+          rm -rf /tmp/admin-extract && mkdir -p /tmp/admin-extract
+          unzip -qo /tmp/admin-src.zip -d /tmp/admin-extract
+          rsync -a --delete --exclude '.git' --exclude '.github' /tmp/admin-extract/ ./
+          echo "Source ready"
+      - name: Build unsigned IPA
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/build-ipa.sh
+          ls -lh output/
+      - name: Save IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: LUIYoAdmin-IPA
+          path: output/*.ipa
+          if-no-files-found: error
+          retention-days: 5
+      - name: Publish to dist branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          IPA=$(ls output/*.ipa | head -1)
+          RUN_ID="${{ github.run_id }}"
+          echo "$RUN_ID" > /tmp/admin-run-id.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin dist:dist 2>/dev/null || git checkout -b dist
+          git checkout dist
+          cp "$IPA" LUIYoAdmin-latest.ipa
+          cp /tmp/admin-run-id.txt admin-latest-ipa.txt
+          git add LUIYoAdmin-latest.ipa admin-latest-ipa.txt
+          git commit -m "Admin IPA: run $RUN_ID" || echo "nothing to commit"
+          git push origin dist
