@@ -57,7 +57,7 @@ jobs:
           git stash -u || true
           git fetch origin dist 2>/dev/null || true
           git checkout -B dist origin/dist 2>/dev/null || git checkout -B dist
-          cp "$IPA" LUIYoAdmin-latest.ipa
+          cp /tmp/LUIYoAdmin-latest.ipa LUIYoAdmin-latest.ipa
           cp /tmp/admin-run-id.txt admin-latest-ipa.txt
           git add LUIYoAdmin-latest.ipa admin-latest-ipa.txt
           git commit -m "Admin IPA: run $RUN_ID" || echo "nothing to commit"
