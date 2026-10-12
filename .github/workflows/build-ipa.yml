@@ -26,21 +26,21 @@ jobs:
         run: |
           test -d /Applications/Xcode_26.3.app/Contents/Developer
           echo 'DEVELOPER_DIR=/Applications/Xcode_26.3.app/Contents/Developer' >> "$GITHUB_ENV"
-      - name: Restore full v1.0.6 build43 source
+      - name: Restore full v1.0.6 build44 source
         shell: bash
         run: |
           set -euo pipefail
-          curl -fsSL --retry 3 --retry-delay 2 -o /tmp/luiyo-src.zip "https://litter.catbox.moe/uqlha0.zip"
+          curl -fsSL --retry 3 --retry-delay 2 -o /tmp/luiyo-src.zip "https://litter.catbox.moe/mhw8qi.zip"
           rm -rf /tmp/luiyo-extract && mkdir -p /tmp/luiyo-extract
           unzip -qo /tmp/luiyo-src.zip -d /tmp/luiyo-extract
           if [ -d /tmp/luiyo-extract/YouYouLUI_iOS ]; then SRC=/tmp/luiyo-extract
           else SRC=$(find /tmp/luiyo-extract -maxdepth 2 -type d -name 'YouYouLUI_iOS' | head -1 | xargs dirname); fi
           rsync -a --delete --exclude '.git' --exclude '.github' "$SRC"/ ./
-          test -f YouYouLUI_iOS/YouYouLUI/LUISettingsHeroCell.m
-          grep -q 'NSClassFromString(@"UIGlassEffect")' YouYouLUI_iOS/YouYouLUI/LUISettingsHeroCell.m
-          ! grep -q 'NSStrokeWidthAttributeName' YouYouLUI_iOS/YouYouLUI/LUISettingsHeroAdapter.m
+          test -f server/device-service.php
+          grep -q 'app_versions' server/device-service.php
+          grep -q 'version_blocked' YouYouLUI_iOS/YouYouLUI/AppDelegate.swift
           sed -i.bak -E "s/test \"\$BUILD\" = '[0-9]+'/true/g; s/test \"\$VERSION\" = '1\\.0\\.[0-9]+'/true/g" scripts/build-ipa.sh || true
-          echo "Source ready"
+          echo "Source ready (version gate)"
       - name: Build unsigned IPA
         shell: bash
         run: |
@@ -50,7 +50,7 @@ jobs:
       - name: Save IPA
         uses: actions/upload-artifact@v4
         with:
-          name: LUIYo-v1.0.6-build43-IPA
+          name: LUIYo-v1.0.6-build44-IPA
           path: output/*.ipa
           if-no-files-found: error
           retention-days: 5
