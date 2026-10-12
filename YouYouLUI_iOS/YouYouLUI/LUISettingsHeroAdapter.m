@@ -96,23 +96,27 @@ void LUIYoRefreshSettingsHero(UIView *view) {
     cell.nameLabel.attributedText = [[NSAttributedString alloc] initWithString:name attributes:@{NSFontAttributeName:cell.nameLabel.font,NSStrokeColorAttributeName:LUISettingsInkColor(),NSStrokeWidthAttributeName:@1.8}];
     cell.nameLabel.accessibilityValue = name;
     cell.versionChip.layer.cornerRadius = 9;
-    UIColor *fill = [UIColor colorWithDynamicProvider:^UIColor *(UITraitCollection *traits) {
-        NSString *appearance = traits.userInterfaceStyle == UIUserInterfaceStyleDark ? @"dark" : @"light";
-        NSString *key = [@"youyou.heroCardColor." stringByAppendingString:appearance];
-        NSString *savedHex = [NSUserDefaults.standardUserDefaults stringForKey:key];
-        // Prevent a stale dark-theme preference from turning the authorization
-        // hero charcoal while the Settings page is in light appearance.
-        NSString *hex = [appearance isEqualToString:@"dark"]
-            ? (savedHex.length ? savedHex : @"#1C1C1E")
-            : @"#FFFFFF";
-        unsigned int value = 0;[[NSScanner scannerWithString:[hex stringByReplacingOccurrencesOfString:@"#" withString:@""]] scanHexInt:&value];
-        return [UIColor colorWithRed:((value>>16)&255)/255.0 green:((value>>8)&255)/255.0 blue:(value&255)/255.0 alpha:1];
-    }];
-    UIColor *resolved = [fill resolvedColorWithTraitCollection:cell.superview.traitCollection ?: cell.traitCollection];
+    // The app has its own appearance selector; UIKit's inherited trait can be stale
+    // while a page transition is in progress. Resolve the hero from that explicit
+    // preference first, and consult the live window trait only in System mode.
+    NSString *mode = [NSUserDefaults.standardUserDefaults stringForKey:@"youyou.appearanceMode"] ?: @"system";
+    BOOL useDark;
+    if ([mode isEqualToString:@"light"]) useDark = NO;
+    else if ([mode isEqualToString:@"dark"]) useDark = YES;
+    else {
+        UITraitCollection *traits = cell.window.traitCollection ?: cell.traitCollection;
+        useDark = traits.userInterfaceStyle == UIUserInterfaceStyleDark;
+    }
+    NSString *appearance = useDark ? @"dark" : @"light";
+    NSString *key = [@"youyou.heroCardColor." stringByAppendingString:appearance];
+    NSString *savedHex = [NSUserDefaults.standardUserDefaults stringForKey:key];
+    // A stale saved dark card color must never override explicit Light mode.
+    NSString *hex = useDark ? (savedHex.length ? savedHex : @"#1C1C1E") : @"#FFFFFF";
+    unsigned int value = 0;
+    [[NSScanner scannerWithString:[hex stringByReplacingOccurrencesOfString:@"#" withString:@""]] scanHexInt:&value];
+    UIColor *resolved = [UIColor colorWithRed:((value>>16)&255)/255.0 green:((value>>8)&255)/255.0 blue:((value)&255)/255.0 alpha:1];
     cell.backgroundView.backgroundColor = resolved;
-    CGFloat red=1,green=1,blue=1,alpha=1;[resolved getRed:&red green:&green blue:&blue alpha:&alpha];
-    BOOL darkInk = .2126*red + .7152*green + .0722*blue > .5;
-    cell.overrideUserInterfaceStyle = darkInk ? UIUserInterfaceStyleLight : UIUserInterfaceStyleDark;
+    cell.overrideUserInterfaceStyle = useDark ? UIUserInterfaceStyleDark : UIUserInterfaceStyleLight;
     [cell setNeedsLayout];
 }
 UIView *LUIYoCreateSettingsHero(void (^onInfo)(void), void (^onChangelog)(void), void (^onAvatar)(void), void (^onName)(void)) {
