@@ -8,7 +8,7 @@ on:
       - '.github/workflows/build-ipa.yml'
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: luiyo-ipa-main
@@ -53,3 +53,11 @@ jobs:
           path: output/*.ipa
           if-no-files-found: error
           retention-days: 5
+      - name: Publish latest IPA link
+        if: success()
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          python3 scripts/publish-ipa.py
