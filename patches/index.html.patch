@@ -30,7 +30,7 @@
 +     }
     }
 +   // After background change, force native glass rect resync so stale materials do not stack.
-+   requestAnimationFrame(()=>{try{window.__syncNativeCardGlass?.()}catch(e){}});
++   try{if(typeof requestAnimationFrame==='function')requestAnimationFrame(()=>{try{window.__syncNativeCardGlass?.()}catch(e){}});else window.__syncNativeCardGlass?.()}catch(e){}
   }
   document.getElementById('chooseBackgroundImage').addEventListener('click',()=>imageInput.click());
   imageInput.addEventListener('change',async()=>{
