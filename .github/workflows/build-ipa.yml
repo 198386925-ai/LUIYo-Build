@@ -60,4 +60,4 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          python3 .github/scripts/publish-ipa.py
+          bash .github/scripts/publish-ipa.sh
