@@ -1,9 +1,8 @@
-build/
-sim-build/
-output/
-native-check/
-*.p12
-*.mobileprovision
-*.pem
-*.key
 .DS_Store
+build/
+output/
+*.xcuserstate
+xcuserdata/
+DerivedData/
+*.ipa
+*.mobileprovision
