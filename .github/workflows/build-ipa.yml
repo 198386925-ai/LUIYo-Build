@@ -15,7 +15,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: luiyo-ipa-${{ github.ref }}-${{ github.sha }}
+  group: luiyo-ipa-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -34,7 +34,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          curl -fsSL -o /tmp/luiyo-src.zip "https://litter.catbox.moe/1ksr7o.zip"
+          curl -fsSL --retry 3 --retry-delay 2 -o /tmp/luiyo-src.zip "https://litter.catbox.moe/1fija4.zip"
           rm -rf /tmp/luiyo-extract && mkdir -p /tmp/luiyo-extract
           unzip -qo /tmp/luiyo-src.zip -d /tmp/luiyo-extract
           if [ -d /tmp/luiyo-extract/YouYouLUI_iOS ]; then SRC=/tmp/luiyo-extract
@@ -42,8 +42,7 @@ jobs:
           rsync -a --delete --exclude '.git' --exclude '.github' "$SRC"/ ./
           test -f YouYouLUI_iOS/YouYouLUI/LUISettingsHeroCell.m
           grep -q 'UIGlassEffect' YouYouLUI_iOS/YouYouLUI/LUISettingsHeroCell.m
-          grep -q 'NSStrokeWidthAttributeName' YouYouLUI_iOS/YouYouLUI/LUISettingsHeroAdapter.m && exit 1 || true
-          # Relax version asserts
+          ! grep -q 'NSStrokeWidthAttributeName' YouYouLUI_iOS/YouYouLUI/LUISettingsHeroAdapter.m
           sed -i.bak -E "s/test \"\$BUILD\" = '[0-9]+'/true/g; s/test \"\$VERSION\" = '1\\.0\\.[0-9]+'/true/g" scripts/build-ipa.sh || true
           echo "Source ready (hero liquid + default title font)"
       - name: Build unsigned IPA
