@@ -1,0 +1,36 @@
+--- a/YouYouLUI_iOS/YouYouLUI/Web/index.html
++++ b/YouYouLUI_iOS/YouYouLUI/Web/index.html
+@@ -16,8 +16,8 @@
+ #rulePage,#settingsTarget{display:none}
+ body.nav-rules #rulePage{display:block}
+ body.nav-settings #settingsTarget{display:block}
+-body.nav-rules #homeTarget,body.nav-rules .dashboard,body.nav-rules #homeTools,body.nav-rules .categorytabs,body.nav-rules #sectionTitle,body.nav-rules #list,body.nav-rules #settingsTarget{display:none!important}
+-body.nav-settings #homeTarget,body.nav-settings .dashboard,body.nav-settings #homeTools,body.nav-settings .categorytabs,body.nav-settings #sectionTitle,body.nav-settings #list,body.nav-settings #rulePage{display:none!important}
++body.nav-rules #homeTarget,body.nav-rules .dashboard,body.nav-rules #homeTools,body.nav-rules .categorytabs,body.nav-rules #sectionTitle,body.nav-rules #list,body.nav-rules #settingsTarget{display:none!important;visibility:hidden!important;pointer-events:none!important}
++body.nav-settings #homeTarget,body.nav-settings .dashboard,body.nav-settings #homeTools,body.nav-settings .categorytabs,body.nav-settings #sectionTitle,body.nav-settings #list,body.nav-settings #rulePage{display:none!important;visibility:hidden!important;pointer-events:none!important}
+ .rulePage{padding:4px 0 110px}
+ .pageHead{margin:8px 2px 16px}
+ .pageHead h1{font-size:25px;line-height:1.2;margin:0 0 5px;font-weight:800;color:#18202a}
+@@ -2105,13 +2105,18 @@
+    document.documentElement.classList.toggle('has-background-image',Boolean(record));label.textContent=record?.name||'未设置背景图片';
+    if(url){URL.revokeObjectURL(url);url=''}
+    if(native){
+-     if(!record){send('backgroundImage',{reset:true});return}
+-     const reader=new FileReader();reader.onload=()=>send('backgroundImage',{name:record.name,data:String(reader.result).split(',')[1]});reader.readAsDataURL(record.blob);
++     if(!record){send('backgroundImage',{reset:true})}
++     else{const reader=new FileReader();reader.onload=()=>send('backgroundImage',{name:record.name,data:String(reader.result).split(',')[1]});reader.readAsDataURL(record.blob)}
+    }else{
+      let img=document.getElementById('webBackgroundImage');
+-     if(!record){img?.remove();return}
+-     if(!img){img=document.createElement('img');img.id='webBackgroundImage';document.body.prepend(img)}url=URL.createObjectURL(record.blob);img.src=url;
++     if(!record){img?.remove()}
++     else{
++       if(!img){img=document.createElement('img');img.id='webBackgroundImage';document.body.prepend(img)}
++       url=URL.createObjectURL(record.blob);img.src=url;
++     }
+    }
++   // After background change, force native glass rect resync so stale materials do not stack.
++   requestAnimationFrame(()=>{try{window.__syncNativeCardGlass?.()}catch(e){}});
+  }
+  document.getElementById('chooseBackgroundImage').addEventListener('click',()=>imageInput.click());
+  imageInput.addEventListener('change',async()=>{

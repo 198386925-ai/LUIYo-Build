@@ -8,6 +8,7 @@ on:
       - 'YouYouLUI_iOS/**'
       - 'scripts/**'
       - 'server/**'
+      - 'patches/**'
       - '.github/workflows/build-ipa.yml'
 
 permissions:
@@ -43,6 +44,23 @@ jobs:
         run: |
           test -d /Applications/Xcode_26.3.app/Contents/Developer
           echo 'DEVELOPER_DIR=/Applications/Xcode_26.3.app/Contents/Developer' >> "$GITHUB_ENV"
+      - name: Restore sources and apply background-overlap fix
+        shell: bash
+        run: |
+          GOOD_SHA=8aaba2a3162f4475b912a40af9a417b5e98b2eef
+          if ! grep -q 'clearAllNativeCardMaterials' YouYouLUI_iOS/YouYouLUI/WebViewController.swift 2>/dev/null \
+            || ! grep -q '__syncNativeCardGlass' YouYouLUI_iOS/YouYouLUI/Web/index.html 2>/dev/null; then
+            echo "Restoring ${GOOD_SHA} and applying patches..."
+            curl -fsSL "https://raw.githubusercontent.com/${{ github.repository }}/${GOOD_SHA}/YouYouLUI_iOS/YouYouLUI/WebViewController.swift" \
+              -o YouYouLUI_iOS/YouYouLUI/WebViewController.swift
+            curl -fsSL "https://raw.githubusercontent.com/${{ github.repository }}/${GOOD_SHA}/YouYouLUI_iOS/YouYouLUI/Web/index.html" \
+              -o YouYouLUI_iOS/YouYouLUI/Web/index.html
+            patch -p1 < patches/WebViewController.swift.patch
+            patch -p1 < patches/index.html.patch
+          fi
+          grep -q 'clearAllNativeCardMaterials' YouYouLUI_iOS/YouYouLUI/WebViewController.swift
+          grep -q '__syncNativeCardGlass' YouYouLUI_iOS/YouYouLUI/Web/index.html
+
       - name: Validate native bridge
         run: |
           python3 scripts/render-release-notes.py
@@ -66,5 +84,3 @@ jobs:
           path: output/*.ipa
           if-no-files-found: error
           retention-days: 1
-
-

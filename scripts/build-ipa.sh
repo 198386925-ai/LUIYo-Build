@@ -2,6 +2,30 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
+
+# Restore known-good sources and apply background-overlap fix if needed.
+# Allows CI to build a fixed IPA even when main temporarily has broken placeholders.
+GOOD_SHA="${LUIYO_GOOD_SHA:-8aaba2a3162f4475b912a40af9a417b5e98b2eef}"
+NEED_FIX=0
+if ! grep -q 'clearAllNativeCardMaterials' YouYouLUI_iOS/YouYouLUI/WebViewController.swift 2>/dev/null; then
+  NEED_FIX=1
+fi
+if ! grep -q 'requestAnimationFrame(()=>{try{window.__syncNativeCardGlass' YouYouLUI_iOS/YouYouLUI/Web/index.html 2>/dev/null; then
+  NEED_FIX=1
+fi
+if [ "$NEED_FIX" = 1 ]; then
+  echo "Applying background-overlap fix onto ${GOOD_SHA} sources..."
+  curl -fsSL "https://raw.githubusercontent.com/198386925-ai/LUIYo-Build/${GOOD_SHA}/YouYouLUI_iOS/YouYouLUI/WebViewController.swift" \
+    -o YouYouLUI_iOS/YouYouLUI/WebViewController.swift
+  curl -fsSL "https://raw.githubusercontent.com/198386925-ai/LUIYo-Build/${GOOD_SHA}/YouYouLUI_iOS/YouYouLUI/Web/index.html" \
+    -o YouYouLUI_iOS/YouYouLUI/Web/index.html
+  patch -p1 < patches/WebViewController.swift.patch
+  patch -p1 < patches/index.html.patch
+  grep -q 'clearAllNativeCardMaterials' YouYouLUI_iOS/YouYouLUI/WebViewController.swift
+  grep -q '__syncNativeCardGlass' YouYouLUI_iOS/YouYouLUI/Web/index.html
+  echo "Background-overlap fix applied."
+fi
+
 python3 scripts/render-release-notes.py
 xcodebuild -version
 SDK_VERSION="$(xcrun --sdk iphoneos --show-sdk-version)"
@@ -44,5 +68,3 @@ NAME="LUIYo-v${VERSION}-build${BUILD}-ios26-${GITHUB_RUN_NUMBER:-local}-unsigned
 (cd "$STAGE" && /usr/bin/zip -qry "$ROOT/output/$NAME" Payload)
 unzip -t "output/$NAME"
 echo "IPA: output/$NAME (unsigned; sign before installation)"
-
-
