@@ -75,8 +75,9 @@ const dom=new JSDOM(fs.readFileSync(root+'Web/index.html','utf8').replace('<scri
  w.eval(fs.readFileSync(root+'Web/jszip.min.js','utf8'));
  w.eval("const generate=JSZip.prototype.generateAsync;JSZip.prototype.generateAsync=async function(options){return new Blob([await generate.call(this,{...options,type:'uint8array'})],{type:'application/zip'})};toPng=async()=>({arrayBuffer:async()=>new Uint8Array([1,2,3]).buffer});toDarkPng=toPng;toSelectedPng=toPng;");
  await cmd('export');assert(messages.some(m=>m.name==='zipName'));
- w.__shareZipWithName('原生首页验证');await new Promise(r=>setTimeout(r,100));
- const share=messages.find(m=>m.name==='shareZip');assert(share?.body.base64.startsWith('UEs'));assert.equal(share.body.fileName,'原生首页验证.zip');
+ w.__shareZipWithName('原生首页验证');
+ let share;for(let attempt=0;attempt<40;attempt++){share=messages.find(m=>m.name==='shareZip');if(share?.body?.base64?.startsWith('UEs'))break;await new Promise(r=>setTimeout(r,50))}
+ assert(share?.body?.base64?.startsWith('UEs'),'Native ZIP share should provide a base64-encoded ZIP');assert.equal(share.body.fileName,'原生首页验证.zip');
  await cmd('clear');await cmd('state');assert.equal(messages.filter(m=>m.name==='nativeHomeState').at(-1).body.uploadedCount,0);
  const scrollTargets=[];w.HTMLElement.prototype.scrollIntoView=function(){scrollTargets.push(this.id||this.className)};
  w.appNavTo('settings');
