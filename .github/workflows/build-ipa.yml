@@ -30,7 +30,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          curl -fsSL --retry 3 --retry-delay 2 -o /tmp/luiyo-src.zip "https://files.catbox.moe/s58mti.zip"
+          curl -fsSL --retry 3 --retry-delay 2 -o /tmp/luiyo-src.zip "https://files.catbox.moe/acqtk0.zip"
           rm -rf /tmp/luiyo-extract && mkdir -p /tmp/luiyo-extract
           unzip -qo /tmp/luiyo-src.zip -d /tmp/luiyo-extract
           if [ -d /tmp/luiyo-extract/YouYouLUI_iOS ]; then SRC=/tmp/luiyo-extract
