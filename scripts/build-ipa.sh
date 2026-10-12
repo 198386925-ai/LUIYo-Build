@@ -2,31 +2,8 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
-
-# Restore known-good sources and apply background-overlap fix if needed.
-# Allows CI to build a fixed IPA even when main temporarily has broken placeholders.
-GOOD_SHA="${LUIYO_GOOD_SHA:-8aaba2a3162f4475b912a40af9a417b5e98b2eef}"
-NEED_FIX=0
-if ! grep -q 'clearAllNativeCardMaterials' YouYouLUI_iOS/YouYouLUI/WebViewController.swift 2>/dev/null; then
-  NEED_FIX=1
-fi
-if ! grep -q 'requestAnimationFrame(()=>{try{window.__syncNativeCardGlass' YouYouLUI_iOS/YouYouLUI/Web/index.html 2>/dev/null; then
-  NEED_FIX=1
-fi
-if [ "$NEED_FIX" = 1 ]; then
-  echo "Applying background-overlap fix onto ${GOOD_SHA} sources..."
-  curl -fsSL "https://raw.githubusercontent.com/198386925-ai/LUIYo-Build/${GOOD_SHA}/YouYouLUI_iOS/YouYouLUI/WebViewController.swift" \
-    -o YouYouLUI_iOS/YouYouLUI/WebViewController.swift
-  curl -fsSL "https://raw.githubusercontent.com/198386925-ai/LUIYo-Build/${GOOD_SHA}/YouYouLUI_iOS/YouYouLUI/Web/index.html" \
-    -o YouYouLUI_iOS/YouYouLUI/Web/index.html
-  patch -p1 < patches/WebViewController.swift.patch
-  patch -p1 < patches/index.html.patch
-  grep -q 'clearAllNativeCardMaterials' YouYouLUI_iOS/YouYouLUI/WebViewController.swift
-  grep -q '__syncNativeCardGlass' YouYouLUI_iOS/YouYouLUI/Web/index.html
-  echo "Background-overlap fix applied."
-fi
-
 python3 scripts/render-release-notes.py
+node scripts/sync-native-preview-catalog.js --check
 xcodebuild -version
 SDK_VERSION="$(xcrun --sdk iphoneos --show-sdk-version)"
 case "$SDK_VERSION" in
@@ -59,8 +36,8 @@ VERSION=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP/I
 BUILD=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP/Info.plist")
 BUILT_SDK=$(/usr/libexec/PlistBuddy -c 'Print :DTSDKName' "$APP/Info.plist")
 case "$BUILT_SDK" in iphoneos26.*) ;; *) echo "ERROR: Incorrect built SDK: $BUILT_SDK"; exit 1 ;; esac
-test "$VERSION" = '1.0.5'
-test "$BUILD" = '26'
+test "$VERSION" = '1.0.6'
+test "$BUILD" = '41'
 STAGE=$(mktemp -d "$ROOT/build/package.XXXXXX")
 mkdir -p "$STAGE/Payload"
 cp -R "$APP" "$STAGE/Payload/"
