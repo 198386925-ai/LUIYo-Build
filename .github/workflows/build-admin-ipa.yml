@@ -49,12 +49,14 @@ jobs:
         run: |
           set -euo pipefail
           IPA=$(ls output/*.ipa | head -1)
+          cp "$IPA" /tmp/LUIYoAdmin-latest.ipa
           RUN_ID="${{ github.run_id }}"
           echo "$RUN_ID" > /tmp/admin-run-id.txt
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin dist:dist 2>/dev/null || git checkout -b dist
-          git checkout dist
+          git stash -u || true
+          git fetch origin dist 2>/dev/null || true
+          git checkout -B dist origin/dist 2>/dev/null || git checkout -B dist
           cp "$IPA" LUIYoAdmin-latest.ipa
           cp /tmp/admin-run-id.txt admin-latest-ipa.txt
           git add LUIYoAdmin-latest.ipa admin-latest-ipa.txt
