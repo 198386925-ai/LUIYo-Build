@@ -33,7 +33,7 @@ function luiyo_revoke_grant(PDO $db,string $code): ?string {
     try {
         $q=$db->prepare('SELECT * FROM device_grants WHERE installation_id=? AND revoked_at IS NULL');$q->execute([(int)$m[1]]);$g=$q->fetch(PDO::FETCH_ASSOC);
         if(!$g){$db->exec('ROLLBACK');return '该设备没有可撤销的设备码授权';}
-        $db->prepare('UPDATE licenses SET disabled=1 WHERE id=?')->execute([$g['license_id']]);
+        // 仅撤销设备码授权，不禁用设备/卡密
         $db->prepare('UPDATE device_grants SET revoked_at=? WHERE installation_id=?')->execute([time(),$m[1]]);
         $db->exec('COMMIT');return null;
     }catch(Throwable $e){try{$db->exec('ROLLBACK');}catch(Throwable){}throw $e;}
@@ -43,10 +43,11 @@ function luiyo_claim_grant(PDO $db): never {
     $i=luiyo_installation($db);
     $db->exec('BEGIN IMMEDIATE');
     try {
-        $q=$db->prepare('SELECT d.id,d.banned,l.disabled,l.expires_at FROM device_grants g JOIN installations i ON i.id=g.installation_id JOIN devices d ON d.device_hash=i.device_hash AND d.license_id=g.license_id JOIN licenses l ON l.id=g.license_id WHERE g.installation_id=? AND g.revoked_at IS NULL');
+        $q=$db->prepare('SELECT d.id,d.banned,d.ban_reason,l.disabled,l.expires_at FROM device_grants g JOIN installations i ON i.id=g.installation_id JOIN devices d ON d.device_hash=i.device_hash AND d.license_id=g.license_id JOIN licenses l ON l.id=g.license_id WHERE g.installation_id=? AND g.revoked_at IS NULL');
         $q->execute([$i['id']]);$d=$q->fetch(PDO::FETCH_ASSOC);
         if(!$d){$db->exec('ROLLBACK');luiyo_json(404,['error'=>'no_device_grant']);}
-        if($d['banned']||$d['disabled']||($d['expires_at']!==null&&(int)$d['expires_at']<time())){$db->exec('ROLLBACK');luiyo_json(403,['error'=>'access_revoked']);}
+        if($d['banned']){$db->exec('ROLLBACK');luiyo_json(403,['error'=>'access_revoked','reason'=>(string)($d['ban_reason']??'')]);}
+        if($d['disabled']||($d['expires_at']!==null&&(int)$d['expires_at']<time())){$db->exec('ROLLBACK');luiyo_json(403,['error'=>'access_revoked']);}
         $token=bin2hex(random_bytes(32));
         $db->prepare('UPDATE devices SET token_hash=?,last_seen=? WHERE id=?')->execute([hash('sha256',$token),time(),$d['id']]);
         $db->exec('COMMIT');luiyo_json(200,['token'=>$token,'status'=>'active']);
