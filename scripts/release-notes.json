@@ -12,6 +12,19 @@
           "text": "该版本为首发测试。"
         }
       ]
+    },
+    "1.0.6": {
+      "status": "当前版本",
+      "entries": [
+        {
+          "kind": "opt",
+          "text": "顶部品牌卡名字改成 LUIYo。"
+        },
+        {
+          "kind": "opt",
+          "text": "原 Version1.0.6 Build51 位置改成显示设备码：# ID D-XXXXXX，未授权灰色，会员金色，跟随后端修改。"
+        }
+      ]
     }
   },
   "exclusive_history_by_version": {

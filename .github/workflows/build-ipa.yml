@@ -40,6 +40,14 @@ jobs:
           if [ -f /tmp/hero-native.patch ]; then
             patch -p0 --no-backup-if-mismatch -i /tmp/hero-native.patch && echo "Native badge patch applied" || echo "Native patch failed!"
           fi
+          # Build 号 +1 (当前 51 -> 52)
+          INFO_PLIST="YouYouLUI_iOS/YouYouLUI/Info.plist"
+          if [ -f "$INFO_PLIST" ]; then
+            CURRENT_BUILD=$(/usr/libexec/PlistBuddy -c "Print CFBundleVersion" "$INFO_PLIST" 2>/dev/null || echo "51")
+            NEW_BUILD=$((CURRENT_BUILD + 1))
+            /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $NEW_BUILD" "$INFO_PLIST" 2>/dev/null || true
+            echo "Build number: $CURRENT_BUILD -> $NEW_BUILD"
+          fi
           grep -q 'forceBlockedVersion' YouYouLUI_iOS/YouYouLUI/AppDelegate.swift
           grep -q 'exit(0)' YouYouLUI_iOS/YouYouLUI/AppDelegate.swift
           sed -i.bak -E "s/test \"\$BUILD\" = '[0-9]+'/true/g; s/test \"\$VERSION\" = '1\\.0\\.[0-9]+'/true/g" scripts/build-ipa.sh || true
