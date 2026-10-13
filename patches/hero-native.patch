@@ -1,6 +1,6 @@
 --- YouYouLUI_iOS/YouYouLUI/LUISettingsHeroAdapter.m
 +++ YouYouLUI_iOS/YouYouLUI/LUISettingsHeroAdapter.m
-@@ -116,11 +116,126 @@
+@@ -116,11 +116,129 @@
      if (!_LUIYoHeroCustomFont) {
          _LUIYoHeroCustomFont = LUIYoLoadThemeFontFromDisk();
      }
@@ -98,28 +98,31 @@
 +    idLabel.textColor = idTextColor;
 +    [badge addSubview:idLabel];
 +    
-+    // 布局 (使用 Auto Layout)
++    // 布局 (使用 Auto Layout) - 紧凑尺寸，和原来 version pill 差不多大
 +    badge.translatesAutoresizingMaskIntoConstraints = NO;
 +    tagLabel.translatesAutoresizingMaskIntoConstraints = NO;
 +    hashLabel.translatesAutoresizingMaskIntoConstraints = NO;
 +    idLabel.translatesAutoresizingMaskIntoConstraints = NO;
++    // 减小字体
++    tagLabel.font = [UIFont systemFontOfSize:11 weight:UIFontWeightBold];
++    hashLabel.font = [UIFont systemFontOfSize:12 weight:UIFontWeightSemibold];
++    idLabel.font = [UIFont systemFontOfSize:12 weight:UIFontWeightSemibold];
 +    [cell.contentView addSubview:badge];
 +    // 定位到原来 versionChip 的位置 (在 nameLabel 下方)
 +    [NSLayoutConstraint activateConstraints:@[
 +        [badge.leadingAnchor constraintEqualToAnchor:cell.nameLabel.leadingAnchor],
 +        [badge.topAnchor constraintEqualToAnchor:cell.nameLabel.bottomAnchor constant:6],
-+        [badge.heightAnchor constraintEqualToConstant:36],
-+        [tagLabel.leadingAnchor constraintEqualToAnchor:badge.leadingAnchor constant:6],
++        [badge.heightAnchor constraintEqualToConstant:28],
++        [tagLabel.leadingAnchor constraintEqualToAnchor:badge.leadingAnchor constant:4],
 +        [tagLabel.centerYAnchor constraintEqualToAnchor:badge.centerYAnchor],
-+        [tagLabel.heightAnchor constraintEqualToConstant:24],
-+        [tagLabel.widthAnchor constraintGreaterThanOrEqualToConstant:80],
-+        [hashLabel.leadingAnchor constraintEqualToAnchor:tagLabel.trailingAnchor constant:8],
++        [tagLabel.heightAnchor constraintEqualToConstant:20],
++        [hashLabel.leadingAnchor constraintEqualToAnchor:tagLabel.trailingAnchor constant:6],
 +        [hashLabel.centerYAnchor constraintEqualToAnchor:badge.centerYAnchor],
-+        [hashLabel.widthAnchor constraintEqualToConstant:24],
-+        [hashLabel.heightAnchor constraintEqualToConstant:24],
-+        [idLabel.leadingAnchor constraintEqualToAnchor:hashLabel.trailingAnchor constant:8],
++        [hashLabel.widthAnchor constraintEqualToConstant:20],
++        [hashLabel.heightAnchor constraintEqualToConstant:20],
++        [idLabel.leadingAnchor constraintEqualToAnchor:hashLabel.trailingAnchor constant:6],
 +        [idLabel.centerYAnchor constraintEqualToAnchor:badge.centerYAnchor],
-+        [idLabel.trailingAnchor constraintEqualToAnchor:badge.trailingAnchor constant:-12],
++        [badge.trailingAnchor constraintEqualToAnchor:idLabel.trailingAnchor constant:10],
 +    ]];
 +    // 更新渐变层 frame
 +    dispatch_async(dispatch_get_main_queue(), ^{
