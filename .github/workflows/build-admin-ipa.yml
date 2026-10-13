@@ -26,7 +26,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          curl -fsSL --retry 3 --retry-delay 2 -o /tmp/admin-src.zip "https://files.catbox.moe/g4lf2v.zip"
+          curl -fsSL --retry 3 --retry-delay 2 -o /tmp/admin-src.zip "https://files.catbox.moe/dvivu1.zip"
           rm -rf /tmp/admin-extract && mkdir -p /tmp/admin-extract
           unzip -qo /tmp/admin-src.zip -d /tmp/admin-extract
           rsync -a --delete --exclude '.git' --exclude '.github' /tmp/admin-extract/ ./
