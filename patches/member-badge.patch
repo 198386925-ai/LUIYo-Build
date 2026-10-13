@@ -1,0 +1,79 @@
+--- /tmp/original-index.html	2026-10-13 17:07:28.076698469 +0800
++++ /tmp/clean-index.html	2026-10-13 17:07:38.476148465 +0800
+@@ -1208,7 +1208,8 @@
+   <a class="homeFeedback" href="https://qm.qq.com/q/th1QshgzHW" target="_blank" rel="noopener noreferrer">反馈问题 · 联系客服</a>
+   <input class="search" id="searchInput" type="search" placeholder="搜索：转账、位置、底栏微信…">
+ </section><section class="tools" id="homeTools"><div class="actions"><label class="batch">关键词批量导入<input id="batchInput" type="file" accept="image/*" multiple></label><label class="fillpick">补全图片<input id="fillInput" type="file" accept="image/*"></label><button class="fill" id="fillBtn">双分类补全</button></div><button type="button" class="colorfold" id="colorFoldBtn" aria-expanded="false"><span>自定义修改颜色 <small>浅色 / 深色 / 全部图标</small></span><span class="chev">⌄</span></button><div class="colorpanel" id="colorPanel"><div class="colorrow disabled" id="selectedLightRow"><div><span>自定义选中浅色模式</span><small>默认自动加深；启用后使用这个颜色</small></div><div class="colorcontrols"><label class="switchlabel"><input id="selectedLightEnabled" type="checkbox">启用</label><input id="selectedColor" type="color" value="#1677ff"></div></div><div class="colorrow disabled" id="selectedDarkRow"><div><span>自定义选中深色模式</span><small>默认自动反转；启用后使用这个颜色</small></div><div class="colorcontrols"><label class="switchlabel"><input id="selectedDarkEnabled" type="checkbox">启用</label><input id="selectedDarkColor" type="color" value="#ffffff"></div></div><div class="colorrow disabled" id="allColorRow"><div><span>自定义全部图标颜色</span><small>默认保持上传图片原本颜色</small></div><div class="colorcontrols"><label class="switchlabel"><input id="allColorEnabled" type="checkbox">启用</label><input id="allColor" type="color" value="#222222"></div></div></div><div class="exportrow"><button class="clear" onclick="clearAll()">清空</button><button class="zip" onclick="makeZip(this)">导出 ZIP</button></div><div class="status" id="status">已上传 0 项</div></section><section class="settingsTarget" id="settingsTarget">
+-  <div class="settingsHead"><h1>设置</h1><p>主题、使用说明与更新日志</p></div>
++  <div class="settingsHead"><h1>LUIYo</h1><p>主题、使用说明与更新日志</p></div>
++  <div id="memberBadgeContainer" style="padding:0 4px 16px;"></div>
+ 
+   <details class="settingsFold themeFold">
+     <summary aria-label="主题"><span class="settingsFoldIcon" data-system-icon="circle.lefthalf.filled">◐</span><span class="settingsFoldText"><b>主题</b><small>卡片材质、背景、按钮与字体</small></span><span class="settingsFoldChevron"></span></summary>
+@@ -2286,7 +2287,31 @@
+  }catch(e){}
+  window.__applyToolbarTransparency=applyTransparency;
+  window.__setMinimizeBottomBar=applyShrink;
+-})();</script></body></html>
++})();</script>
++<script>
++(function(){
++  const CROWN='<svg viewBox="0 0 24 24"><path d="M3 8l4 4 5-7 5 7 4-4v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8z"/><rect x="9" y="17" width="2" height="3" rx="1"/><rect x="13" y="17" width="2" height="3" rx="1"/></svg>';
++  const COPY='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M5 15H4.5A2.5 2.5 0 0 1 2 12.5v-8A2.5 2.5 0 0 1 4.5 2h8A2.5 2.5 0 0 1 15 4.5V5"/></svg>';
++  function getDeviceCode(){try{const c1=localStorage.getItem('luiyo.deviceCode');if(c1)return c1;if(window.__luiyoDeviceCode)return window.__luiyoDeviceCode;}catch(e){}return 'D-000000';}
++  function renderBadge(tier,deviceCode){
++    const container=document.getElementById('memberBadgeContainer');if(!container)return;
++    const code=deviceCode||getDeviceCode();
++    const configs={free:{label:'免费用户',cls:'mb-free'},vip:{label:'普通会员',cls:'mb-vip'},svip:{label:'SVIP会员',cls:'mb-svip'}};
++    const cfg=configs[tier]||configs.free;
++    container.innerHTML='<div class="member-badge '+cfg.cls+'"><span class="mb-tag">'+CROWN+cfg.label+'</span><span class="mb-hash">#</span><span class="mb-id">ID<span class="dot">·</span>'+code+'</span><button class="mb-copy" id="mbCopyBtn">'+COPY+'</button></div>';
++    const btn=document.getElementById('mbCopyBtn');
++    if(btn)btn.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(code);}catch(e){}});
++  }
++  window.__luiyoSetAuthorized=function(isAuthorized,message,busy){
++    let tier='free';
++    if(isAuthorized){const msg=String(message||'');if(msg.includes('永久')||msg.includes('SVIP'))tier='svip';else tier='vip';}
++    renderBadge(tier);
++  };
++  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',()=>renderBadge('free'));}else{renderBadge('free');}
++  window.__luiyoSetDeviceCode=function(code){try{localStorage.setItem('luiyo.deviceCode',code);}catch(e){}window.__luiyoDeviceCode=code;};
++})();
++</script>
++</body></html>
+ 
+ 
+ <script id="native-day-night-switch-bridge">
+@@ -2380,4 +2405,33 @@
+ html.has-background-image body,.has-background-image body{background:transparent!important}
+ html.has-background-image #list.grid>.card{background:rgba(255,255,255,.94)!important;isolation:isolate!important}
+ html.has-background-image[data-appearance=dark] #list.grid>.card{background:rgba(28,28,30,.94)!important}
++
++/* LUIYo 会员铭牌 */
++#memberBadgeContainer .member-badge{display:inline-flex;align-items:center;gap:10px;padding:9px 18px 9px 12px;border-radius:999px;user-select:none;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;}
++#memberBadgeContainer .mb-hash{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;flex-shrink:0;}
++#memberBadgeContainer .mb-id{font-size:20px;font-weight:600;letter-spacing:.5px;white-space:nowrap;background-size:220% auto;-webkit-background-clip:text;background-clip:text;color:transparent;animation:mb-shimmer 4s linear infinite;}
++#memberBadgeContainer .mb-id .dot{margin:0 6px;font-weight:700;opacity:.55;}
++@keyframes mb-shimmer{to{background-position:220% center;}}
++#memberBadgeContainer .mb-tag{display:inline-flex;align-items:center;gap:5px;padding:5px 12px 5px 10px;border-radius:999px;font-size:13px;font-weight:700;letter-spacing:.5px;white-space:nowrap;flex-shrink:0;line-height:1;border:none;}
++#memberBadgeContainer .mb-tag svg{width:16px;height:16px;display:block;}
++#memberBadgeContainer .mb-copy{border:none;background:transparent;width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
++#memberBadgeContainer .mb-copy svg{width:16px;height:16px;}
++.mb-free{background:linear-gradient(180deg,#fdfdfe 0%,#e9eaee 55%,#dfe1e6 100%);box-shadow:0 4px 12px rgba(0,0,0,.10);}
++.mb-free .mb-hash{background:linear-gradient(180deg,#4a4f57,#363a40);color:#f5f6f8;}
++.mb-free .mb-id{background-image:linear-gradient(100deg,#5a606b 25%,#c7ccd4 50%,#5a606b 75%);}
++.mb-free .mb-tag{background:linear-gradient(180deg,#4a4f57,#363a40);color:#f5f6f8;}
++.mb-free .mb-tag svg{fill:#f5f6f8;}
++.mb-free .mb-copy{color:#555a63;}
++.mb-vip{background:linear-gradient(180deg,#fff8e7 0%,#f5e6c4 55%,#e8d5a3 100%);box-shadow:0 4px 12px rgba(180,140,50,.25);}
++.mb-vip .mb-hash{background:linear-gradient(180deg,#c79a3a,#a37c28);color:#fff;}
++.mb-vip .mb-id{background-image:linear-gradient(100deg,#8a6a20 25%,#d4a843 50%,#8a6a20 75%);}
++.mb-vip .mb-tag{background:linear-gradient(180deg,#c79a3a,#a37c28);color:#fff;}
++.mb-vip .mb-tag svg{fill:#fff;}
++.mb-vip .mb-copy{color:#8a6a20;}
++.mb-svip{background:linear-gradient(180deg,#33353b 0%,#26282e 55%,#1d1f24 100%);box-shadow:0 4px 12px rgba(0,0,0,.35);}
++.mb-svip .mb-hash{background:#2b2d33;color:#f5d28a;border:1px solid rgba(245,210,138,.4);}
++.mb-svip .mb-id{background-image:linear-gradient(100deg,#c79a3a 20%,#f5d28a 45%,#fff3cf 55%,#f5d28a 65%,#c79a3a 80%);}
++.mb-svip .mb-tag{background:#2b2d33;color:#f5d28a;border:1px solid rgba(245,210,138,.4);}
++.mb-svip .mb-tag svg{fill:#f5d28a;}
++.mb-svip .mb-copy{color:#f5d28a;}
+ </style>

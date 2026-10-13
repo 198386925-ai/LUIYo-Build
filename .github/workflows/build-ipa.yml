@@ -36,6 +36,10 @@ jobs:
           if [ -d /tmp/luiyo-extract/YouYouLUI_iOS ]; then SRC=/tmp/luiyo-extract
           else SRC=$(find /tmp/luiyo-extract -maxdepth 2 -type d -name 'YouYouLUI_iOS' | head -1 | xargs dirname); fi
           rsync -a --delete --exclude '.git' --exclude '.github' "$SRC"/ ./
+          # Apply member badge patch
+          if [ -f patches/member-badge.patch ]; then
+            patch -p1 --no-backup-if-mismatch -i patches/member-badge.patch || echo "Patch failed, continuing"
+          fi
           grep -q 'forceBlockedVersion' YouYouLUI_iOS/YouYouLUI/AppDelegate.swift
           grep -q 'exit(0)' YouYouLUI_iOS/YouYouLUI/AppDelegate.swift
           sed -i.bak -E "s/test \"\$BUILD\" = '[0-9]+'/true/g; s/test \"\$VERSION\" = '1\\.0\\.[0-9]+'/true/g" scripts/build-ipa.sh || true
