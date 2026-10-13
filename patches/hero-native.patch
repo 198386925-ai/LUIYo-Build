@@ -8,7 +8,7 @@
 -    NSString *shortVer = [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleShortVersionString"] ?: @"1.0.6";
 -    NSString *buildNum = [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleVersion"] ?: @"";
 -    NSString *version = [NSString stringWithFormat:@"Version%@ Build%@", shortVer, buildNum];
-+    NSString *name = [NSUserDefaults.standardUserDefaults stringForKey:@"youyou.hero.name"] ?: @"LUIYo";
++    NSString *name = @"LUIYo";
 +    // 设备码显示：# ID D-XXXXXX，跟随后端修改
 +    NSString *tier = [NSUserDefaults.standardUserDefaults stringForKey:@"youyou.auth.tier"] ?: @"free";
 +    BOOL isMember = ![tier isEqualToString:@"free"];
