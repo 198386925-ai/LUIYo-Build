@@ -36,6 +36,10 @@ jobs:
           # Save native patch before rsync (rsync --delete would remove it)
           cp patches/hero-native.patch /tmp/hero-native.patch 2>/dev/null || true
           cp patches/hero-cell.patch /tmp/hero-cell.patch 2>/dev/null || true
+          # Upload source as artifact for debugging (only on manual trigger)
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            tar -czf /tmp/luiyo-source.tar.gz -C "$SRC" . 2>/dev/null || true
+          fi
           rsync -a --delete --exclude '.git' --exclude '.github' "$SRC"/ ./
           # Debug: show relevant source lines before fix
           echo "=== BEFORE FIX ==="
@@ -62,6 +66,10 @@ jobs:
           # Fix hero cell via Python (robust string replacement)
           if [ -f scripts/fix-hero-cell.py ]; then
             python3 scripts/fix-hero-cell.py || echo "fix-hero-cell failed"
+          fi
+          # Fix adapter via Python (LUIYo + tier device, no crown)
+          if [ -f scripts/fix-adapter.py ]; then
+            python3 scripts/fix-adapter.py || echo "fix-adapter failed"
           fi
           # Build 号 +1 (当前 51 -> 52)
           INFO_PLIST="YouYouLUI_iOS/YouYouLUI/Info.plist"
