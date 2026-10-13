@@ -1,6 +1,6 @@
 --- YouYouLUI_iOS/YouYouLUI/LUISettingsHeroAdapter.m
 +++ YouYouLUI_iOS/YouYouLUI/LUISettingsHeroAdapter.m
-@@ -116,11 +116,49 @@
+@@ -116,11 +116,126 @@
      if (!_LUIYoHeroCustomFont) {
          _LUIYoHeroCustomFont = LUIYoLoadThemeFontFromDisk();
      }
@@ -8,49 +8,127 @@
 -    NSString *shortVer = [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleShortVersionString"] ?: @"1.0.6";
 -    NSString *buildNum = [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleVersion"] ?: @"";
 -    NSString *version = [NSString stringWithFormat:@"Version%@ Build%@", shortVer, buildNum];
+-    [cell configureWithTitle:name version:version key:@"luiyo.hero.enabled"];
 +    NSString *name = [NSUserDefaults.standardUserDefaults stringForKey:@"youyou.hero.name"] ?: @"LUIYo";
-+    // 会员铭牌：根据授权状态显示等级
++    // 会员铭牌：完整自定义徽章替换 versionChip
 +    NSString *tier = [NSUserDefaults.standardUserDefaults stringForKey:@"youyou.auth.tier"] ?: @"free";
-+    NSString *badgeText;
-+    UIColor *bgStart, *bgEnd, *textColor;
++    NSString *tierName;
++    UIColor *badgeBgStart, *badgeBgEnd;
++    UIColor *tagBgStart, *tagBgEnd, *tagTextColor;
++    UIColor *hashBg, *hashTextColor;
++    UIColor *idTextColor;
 +    if ([tier isEqualToString:@"svip"]) {
-+        // SVIP: 黑金
-+        badgeText = @"👑 SVIP会员";
-+        bgStart = [UIColor colorWithRed:0.20 green:0.21 blue:0.23 alpha:1.0];
-+        bgEnd = [UIColor colorWithRed:0.11 green:0.12 blue:0.14 alpha:1.0];
-+        textColor = [UIColor colorWithRed:0.96 green:0.82 blue:0.54 alpha:1.0];
++        tierName = @"SVIP会员";
++        badgeBgStart = [UIColor colorWithRed:0.20 green:0.21 blue:0.23 alpha:1.0];
++        badgeBgEnd = [UIColor colorWithRed:0.11 green:0.12 blue:0.14 alpha:1.0];
++        tagBgStart = [UIColor colorWithRed:0.17 green:0.18 blue:0.20 alpha:1.0];
++        tagBgEnd = [UIColor colorWithRed:0.17 green:0.18 blue:0.20 alpha:1.0];
++        tagTextColor = [UIColor colorWithRed:0.96 green:0.82 blue:0.54 alpha:1.0];
++        hashBg = [UIColor colorWithRed:0.17 green:0.18 blue:0.20 alpha:1.0];
++        hashTextColor = [UIColor colorWithRed:0.96 green:0.82 blue:0.54 alpha:1.0];
++        idTextColor = [UIColor colorWithRed:0.96 green:0.82 blue:0.54 alpha:1.0];
 +    } else if ([tier isEqualToString:@"vip"]) {
-+        // VIP: 金色
-+        badgeText = @"👑 普通会员";
-+        bgStart = [UIColor colorWithRed:1.0 green:0.97 blue:0.90 alpha:1.0];
-+        bgEnd = [UIColor colorWithRed:0.91 green:0.84 blue:0.64 alpha:1.0];
-+        textColor = [UIColor colorWithRed:0.54 green:0.42 blue:0.13 alpha:1.0];
++        tierName = @"普通会员";
++        badgeBgStart = [UIColor colorWithRed:1.0 green:0.97 blue:0.90 alpha:1.0];
++        badgeBgEnd = [UIColor colorWithRed:0.91 green:0.84 blue:0.64 alpha:1.0];
++        tagBgStart = [UIColor colorWithRed:0.78 green:0.60 blue:0.23 alpha:1.0];
++        tagBgEnd = [UIColor colorWithRed:0.64 green:0.49 blue:0.16 alpha:1.0];
++        tagTextColor = [UIColor whiteColor];
++        hashBg = [UIColor colorWithRed:0.78 green:0.60 blue:0.23 alpha:1.0];
++        hashTextColor = [UIColor whiteColor];
++        idTextColor = [UIColor colorWithRed:0.54 green:0.42 blue:0.13 alpha:1.0];
 +    } else {
-+        // 免费: 银灰
-+        badgeText = @"免费用户";
-+        bgStart = [UIColor colorWithRed:0.99 green:0.99 blue:1.0 alpha:1.0];
-+        bgEnd = [UIColor colorWithRed:0.87 green:0.88 blue:0.90 alpha:1.0];
-+        textColor = [UIColor colorWithRed:0.35 green:0.38 blue:0.42 alpha:1.0];
++        tierName = @"免费用户";
++        badgeBgStart = [UIColor colorWithRed:0.99 green:0.99 blue:1.0 alpha:1.0];
++        badgeBgEnd = [UIColor colorWithRed:0.87 green:0.88 blue:0.90 alpha:1.0];
++        tagBgStart = [UIColor colorWithRed:0.29 green:0.31 blue:0.34 alpha:1.0];
++        tagBgEnd = [UIColor colorWithRed:0.21 green:0.23 blue:0.25 alpha:1.0];
++        tagTextColor = [UIColor colorWithRed:0.96 green:0.97 blue:0.97 alpha:1.0];
++        hashBg = [UIColor colorWithRed:0.29 green:0.31 blue:0.34 alpha:1.0];
++        hashTextColor = [UIColor colorWithRed:0.96 green:0.97 blue:0.97 alpha:1.0];
++        idTextColor = [UIColor colorWithRed:0.35 green:0.38 blue:0.42 alpha:1.0];
 +    }
-+    // 设备码：从 UserDefaults 获取
 +    NSString *deviceCode = [NSUserDefaults.standardUserDefaults stringForKey:@"youyou.device.code"] ?: @"D-000000";
-+    NSString *version = [NSString stringWithFormat:@"%@ · %@", badgeText, deviceCode];
-     [cell configureWithTitle:name version:version key:@"luiyo.hero.enabled"];
-+    // 应用渐变背景到 versionChip
-+    cell.versionChip.textColor = textColor;
-+    cell.versionChip.layer.cornerRadius = 9;
-+    cell.versionChip.layer.masksToBounds = YES;
-+    // 移除旧渐变
-+    for (CALayer *layer in cell.versionChip.layer.sublayers) {
-+        if ([layer.name isEqualToString:@"badgeGradient"]) [layer removeFromSuperlayer];
-+    }
-+    CAGradientLayer *gradient = [CAGradientLayer layer];
-+    gradient.name = @"badgeGradient";
-+    gradient.colors = @[(id)bgStart.CGColor, (id)bgEnd.CGColor];
-+    gradient.startPoint = CGPointMake(0.5, 0);
-+    gradient.endPoint = CGPointMake(0.5, 1);
-+    gradient.cornerRadius = 9;
-+    [cell.versionChip.layer insertSublayer:gradient atIndex:0];
++    
++    // 隐藏原始 versionChip，用自定义徽章替换
++    cell.versionChip.hidden = YES;
++    // 移除旧徽章
++    UIView *oldBadge = [cell.contentView viewWithTag:9999];
++    [oldBadge removeFromSuperview];
++    
++    // 创建徽章容器
++    UIView *badge = [[UIView alloc] init];
++    badge.tag = 9999;
++    badge.layer.cornerRadius = 18;
++    badge.layer.masksToBounds = YES;
++    // 渐变背景
++    CAGradientLayer *bgGradient = [CAGradientLayer layer];
++    bgGradient.colors = @[(id)badgeBgStart.CGColor, (id)badgeBgEnd.CGColor];
++    bgGradient.startPoint = CGPointMake(0.5, 0);
++    bgGradient.endPoint = CGPointMake(0.5, 1);
++    bgGradient.cornerRadius = 18;
++    [badge.layer insertSublayer:bgGradient atIndex:0];
++    
++    // 等级标签 (crown + tierName)
++    UILabel *tagLabel = [[UILabel alloc] init];
++    tagLabel.text = [NSString stringWithFormat:@"👑 %@", tierName];
++    tagLabel.font = [UIFont systemFontOfSize:12 weight:UIFontWeightBold];
++    tagLabel.textColor = tagTextColor;
++    tagLabel.backgroundColor = tagBgStart;
++    tagLabel.layer.cornerRadius = 12;
++    tagLabel.layer.masksToBounds = YES;
++    tagLabel.textAlignment = NSTextAlignmentCenter;
++    [badge addSubview:tagLabel];
++    
++    // # 圆圈
++    UILabel *hashLabel = [[UILabel alloc] init];
++    hashLabel.text = @"#";
++    hashLabel.font = [UIFont systemFontOfSize:14 weight:UIFontWeightSemibold];
++    hashLabel.textColor = hashTextColor;
++    hashLabel.backgroundColor = hashBg;
++    hashLabel.layer.cornerRadius = 12;
++    hashLabel.layer.masksToBounds = YES;
++    hashLabel.textAlignment = NSTextAlignmentCenter;
++    [badge addSubview:hashLabel];
++    
++    // ID + 设备码
++    UILabel *idLabel = [[UILabel alloc] init];
++    idLabel.text = [NSString stringWithFormat:@"ID · %@", deviceCode];
++    idLabel.font = [UIFont systemFontOfSize:15 weight:UIFontWeightSemibold];
++    idLabel.textColor = idTextColor;
++    [badge addSubview:idLabel];
++    
++    // 布局 (使用 Auto Layout)
++    badge.translatesAutoresizingMaskIntoConstraints = NO;
++    tagLabel.translatesAutoresizingMaskIntoConstraints = NO;
++    hashLabel.translatesAutoresizingMaskIntoConstraints = NO;
++    idLabel.translatesAutoresizingMaskIntoConstraints = NO;
++    [cell.contentView addSubview:badge];
++    // 定位到原来 versionChip 的位置 (在 nameLabel 下方)
++    [NSLayoutConstraint activateConstraints:@[
++        [badge.leadingAnchor constraintEqualToAnchor:cell.nameLabel.leadingAnchor],
++        [badge.topAnchor constraintEqualToAnchor:cell.nameLabel.bottomAnchor constant:6],
++        [badge.heightAnchor constraintEqualToConstant:36],
++        [tagLabel.leadingAnchor constraintEqualToAnchor:badge.leadingAnchor constant:6],
++        [tagLabel.centerYAnchor constraintEqualToAnchor:badge.centerYAnchor],
++        [tagLabel.heightAnchor constraintEqualToConstant:24],
++        [tagLabel.widthAnchor constraintGreaterThanOrEqualToConstant:80],
++        [hashLabel.leadingAnchor constraintEqualToAnchor:tagLabel.trailingAnchor constant:8],
++        [hashLabel.centerYAnchor constraintEqualToAnchor:badge.centerYAnchor],
++        [hashLabel.widthAnchor constraintEqualToConstant:24],
++        [hashLabel.heightAnchor constraintEqualToConstant:24],
++        [idLabel.leadingAnchor constraintEqualToAnchor:hashLabel.trailingAnchor constant:8],
++        [idLabel.centerYAnchor constraintEqualToAnchor:badge.centerYAnchor],
++        [idLabel.trailingAnchor constraintEqualToAnchor:badge.trailingAnchor constant:-12],
++    ]];
++    // 更新渐变层 frame
++    dispatch_async(dispatch_get_main_queue(), ^{
++        bgGradient.frame = badge.bounds;
++    });
++    
++    // 仍然调用 configure 以保持其他逻辑，但 version 传空
++    [cell configureWithTitle:name version:@"" key:@"luiyo.hero.enabled"];
++    cell.versionChip.hidden = YES;
      // Use custom theme font if set, otherwise default system font.
      cell.nameLabel.font = _LUIYoHeroCustomFont ? [_LUIYoHeroCustomFont fontWithSize:18.0] : [UIFont systemFontOfSize:18 weight:UIFontWeightSemibold];
      cell.nameLabel.attributedText = nil;
