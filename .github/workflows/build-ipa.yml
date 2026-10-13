@@ -33,12 +33,16 @@ jobs:
           unzip -qo /tmp/luiyo-src.zip -d /tmp/luiyo-extract
           if [ -d /tmp/luiyo-extract/YouYouLUI_iOS ]; then SRC=/tmp/luiyo-extract
           else SRC=$(find /tmp/luiyo-extract -maxdepth 2 -type d -name 'YouYouLUI_iOS' | head -1 | xargs dirname); fi
-          # Save patch before rsync (rsync --delete would remove it)
+          # Save patches before rsync (rsync --delete would remove them)
           cp patches/member-badge.patch /tmp/member-badge.patch 2>/dev/null || true
+          cp patches/hero-native.patch /tmp/hero-native.patch 2>/dev/null || true
           rsync -a --delete --exclude '.git' --exclude '.github' "$SRC"/ ./
-          # Apply member badge patch
+          # Apply patches
           if [ -f /tmp/member-badge.patch ]; then
-            patch -p0 --no-backup-if-mismatch -i /tmp/member-badge.patch && echo "Badge patch applied" || echo "Patch failed!"
+            patch -p0 --no-backup-if-mismatch -i /tmp/member-badge.patch && echo "Web badge patch applied" || echo "Web patch failed!"
+          fi
+          if [ -f /tmp/hero-native.patch ]; then
+            patch -p0 --no-backup-if-mismatch -i /tmp/hero-native.patch && echo "Native badge patch applied" || echo "Native patch failed!"
           fi
           grep -q 'forceBlockedVersion' YouYouLUI_iOS/YouYouLUI/AppDelegate.swift
           grep -q 'exit(0)' YouYouLUI_iOS/YouYouLUI/AppDelegate.swift

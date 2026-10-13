@@ -1,0 +1,49 @@
+--- YouYouLUI_iOS/YouYouLUI/LUISettingsHeroAdapter.m
++++ YouYouLUI_iOS/YouYouLUI/LUISettingsHeroAdapter.m
+@@ -116,10 +116,20 @@
+     if (!_LUIYoHeroCustomFont) {
+         _LUIYoHeroCustomFont = LUIYoLoadThemeFontFromDisk();
+     }
+-    NSString *name = [NSUserDefaults.standardUserDefaults stringForKey:@"youyou.hero.name"] ?: @"Liquid UI";
+-    NSString *shortVer = [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleShortVersionString"] ?: @"1.0.6";
+-    NSString *buildNum = [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleVersion"] ?: @"";
+-    NSString *version = [NSString stringWithFormat:@"Version%@ Build%@", shortVer, buildNum];
++    NSString *name = [NSUserDefaults.standardUserDefaults stringForKey:@"youyou.hero.name"] ?: @"LUIYo";
++    // 会员铭牌：根据授权状态显示等级
++    NSString *tier = [NSUserDefaults.standardUserDefaults stringForKey:@"youyou.auth.tier"] ?: @"free";
++    NSString *badgeText;
++    if ([tier isEqualToString:@"svip"]) {
++        badgeText = @"👑 SVIP会员";
++    } else if ([tier isEqualToString:@"vip"]) {
++        badgeText = @"👑 普通会员";
++    } else {
++        badgeText = @"免费用户";
++    }
++    // 设备码：从 UserDefaults 获取，后端同步时更新
++    NSString *deviceCode = [NSUserDefaults.standardUserDefaults stringForKey:@"youyou.device.code"] ?: @"D-000000";
++    NSString *version = [NSString stringWithFormat:@"%@ · %@", badgeText, deviceCode];
+     [cell configureWithTitle:name version:version key:@"luiyo.hero.enabled"];
+     // Use custom theme font if set, otherwise default system font.
+     cell.nameLabel.font = _LUIYoHeroCustomFont ? [_LUIYoHeroCustomFont fontWithSize:18.0] : [UIFont systemFontOfSize:18 weight:UIFontWeightSemibold];
+--- YouYouLUI_iOS/YouYouLUI/WebViewController.swift
++++ YouYouLUI_iOS/YouYouLUI/WebViewController.swift
+@@ -33,6 +33,19 @@
+         isAuthorized = allowed
+         authorizationMessage = message ?? (allowed ? "已授权" : "未激活 · 仅可浏览")
+         authorizationBusy = busy
++        // 保存会员等级到 UserDefaults，供原生铭牌读取
++        let msg = authorizationMessage
++        let tier: String
++        if !allowed {
++            tier = "free"
++        } else if msg.contains("永久") || msg.contains("SVIP") {
++            tier = "svip"
++        } else {
++            tier = "vip"
++        }
++        UserDefaults.standard.set(tier, forKey: "youyou.auth.tier")
++        // 刷新原生铭牌
++        if let hero = settingsHero { LUIYoRefreshSettingsHero(hero) }
+         syncAuthorization()
+         if allowed, nativeHomeReady { runNativeEngine("colors", ["values": nativeHomeModel.savedColors]) }
+     }
