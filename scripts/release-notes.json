@@ -25,6 +25,14 @@
           "text": "原 Version1.0.6 Build51 位置改成显示设备码：# ID D-XXXXXX，未授权灰色，会员金色，跟随后端修改。"
         }
       ]
+    },
+    "1.0.7": {
+      "build": "1",
+      "date": "2026-10-14",
+      "notes": [
+        "版本号升级至 1.0.7，Build 号重新从 1 开始计数",
+        "顶部品牌卡持续优化中"
+      ]
     }
   },
   "exclusive_history_by_version": {

@@ -62,10 +62,9 @@ jobs:
           # Build 号 +1 (当前 51 -> 52)
           INFO_PLIST="YouYouLUI_iOS/YouYouLUI/Info.plist"
           if [ -f "$INFO_PLIST" ]; then
-            CURRENT_BUILD=$(/usr/libexec/PlistBuddy -c "Print CFBundleVersion" "$INFO_PLIST" 2>/dev/null || echo "51")
-            NEW_BUILD=$((CURRENT_BUILD + 1))
-            /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $NEW_BUILD" "$INFO_PLIST" 2>/dev/null || true
-            echo "Build number: $CURRENT_BUILD -> $NEW_BUILD"
+            /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString 1.0.7" "$INFO_PLIST" 2>/dev/null || true
+            /usr/libexec/PlistBuddy -c "Set :CFBundleVersion 1" "$INFO_PLIST" 2>/dev/null || true
+            echo "Version set to 1.0.7 Build 1"
           fi
           grep -q 'forceBlockedVersion' YouYouLUI_iOS/YouYouLUI/AppDelegate.swift
           grep -q 'exit(0)' YouYouLUI_iOS/YouYouLUI/AppDelegate.swift
