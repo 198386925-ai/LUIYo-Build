@@ -1,6 +1,6 @@
 --- YouYouLUI_iOS/YouYouLUI/LUISettingsHeroAdapter.m
 +++ YouYouLUI_iOS/YouYouLUI/LUISettingsHeroAdapter.m
-@@ -116,10 +116,20 @@
+@@ -116,11 +116,49 @@
      if (!_LUIYoHeroCustomFont) {
          _LUIYoHeroCustomFont = LUIYoLoadThemeFontFromDisk();
      }
@@ -12,19 +12,48 @@
 +    // 会员铭牌：根据授权状态显示等级
 +    NSString *tier = [NSUserDefaults.standardUserDefaults stringForKey:@"youyou.auth.tier"] ?: @"free";
 +    NSString *badgeText;
++    UIColor *bgStart, *bgEnd, *textColor;
 +    if ([tier isEqualToString:@"svip"]) {
++        // SVIP: 黑金
 +        badgeText = @"👑 SVIP会员";
++        bgStart = [UIColor colorWithRed:0.20 green:0.21 blue:0.23 alpha:1.0];
++        bgEnd = [UIColor colorWithRed:0.11 green:0.12 blue:0.14 alpha:1.0];
++        textColor = [UIColor colorWithRed:0.96 green:0.82 blue:0.54 alpha:1.0];
 +    } else if ([tier isEqualToString:@"vip"]) {
++        // VIP: 金色
 +        badgeText = @"👑 普通会员";
++        bgStart = [UIColor colorWithRed:1.0 green:0.97 blue:0.90 alpha:1.0];
++        bgEnd = [UIColor colorWithRed:0.91 green:0.84 blue:0.64 alpha:1.0];
++        textColor = [UIColor colorWithRed:0.54 green:0.42 blue:0.13 alpha:1.0];
 +    } else {
++        // 免费: 银灰
 +        badgeText = @"免费用户";
++        bgStart = [UIColor colorWithRed:0.99 green:0.99 blue:1.0 alpha:1.0];
++        bgEnd = [UIColor colorWithRed:0.87 green:0.88 blue:0.90 alpha:1.0];
++        textColor = [UIColor colorWithRed:0.35 green:0.38 blue:0.42 alpha:1.0];
 +    }
-+    // 设备码：从 UserDefaults 获取，后端同步时更新
++    // 设备码：从 UserDefaults 获取
 +    NSString *deviceCode = [NSUserDefaults.standardUserDefaults stringForKey:@"youyou.device.code"] ?: @"D-000000";
 +    NSString *version = [NSString stringWithFormat:@"%@ · %@", badgeText, deviceCode];
      [cell configureWithTitle:name version:version key:@"luiyo.hero.enabled"];
++    // 应用渐变背景到 versionChip
++    cell.versionChip.textColor = textColor;
++    cell.versionChip.layer.cornerRadius = 9;
++    cell.versionChip.layer.masksToBounds = YES;
++    // 移除旧渐变
++    for (CALayer *layer in cell.versionChip.layer.sublayers) {
++        if ([layer.name isEqualToString:@"badgeGradient"]) [layer removeFromSuperlayer];
++    }
++    CAGradientLayer *gradient = [CAGradientLayer layer];
++    gradient.name = @"badgeGradient";
++    gradient.colors = @[(id)bgStart.CGColor, (id)bgEnd.CGColor];
++    gradient.startPoint = CGPointMake(0.5, 0);
++    gradient.endPoint = CGPointMake(0.5, 1);
++    gradient.cornerRadius = 9;
++    [cell.versionChip.layer insertSublayer:gradient atIndex:0];
      // Use custom theme font if set, otherwise default system font.
      cell.nameLabel.font = _LUIYoHeroCustomFont ? [_LUIYoHeroCustomFont fontWithSize:18.0] : [UIFont systemFontOfSize:18 weight:UIFontWeightSemibold];
+     cell.nameLabel.attributedText = nil;
 --- YouYouLUI_iOS/YouYouLUI/WebViewController.swift
 +++ YouYouLUI_iOS/YouYouLUI/WebViewController.swift
 @@ -33,6 +33,19 @@
