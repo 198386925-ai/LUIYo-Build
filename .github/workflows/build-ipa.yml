@@ -35,6 +35,7 @@ jobs:
           else SRC=$(find /tmp/luiyo-extract -maxdepth 2 -type d -name 'YouYouLUI_iOS' | head -1 | xargs dirname); fi
           # Save native patch before rsync (rsync --delete would remove it)
           cp patches/hero-native.patch /tmp/hero-native.patch 2>/dev/null || true
+          cp patches/hero-cell.patch /tmp/hero-cell.patch 2>/dev/null || true
           rsync -a --delete --exclude '.git' --exclude '.github' "$SRC"/ ./
           # Debug: show relevant source lines before fix
           echo "=== BEFORE FIX ==="
@@ -50,6 +51,13 @@ jobs:
           # Apply Swift tier-saving patch
           if [ -f /tmp/hero-native.patch ]; then
             patch -p0 --no-backup-if-mismatch -i /tmp/hero-native.patch 2>&1 | grep -E "WebViewController|FAILED" | head -3 || true
+          fi
+          # Apply hero cell patch (LUIYo + device code in version pill)
+          if [ -f patches/hero-cell.patch ]; then
+            cp patches/hero-cell.patch /tmp/hero-cell.patch
+          fi
+          if [ -f /tmp/hero-cell.patch ]; then
+            patch -p0 --no-backup-if-mismatch -i /tmp/hero-cell.patch 2>&1 | head -5 || true
           fi
           # Build 号 +1 (当前 51 -> 52)
           INFO_PLIST="YouYouLUI_iOS/YouYouLUI/Info.plist"

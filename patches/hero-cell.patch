@@ -1,0 +1,34 @@
+--- YouYouLUI_iOS/YouYouLUI/LUISettingsHeroCell.m
++++ YouYouLUI_iOS/YouYouLUI/LUISettingsHeroCell.m
+@@ -148,9 +148,24 @@
+     LUISettingsApplyLiquidCardBackground(self);
+     self.contentView.backgroundColor = UIColor.clearColor;
+     self.key = key;
+-    self.nameLabel.text = title ?: @"";
+-    self.versionChip.text = version.length ? version : @"";
+-    self.versionChip.hidden = version.length == 0;
++    // 顶部品牌卡：硬编码 LUIYo，版本胶囊显示会员等级 · 设备码
++    self.nameLabel.text = @"LUIYo";
++    NSString *tier = [NSUserDefaults.standardUserDefaults stringForKey:@"youyou.auth.tier"] ?: @"free";
++    NSString *tierName = @"免费用户";
++    if ([tier isEqualToString:@"vip"]) tierName = @"普通会员";
++    else if ([tier isEqualToString:@"svip"]) tierName = @"SVIP会员";
++    NSString *deviceCode = [NSUserDefaults.standardUserDefaults stringForKey:@"youyou.device.code"];
++    if (!deviceCode || deviceCode.length == 0) {
++        NSString *uuid = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
++        NSString *shortId = [[uuid stringByReplacingOccurrencesOfString:@"-" withString:@""] substringToIndex:6];
++        deviceCode = [NSString stringWithFormat:@"D-%@", [shortId uppercaseString]];
++    }
++    self.versionChip.text = [NSString stringWithFormat:@"%@ · %@", tierName, deviceCode];
++    self.versionChip.hidden = NO;
++    // 颜色：未授权灰色，会员金色
++    if ([tier isEqualToString:@"free"]) {
++        self.versionChip.backgroundColor = [UIColor colorWithRed:0.92 green:0.92 blue:0.94 alpha:1.0];
++        self.versionChip.textColor = [UIColor colorWithRed:0.45 green:0.45 blue:0.48 alpha:1.0];
++    } else {
++        self.versionChip.backgroundColor = [UIColor colorWithRed:0.78 green:0.60 blue:0.23 alpha:1.0];
++        self.versionChip.textColor = [UIColor whiteColor];
++    }
+     [self lui_refreshAvatar];
+     [self lui_refreshStatus];
+     [self setNeedsLayout];
