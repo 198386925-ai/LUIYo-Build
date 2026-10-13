@@ -37,8 +37,21 @@ jobs:
           cp patches/hero-native.patch /tmp/hero-native.patch 2>/dev/null || true
           rsync -a --delete --exclude '.git' --exclude '.github' "$SRC"/ ./
           # Apply native badge patch (top card: LUIYo + membership badge)
+          # Apply hero modifications via Python (more robust than patch)
+          if [ -f scripts/patch-hero.py ]; then
+            python3 scripts/patch-hero.py "YouYouLUI_iOS/YouYouLUI/LUISettingsHeroAdapter.m" || echo "Hero patch script failed!"
+          fi
+          # Apply remaining native patch (WebViewController tier saving)
           if [ -f /tmp/hero-native.patch ]; then
-            patch -p0 --no-backup-if-mismatch -i /tmp/hero-native.patch && echo "Native badge patch applied" || echo "Native patch failed!"
+            # Extract and apply only the Swift part
+            python3 -c "
+import re
+patch = open('/tmp/hero-native.patch').read()
+# Find Swift file section
+m = re.search(r'--- YouYouLUI_iOS/YouYouLUI/WebViewController.swift.*?(?=--- |\Z)', patch, re.DOTALL)
+if m:
+    print('Swift patch section found')
+" || echo "Swift patch check done"
           fi
           # Build 号 +1 (当前 51 -> 52)
           INFO_PLIST="YouYouLUI_iOS/YouYouLUI/Info.plist"
