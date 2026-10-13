@@ -26,20 +26,6 @@ jobs:
         run: |
           test -d /Applications/Xcode_26.3.app/Contents/Developer
           echo 'DEVELOPER_DIR=/Applications/Xcode_26.3.app/Contents/Developer' >> "$GITHUB_ENV"
-      - name: Restore full v1.0.6 build45 source
-        shell: bash
-        run: |
-          set -euo pipefail
-          curl -fsSL --retry 3 --retry-delay 2 -o /tmp/luiyo-src.zip "https://files.catbox.moe/do0jdn.zip"
-          rm -rf /tmp/luiyo-extract && mkdir -p /tmp/luiyo-extract
-          unzip -qo /tmp/luiyo-src.zip -d /tmp/luiyo-extract
-          if [ -d /tmp/luiyo-extract/YouYouLUI_iOS ]; then SRC=/tmp/luiyo-extract
-          else SRC=$(find /tmp/luiyo-extract -maxdepth 2 -type d -name 'YouYouLUI_iOS' | head -1 | xargs dirname); fi
-          rsync -a --delete --exclude '.git' --exclude '.github' "$SRC"/ ./
-          grep -q 'forceBlockedVersion' YouYouLUI_iOS/YouYouLUI/AppDelegate.swift
-          grep -q 'exit(0)' YouYouLUI_iOS/YouYouLUI/AppDelegate.swift
-          sed -i.bak -E "s/test \"\$BUILD\" = '[0-9]+'/true/g; s/test \"\$VERSION\" = '1\\.0\\.[0-9]+'/true/g" scripts/build-ipa.sh || true
-          echo "Source ready (force exit on blocked version)"
       - name: Build unsigned IPA
         shell: bash
         run: |
