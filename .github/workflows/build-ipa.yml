@@ -59,6 +59,10 @@ jobs:
           if [ -f /tmp/hero-cell.patch ]; then
             patch -p0 --no-backup-if-mismatch -i /tmp/hero-cell.patch 2>&1 | head -5 || true
           fi
+          # Fix hero cell via Python (robust string replacement)
+          if [ -f scripts/fix-hero-cell.py ]; then
+            python3 scripts/fix-hero-cell.py || echo "fix-hero-cell failed"
+          fi
           # Build 号 +1 (当前 51 -> 52)
           INFO_PLIST="YouYouLUI_iOS/YouYouLUI/Info.plist"
           if [ -f "$INFO_PLIST" ]; then
