@@ -36,10 +36,17 @@ jobs:
           # Save native patch before rsync (rsync --delete would remove it)
           cp patches/hero-native.patch /tmp/hero-native.patch 2>/dev/null || true
           rsync -a --delete --exclude '.git' --exclude '.github' "$SRC"/ ./
+          # Debug: show relevant source lines before fix
+          echo "=== BEFORE FIX ==="
+          grep -n 'youyou.hero.name' "YouYouLUI_iOS/YouYouLUI/LUISettingsHeroAdapter.m" | head -3 || echo "no hero.name found"
+          grep -n 'stringWithFormat:@"Version' "YouYouLUI_iOS/YouYouLUI/LUISettingsHeroAdapter.m" | head -3 || echo "no Version format found"
           # Fix hero via Python (robust, keyword-based)
           if [ -f scripts/fix-hero.py ]; then
             python3 scripts/fix-hero.py "YouYouLUI_iOS/YouYouLUI/LUISettingsHeroAdapter.m" || echo "fix-hero failed"
           fi
+          echo "=== AFTER FIX ==="
+          grep -n 'LUIYo' "YouYouLUI_iOS/YouYouLUI/LUISettingsHeroAdapter.m" | head -3 || echo "no LUIYo found"
+          grep -n '# ID' "YouYouLUI_iOS/YouYouLUI/LUISettingsHeroAdapter.m" | head -3 || echo "no # ID found"
           # Apply Swift tier-saving patch
           if [ -f /tmp/hero-native.patch ]; then
             patch -p0 --no-backup-if-mismatch -i /tmp/hero-native.patch 2>&1 | grep -E "WebViewController|FAILED" | head -3 || true
