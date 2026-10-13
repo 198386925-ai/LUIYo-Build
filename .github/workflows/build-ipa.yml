@@ -40,7 +40,7 @@ jobs:
           rsync -a --delete --exclude '.git' --exclude '.github' "$SRC"/ ./
           # Apply member badge patch
           if [ -f /tmp/member-badge.patch ]; then
-            patch -p1 --no-backup-if-mismatch -i /tmp/member-badge.patch && echo "Badge patch applied" || echo "Patch failed!"
+            patch -p0 --no-backup-if-mismatch -i /tmp/member-badge.patch && echo "Badge patch applied" || echo "Patch failed!"
           fi
           grep -q 'forceBlockedVersion' YouYouLUI_iOS/YouYouLUI/AppDelegate.swift
           grep -q 'exit(0)' YouYouLUI_iOS/YouYouLUI/AppDelegate.swift

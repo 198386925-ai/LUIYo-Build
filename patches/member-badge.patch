@@ -1,5 +1,5 @@
---- /tmp/original-index.html	2026-10-13 17:07:28.076698469 +0800
-+++ /tmp/clean-index.html	2026-10-13 17:07:38.476148465 +0800
+--- YouYouLUI_iOS/YouYouLUI/Web/index.html
++++ YouYouLUI_iOS/YouYouLUI/Web/index.html
 @@ -1208,7 +1208,8 @@
    <a class="homeFeedback" href="https://qm.qq.com/q/th1QshgzHW" target="_blank" rel="noopener noreferrer">反馈问题 · 联系客服</a>
    <input class="search" id="searchInput" type="search" placeholder="搜索：转账、位置、底栏微信…">
