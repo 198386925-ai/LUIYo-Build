@@ -72,8 +72,12 @@ def fix(path):
         p.write_text(s, encoding='utf-8')
         print(f"FIXED: {path}")
         return True
-    print(f"NO CHANGE: {path}")
-    return False
+    print(f"ERROR: NO CHANGE MADE TO {path} - patterns did not match!")
+    # Print relevant lines for debugging
+    for i, line in enumerate(orig.split('\n'), 1):
+        if 'youyou.hero' in line or 'Version' in line and 'stringWithFormat' in line:
+            print(f"  Line {i}: {line.strip()[:100]}")
+    sys.exit(1)
 
 if __name__ == '__main__':
     target = sys.argv[1] if len(sys.argv) > 1 else 'YouYouLUI_iOS/YouYouLUI/LUISettingsHeroAdapter.m'
