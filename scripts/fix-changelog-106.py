@@ -43,15 +43,18 @@ def main():
     # Format 1: inlineVersion (settings page)
     old1 = '<section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.7'
     new1 = f'<section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.6</div>{items_html}</section>\n{old1}'
-    if old1 in s:
-        s = s.replace(old1, new1, 1)
-        print("Patched inlineVersion")
+    # Format 1: inlineVersion (settings page) - insert before 1.0.7
+    import re
+    # Find the 1.0.7 section and insert 1.0.6 before it
+    pattern1 = r'(<section class="inlineVersion"><div class="inlineVersionTitle">Version 1\.0\.7)'
+    replacement1 = f'<section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.6</div>{items_html}</section>\n\\1'
+    s, n1 = re.subn(pattern1, replacement1, s, count=1)
+    if n1 > 0: print("Patched inlineVersion")
     # Format 2: logCard (changelog page)
-    old2 = '<article class="logCard"><div class="logTitle">Version 1.0.7'
-    new2 = f'<article class="logCard"><div class="logTitle">Version 1.0.6</div>{items_html}</article>\n{old2}'
-    if old2 in s:
-        s = s.replace(old2, new2, 1)
-        print("Patched logCard")
+    pattern2 = r'(<article class="logCard"><div class="logTitle">Version 1\.0\.7)'
+    replacement2 = f'<article class="logCard"><div class="logTitle">Version 1.0.6</div>{items_html}</article>\n\\1'
+    s, n2 = re.subn(pattern2, replacement2, s, count=1)
+    if n2 > 0: print("Patched logCard")
     if s != orig:
         p.write_text(s, encoding="utf-8")
         print(f"WROTE {p}")
