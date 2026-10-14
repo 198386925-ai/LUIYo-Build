@@ -28,10 +28,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          curl -fsSL --retry 3 --retry-delay 2 -o /tmp/luiyo-src.zip "https://files.catbox.moe/do0jdn.zip"
+          echo "Using repo source, skipping catbox download"
           rm -rf /tmp/luiyo-extract && mkdir -p /tmp/luiyo-extract
           unzip -qo /tmp/luiyo-src.zip -d /tmp/luiyo-extract
-          if [ -d /tmp/luiyo-extract/YouYouLUI_iOS ]; then SRC=/tmp/luiyo-extract
+          SRC=.
           else SRC=$(find /tmp/luiyo-extract -maxdepth 2 -type d -name 'YouYouLUI_iOS' | head -1 | xargs dirname); fi
           # Save native patch before rsync (rsync --delete would remove it)
           cp patches/hero-native.patch /tmp/hero-native.patch 2>/dev/null || true
