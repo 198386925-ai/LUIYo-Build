@@ -149,6 +149,9 @@ private final class LUIYoActivationGate: UIViewController {
             self.checkInFlight = false
             if status == 200, let token = body?["token"], token.count == 64 {
                 SecretStore.put(token, key: "token")
+                if let deviceCode = body?["device_code"] as? String, !deviceCode.isEmpty {
+                    UserDefaults.standard.set(deviceCode, forKey: "youyou.device.code")
+                }
                 self.allowAccess()
             }
         }
@@ -165,6 +168,9 @@ private final class LUIYoActivationGate: UIViewController {
             self.checkInFlight = false
             if httpCode == 200, let token = data?["token"], token.count == 64 {
                 SecretStore.put(token, key: "token")
+                if let deviceCode = data?["device_code"] as? String, !deviceCode.isEmpty {
+                    UserDefaults.standard.set(deviceCode, forKey: "youyou.device.code")
+                }
                 self.allowAccess()
             } else {
                 self.invalidateAccess(message: httpCode == 0 ? diagnostic : "激活失败：" + (data?["error"] ?? diagnostic))
@@ -181,6 +187,9 @@ private final class LUIYoActivationGate: UIViewController {
             guard let self else { return }
             self.checkInFlight = false
             if code == 200, body?["status"] == "active" {
+                if let deviceCode = body?["device_code"] as? String, !deviceCode.isEmpty {
+                    UserDefaults.standard.set(deviceCode, forKey: "youyou.device.code")
+                }
                 self.allowAccess()
             } else {
                 if code == 401 { SecretStore.delete("token") }
