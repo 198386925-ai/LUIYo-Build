@@ -77,7 +77,7 @@ jobs:
           fi
           # Inject 1.0.6 changelog
           if [ -f /tmp/fix-changelog-106.py ]; then
-            python3 /tmp/fix-changelog-106.py || echo "fix-changelog-106 failed"
+            python3 /tmp/fix-changelog-106.py
           fi
           # Fix adapter via Python (LUIYo + tier device, no crown)
           if [ -f /tmp/fix-adapter.py ]; then
