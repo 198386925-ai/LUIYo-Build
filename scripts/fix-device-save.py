@@ -10,11 +10,10 @@ def main():
         return
     p = files[0]
     s = p.read_text(encoding="utf-8", errors="ignore")
-    if 'youyou.device.code' in s and 'device_code' in s and 'UserDefaults.standard.set' in s:
-        # Check if our specific patch markers exist
-        if s.count('youyou.device.code') >= 3:
-            print("Already patched")
-            return
+    # Check for our specific patch marker (the write pattern we inject)
+    if 'UserDefaults.standard.set(dc, forKey: "youyou.device.code")' in s:
+        print("Already patched")
+        return
     orig = s
     # Patch 1: token refresh handler
     old1 = '''            if status == 200, let token = body?["token"], token.count == 64 {
