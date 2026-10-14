@@ -24,6 +24,9 @@ def main():
                 if let dc = body?["device_code"] as? String, !dc.isEmpty {
                     UserDefaults.standard.set(dc, forKey: "youyou.device.code")
                 }
+                if let tier = body?["tier"] as? String, !tier.isEmpty {
+                    UserDefaults.standard.set(tier, forKey: "youyou.auth.tier")
+                }
                 self.allowAccess()'''
     if old1 in s:
         s = s.replace(old1, new1, 1)
@@ -37,6 +40,9 @@ def main():
                 if let dc = data?["device_code"] as? String, !dc.isEmpty {
                     UserDefaults.standard.set(dc, forKey: "youyou.device.code")
                 }
+                if let tier = data?["tier"] as? String, !tier.isEmpty {
+                    UserDefaults.standard.set(tier, forKey: "youyou.auth.tier")
+                }
                 self.allowAccess()'''
     if old2 in s:
         s = s.replace(old2, new2, 1)
@@ -47,6 +53,9 @@ def main():
     new3 = '''            if code == 200, body?["status"] == "active" {
                 if let dc = body?["device_code"] as? String, !dc.isEmpty {
                     UserDefaults.standard.set(dc, forKey: "youyou.device.code")
+                }
+                if let tier = body?["tier"] as? String, !tier.isEmpty {
+                    UserDefaults.standard.set(tier, forKey: "youyou.auth.tier")
                 }
                 self.allowAccess()'''
     if old3 in s:
