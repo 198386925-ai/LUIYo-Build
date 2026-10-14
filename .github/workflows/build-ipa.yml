@@ -24,66 +24,24 @@ jobs:
         run: |
           test -d /Applications/Xcode_26.3.app/Contents/Developer
           echo 'DEVELOPER_DIR=/Applications/Xcode_26.3.app/Contents/Developer' >> "$GITHUB_ENV"
-      - name: Restore full v1.0.6 build45 source
+      - name: Use repo source directly
         shell: bash
         run: |
           set -euo pipefail
-          echo "Using repo source, skipping catbox download"
-          rm -rf /tmp/luiyo-extract && mkdir -p /tmp/luiyo-extract
-          unzip -qo /tmp/luiyo-src.zip -d /tmp/luiyo-extract
-          SRC=.
-          else SRC=$(find /tmp/luiyo-extract -maxdepth 2 -type d -name 'YouYouLUI_iOS' | head -1 | xargs dirname); fi
-          # Save native patch before rsync (rsync --delete would remove it)
-          cp patches/hero-native.patch /tmp/hero-native.patch 2>/dev/null || true
-          cp patches/hero-cell.patch /tmp/hero-cell.patch 2>/dev/null || true
-          cp scripts/fix-adapter.py /tmp/fix-adapter.py 2>/dev/null || true
-          cp scripts/fix-hero-cell.py /tmp/fix-hero-cell.py 2>/dev/null || true
-          # Upload source as artifact for debugging (only on manual trigger)
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            tar -czf /tmp/luiyo-source.tar.gz -C "$SRC" . 2>/dev/null || true
-          fi
-          rsync -a --delete --exclude '.git' --exclude '.github' "$SRC"/ ./
-          # Debug: show relevant source lines before fix
-          echo "=== BEFORE FIX ==="
-          grep -n 'youyou.hero.name' "YouYouLUI_iOS/YouYouLUI/LUISettingsHeroAdapter.m" | head -3 || echo "no hero.name found"
-          grep -n 'stringWithFormat:@"Version' "YouYouLUI_iOS/YouYouLUI/LUISettingsHeroAdapter.m" | head -3 || echo "no Version format found"
-          # Fix hero via Python (robust, keyword-based)
-          if [ -f scripts/fix-hero.py ]; then
-            python3 scripts/fix-hero.py "YouYouLUI_iOS/YouYouLUI/LUISettingsHeroAdapter.m" || echo "fix-hero failed"
-          fi
-          echo "=== AFTER FIX ==="
-          grep -n 'LUIYo' "YouYouLUI_iOS/YouYouLUI/LUISettingsHeroAdapter.m" | head -3 || echo "no LUIYo found"
-          grep -n '# ID' "YouYouLUI_iOS/YouYouLUI/LUISettingsHeroAdapter.m" | head -3 || echo "no # ID found"
-          # Apply Swift tier-saving patch
-          if [ -f /tmp/hero-native.patch ]; then
-            patch -p0 --no-backup-if-mismatch -i /tmp/hero-native.patch 2>&1 | grep -E "WebViewController|FAILED" | head -3 || true
-          fi
-          # Apply hero cell patch (LUIYo + device code in version pill)
-          if [ -f patches/hero-cell.patch ]; then
-            cp patches/hero-cell.patch /tmp/hero-cell.patch
-          fi
-          if [ -f /tmp/hero-cell.patch ]; then
-            patch -p0 --no-backup-if-mismatch -i /tmp/hero-cell.patch 2>&1 | head -5 || true
-          fi
-          # Fix hero cell via Python (robust string replacement)
-          if [ -f /tmp/fix-hero-cell.py ]; then
-            python3 /tmp/fix-hero-cell.py || echo "fix-hero-cell failed"
-          fi
-          # Fix adapter via Python (LUIYo + tier device, no crown)
-          if [ -f /tmp/fix-adapter.py ]; then
-            python3 /tmp/fix-adapter.py || echo "fix-adapter failed"
-          fi
-          # Build 号 +1 (当前 51 -> 52)
+          echo "Using repo source at ./YouYouLUI_iOS/ (no download needed)"
+          # Verify our cell modification is present
+          grep -n '普通会员' YouYouLUI_iOS/YouYouLUI/LUISettingsHeroCell.m | head -2 || echo "WARNING: cell fix not found!"
+          # Set version to 1.0.7 Build 1
           INFO_PLIST="YouYouLUI_iOS/YouYouLUI/Info.plist"
           if [ -f "$INFO_PLIST" ]; then
             /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString 1.0.7" "$INFO_PLIST" 2>/dev/null || true
             /usr/libexec/PlistBuddy -c "Set :CFBundleVersion 1" "$INFO_PLIST" 2>/dev/null || true
             echo "Version set to 1.0.7 Build 1"
           fi
-          grep -q 'forceBlockedVersion' YouYouLUI_iOS/YouYouLUI/AppDelegate.swift
-          grep -q 'exit(0)' YouYouLUI_iOS/YouYouLUI/AppDelegate.swift
-          sed -i.bak -E "s/test \"\$BUILD\" = '[0-9]+'/true/g; s/test \"\$VERSION\" = '1\\.0\\.[0-9]+'/true/g" scripts/build-ipa.sh || true
-          echo "Source ready (force exit on blocked version)"
+          # Save source as tar for artifact
+          tar -czf /tmp/luiyo-source.tar.gz -C . ./YouYouLUI_iOS 2>/dev/null || true
+          echo "Source ready"
+
       - name: Build unsigned IPA
         shell: bash
         run: |
