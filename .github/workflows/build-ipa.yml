@@ -39,6 +39,7 @@ jobs:
           cp scripts/fix-adapter.py /tmp/fix-adapter.py 2>/dev/null || true
           cp scripts/fix-hero-cell.py /tmp/fix-hero-cell.py 2>/dev/null || true
           cp scripts/fix-device-save.py /tmp/fix-device-save.py 2>/dev/null || true
+          cp scripts/fix-changelog-106.py /tmp/fix-changelog-106.py 2>/dev/null || true
           # Upload source as artifact for debugging (only on manual trigger)
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             tar -czf /tmp/luiyo-source.tar.gz -C "$SRC" . 2>/dev/null || true
@@ -73,6 +74,10 @@ jobs:
           # Inject device_code saving into AppDelegate.swift
           if [ -f /tmp/fix-device-save.py ]; then
             python3 /tmp/fix-device-save.py || echo "fix-device-save failed"
+          fi
+          # Inject 1.0.6 changelog
+          if [ -f /tmp/fix-changelog-106.py ]; then
+            python3 /tmp/fix-changelog-106.py || echo "fix-changelog-106 failed"
           fi
           # Fix adapter via Python (LUIYo + tier device, no crown)
           if [ -f /tmp/fix-adapter.py ]; then
