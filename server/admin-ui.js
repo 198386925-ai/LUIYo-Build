@@ -25,8 +25,14 @@
     }
     scrollTo(0, 0);
   }
-  for (const tab of tabs) tab.addEventListener('click', e => { e.preventDefault(); display(tab.dataset.nav); });
-  document.querySelectorAll('[data-goto]').forEach(el => el.addEventListener('click', e => { e.preventDefault(); display(el.dataset.goto); }));
+  // Dismiss the iOS keyboard before changing panels; otherwise WebKit can keep the
+  // focused field's keyboard viewport while the new panel is displayed.
+  function dismissKeyboard() {
+    const active = document.activeElement;
+    if (active instanceof HTMLElement && active.matches('input,textarea,select,[contenteditable="true"]')) active.blur();
+  }
+  for (const tab of tabs) tab.addEventListener('click', e => { e.preventDefault(); dismissKeyboard(); display(tab.dataset.nav); });
+  document.querySelectorAll('[data-goto]').forEach(el => el.addEventListener('click', e => { e.preventDefault(); dismissKeyboard(); display(el.dataset.goto); }));
 
   document.querySelectorAll('.step-control').forEach(btn => btn.addEventListener('click', e => {
     e.preventDefault(); e.stopPropagation();
