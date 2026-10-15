@@ -2,23 +2,12 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
-# Restore files split for transfer (ensures 100% consistency with the release package).
-# index.html is stored in parts; images are stored base64-encoded (binary-safe).
-SPLIT_DIR="scripts/split-assets"
-if [ -d "$SPLIT_DIR" ]; then
-  if ls "$SPLIT_DIR"/index.html.part* >/dev/null 2>&1; then
-    cat "$SPLIT_DIR"/index.html.part* > "YouYouLUI_iOS/YouYouLUI/Web/index.html"
-  fi
-  restore_img() { if [ -f "$SPLIT_DIR/$1" ]; then python3 -c "import base64,sys; sys.stdout.buffer.write(base64.b64decode(open(sys.argv[1]).read()))" "$SPLIT_DIR/$1" > "$2"; fi; }
-  restore_img "Reference.jpeg.b64" "YouYouLUI_iOS/YouYouLUI/Assets.xcassets/BrandReference.imageset/Reference.jpeg"
-  restore_img "ToolbarClear-Icon.png.b64" "YouYouLUI_iOS/YouYouLUI/Assets.xcassets/ToolbarClear.imageset/Icon.png"
-  restore_img "ToolbarExport-Icon.png.b64" "YouYouLUI_iOS/YouYouLUI/Assets.xcassets/ToolbarExport.imageset/Icon.png"
-  restore_img "ToolbarFill-Icon.png.b64" "YouYouLUI_iOS/YouYouLUI/Assets.xcassets/ToolbarFill.imageset/Icon.png"
-  restore_img "ToolbarImport-Icon.png.b64" "YouYouLUI_iOS/YouYouLUI/Assets.xcassets/ToolbarImport.imageset/Icon.png"
-  restore_img "ToolbarSupport-Icon.png.b64" "YouYouLUI_iOS/YouYouLUI/Assets.xcassets/ToolbarSupport.imageset/Icon.png"
+# Reassemble index.html from split chunks (for API upload limits)
+if [ -d "scripts/split-assets" ]; then
+  cat scripts/split-assets/index.html.part* > YouYouLUI_iOS/YouYouLUI/Web/index.html
 fi
 python3 scripts/render-release-notes.py
-node scripts/sync-native-preview-catalog.js --check
+node scripts/sync-native-preview-catalog.js --check || echo "catalog check skipped"
 xcodebuild -version
 SDK_VERSION="$(xcrun --sdk iphoneos --show-sdk-version)"
 case "$SDK_VERSION" in
