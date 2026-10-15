@@ -40,7 +40,9 @@ body.nav-settings ::-webkit-scrollbar{display:none;width:0;height:0}
 .themeSliderLine{display:flex;align-items:center;gap:12px}
 .themeSliderLine input{flex:1;min-width:0;height:32px;accent-color:#007AFE}
 .themeSliderLine output{min-width:42px;text-align:right;font-size:12px;color:inherit}
-.themeSwitch{width:46px;height:28px;flex:0 0 auto;accent-color:#34c759}
+.themeSwitch{width:46px;height:28px;flex:0 0 auto;accent-color:#34c759;-webkit-transform:translateZ(0);transform:translateZ(0)}
+.settingsFoldBody{overflow:hidden}
+.settingsFold:not([open]) .settingsFoldBody{display:none!important}
 html.has-background-image,html.has-background-image body{background:transparent!important}
 </style><style id="current-version-alignment-v106">
 :root[data-appearance] body *, :root[data-appearance] body *::before, :root[data-appearance] body *::after{box-shadow:none!important;text-shadow:none!important}
