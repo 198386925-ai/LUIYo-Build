@@ -639,6 +639,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         // bar above this page and propagates the page's safe-area insets.
         if webView.superview !== host {
             UIView.performWithoutAnimation {
+                webView.isHidden = true
                 NSLayoutConstraint.deactivate(webHostConstraints)
                 webView.removeFromSuperview()
                 host.insertSubview(webView, at: 0)
@@ -649,6 +650,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
                     webView.trailingAnchor.constraint(equalTo: host.trailingAnchor)]
                 NSLayoutConstraint.activate(webHostConstraints)
                 host.layoutIfNeeded()
+                webView.isHidden = false
             }
         }
         attachNativeHome(to: parent, host: host)
