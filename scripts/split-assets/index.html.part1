@@ -633,15 +633,4 @@ body.solid-card-mode #homeTools .fillpick,
 body.solid-card-mode #homeTools .fill,
 body.solid-card-mode #homeTools .colorfold,
 body.solid-card-mode #homeTools .clear,
-body.solid-card-mode #homeTools .zip{
-  background:#F1EFEC!important;
-  color:#202832!important;
-  border:0!important;
-  box-shadow:none!important;
-}
-/* Search is intentionally native Liquid Glass even while the rest of the app is Solid. */
-body.solid-card-mode #searchInput{
-  background:transparent!important;
-  color:#202832!important;
-  border:0!important;
-  box-shadow:none!import
+bo
