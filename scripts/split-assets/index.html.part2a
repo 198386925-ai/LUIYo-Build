@@ -1,4 +1,371 @@
-existing settings cards untouched; match the Rules page heading scale. */
+e #homeTools .fill,
+body.solid-card-mode #homeTools .colorfold,
+body.solid-card-mode #homeTools .clear,
+body.solid-card-mode #homeTools .zip{
+  background:#F1EFEC!important;
+  color:#202832!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+/* Search is intentionally native Liquid Glass even while the rest of the app is Solid. */
+body.solid-card-mode #searchInput{
+  background:transparent!important;
+  color:#202832!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+body.native-card-glass #homeTools .batch,
+body.native-card-glass #homeTools .fillpick,
+body.native-card-glass #homeTools .fill,
+body.native-card-glass #searchInput,
+body.native-card-glass #homeTools .colorfold,
+body.native-card-glass #homeTools .clear,
+body.native-card-glass #homeTools .zip{
+  background:transparent!important;
+  color:#202832!important;
+  border:0!important;
+  box-shadow:none!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+}
+</style><style id="home-solid-only-correction-v105">
+/* The latest neutral-color adjustment applies ONLY to Solid mode. */
+body.solid-card-mode #homeTools .batch,
+body.solid-card-mode #homeTools .fillpick,
+body.solid-card-mode #homeTools .fill,
+body.solid-card-mode #homeTools .colorfold,
+body.solid-card-mode #homeTools .clear,
+body.solid-card-mode #homeTools .zip{
+  background:#F1EFEC!important;
+  color:#202832!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+
+/* Restore a clearly visible search/input field in Solid mode. */
+body.solid-card-mode #searchInput{
+  background:#F1EFEC!important;
+  color:#202832!important;
+  border:1px solid rgba(120,120,128,.12)!important;
+  box-shadow:none!important;
+}
+body.solid-card-mode #searchInput::placeholder{color:#A5A3A1!important}
+
+/* Restore every image-import target in Solid mode. */
+body.solid-card-mode .pick{
+  background:#F7F6F3!important;
+  border:1.5px dashed #D2D0CC!important;
+  box-shadow:none!important;
+}
+body.solid-card-mode .pick:after{color:#8B95A1!important}
+
+/* Liquid Glass / native blur must remain UIKit material, not the Solid neutral fill. */
+body.native-card-glass #homeTools .batch,
+body.native-card-glass #homeTools .fillpick,
+body.native-card-glass #homeTools .fill,
+body.native-card-glass #searchInput,
+body.native-card-glass #homeTools .colorfold,
+body.native-card-glass #homeTools .clear,
+body.native-card-glass #homeTools .zip,
+body.native-card-glass .pick,
+body.native-card-glass .categorytabs button{
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+}
+
+/* LiquidUI / 原版微信 are TWO independent pills, never one shared capsule. */
+.categorytabs{
+  display:grid!important;
+  grid-template-columns:1fr 1fr!important;
+  gap:10px!important;
+  padding:0!important;
+  background:transparent!important;
+  border:0!important;
+  border-radius:0!important;
+  overflow:visible!important;
+  box-shadow:none!important;
+}
+.categorytabs button{
+  height:44px!important;
+  border-radius:999px!important;
+  overflow:hidden!important;
+}
+body.solid-card-mode .categorytabs button{
+  background:var(--card-color,#FFFFFF)!important;
+  color:#202832!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+body.solid-card-mode .categorytabs button.active{
+  background:#F1EFEC!important;
+  color:#111820!important;
+}
+body.native-card-glass .categorytabs button.active,
+body.native-card-glass .categorytabs button:not(.active){
+  color:#202832!important;
+}
+
+/* Keep upload cards and their import targets visually distinct. */
+body.solid-card-mode .card{
+  background:var(--card-color,#FFFFFF)!important;
+}
+</style><style id="native-material-only-v103">
+body.native-card-glass .card,
+body.native-card-glass .ruleCard,
+body.native-card-glass .settingsFold,
+body.native-card-glass #homeTools,
+body.native-card-glass .infobox,
+body.native-card-glass .ruleSearch,
+body.native-card-glass .uploadbox,
+body.native-card-glass .settingsToggleCard,
+body.native-card-glass .homePill,
+body.native-card-glass #homeTools .batch,
+body.native-card-glass #homeTools .fillpick,
+body.native-card-glass #homeTools .fill,
+body.native-card-glass #searchInput,
+body.native-card-glass #homeTools .colorfold,
+body.native-card-glass #homeTools .colorrow,
+body.native-card-glass #homeTools .clear,
+body.native-card-glass #homeTools .zip,
+body.native-card-glass .pick{
+  background:transparent!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+  box-shadow:none!important;
+}
+</style><style id="native-only-material-v103">
+.materialModePicker{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+body.native-card-glass .card,
+body.native-card-glass .ruleCard,
+body.native-card-glass .settingsFold,
+body.native-card-glass #homeTools,
+body.native-card-glass .infobox,
+body.native-card-glass .ruleSearch,
+body.native-card-glass .uploadbox,
+body.native-card-glass .modeTabs,
+body.native-card-glass .settingsToggleCard,
+body.native-card-glass .homePill,
+body.native-card-glass #homeTools .batch,
+body.native-card-glass #homeTools .fillpick,
+body.native-card-glass #homeTools .fill,
+body.native-card-glass #searchInput,
+body.native-card-glass #homeTools .colorfold,
+body.native-card-glass #homeTools .colorrow,
+body.native-card-glass #homeTools .clear,
+body.native-card-glass #homeTools .zip,
+body.native-card-glass .pick{
+ background:transparent!important;
+ -webkit-backdrop-filter:none!important;
+ backdrop-filter:none!important;
+ box-shadow:none!important;
+}
+</style><style id="category-segment-native-v103">
+/* Home category selector mirrors Settings' Liquid Glass / native blur segmented control.
+   UIKit draws one native material capsule; HTML only draws the selected white pill. */
+body.native-card-glass .categorytabs{
+  padding:4px!important;
+  gap:0!important;
+  border:0!important;
+  border-radius:999px!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  overflow:hidden!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+}
+body.native-card-glass .categorytabs button{
+  height:40px!important;
+  margin:0!important;
+  border:0!important;
+  border-radius:999px!important;
+  background:transparent!important;
+  color:#202832!important;
+  box-shadow:none!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+}
+body.native-card-glass .categorytabs button.active{
+  background:#FFFFFF!important;
+  color:#111820!important;
+  box-shadow:0 1px 3px rgba(0,0,0,.08)!important;
+}
+</style><style id="home-native-pill-controls-v103">
+/* Requested home actions: same full-capsule geometry as the Settings material selector.
+   No CSS blur/glass: UIKit supplies Liquid Glass / systemMaterial. */
+body.native-card-glass #homeTools .batch,
+body.native-card-glass #homeTools .fillpick,
+body.native-card-glass #homeTools .fill,
+body.native-card-glass #homeTools .colorfold,
+body.native-card-glass #homeTools .clear,
+body.native-card-glass #homeTools .zip{
+  border-radius:999px!important;
+  overflow:hidden!important;
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+}
+</style><style id="native-segments-and-radius-fix-v103">
+/* Native UISegmentedControl paints both tracks and selected pills.
+   HTML retains layout, hit targets and the existing category/theme actions. */
+body.native-segment-controls .categorytabs,
+body.native-segment-controls #materialModePicker{
+ padding:0!important;gap:0!important;height:48px!important;
+ border-radius:999px!important;overflow:hidden!important;
+ background:transparent!important;border:0!important;box-shadow:none!important;
+}
+body.native-segment-controls .categorytabs button,
+body.native-segment-controls .categorytabs button.active,
+body.native-segment-controls #materialModePicker button,
+body.native-segment-controls #materialModePicker button.active{
+ height:48px!important;min-height:48px!important;background:transparent!important;
+ color:transparent!important;text-shadow:none!important;
+ border:0!important;box-shadow:none!important;transform:none!important;
+}
+</style><style id="compact-category-and-system-dark-v103">
+#specialThanks{display:none!important}
+body{padding-bottom:calc(145px + env(safe-area-inset-bottom))!important}
+body.native-segment-controls .categorytabs{
+ width:min(78%,330px)!important;margin:10px auto 9px!important;
+ height:34px!important;min-height:34px!important;
+}
+body.native-card-glass.native-segment-controls .categorytabs button:not(.active),
+body.native-card-glass.native-segment-controls .categorytabs button.active{
+ height:34px!important;min-height:34px!important;font-size:12px!important;
+}
+:root[data-appearance="dark"]{color-scheme:dark;--yy-page:#121214;--yy-card:#1c1c1e;--card-bg:#1c1c1e!important}
+:root[data-appearance="dark"] body,:root[data-appearance="dark"] .homeHero h1,:root[data-appearance="dark"] .settingsHead h1,:root[data-appearance="dark"] .pageHead h1,:root[data-appearance="dark"] .settingsFoldText b,:root[data-appearance="dark"] .themeRow b,:root[data-appearance="dark"] .settingsToggleText b,:root[data-appearance="dark"] .title,:root[data-appearance="dark"] .ruleName,:root[data-appearance="dark"] .settingsFoldBody h3,:root[data-appearance="dark"] .settingsFoldBody li b,:root[data-appearance="dark"] .inlineVersionTitle,:root[data-appearance="dark"] body.native-card-glass #homeTools .batch,:root[data-appearance="dark"] body.native-card-glass #homeTools .fillpick,:root[data-appearance="dark"] body.native-card-glass #homeTools .fill,:root[data-appearance="dark"] body.native-card-glass #homeTools .colorfold,:root[data-appearance="dark"] body.native-card-glass #homeTools .clear,:root[data-appearance="dark"] body.native-card-glass #homeTools .zip,:root[data-appearance="dark"] .colorrow span,:root[data-appearance="dark"] .switchlabel,:root[data-appearance="dark"] .ruleSearch,:root[data-appearance="dark"] body.native-card-glass #searchInput{
+   color:#f2f2f7!important;
+ }
+:root[data-appearance="dark"] .homeSub,:root[data-appearance="dark"] .homePill,:root[data-appearance="dark"] .sectiontitle,:root[data-appearance="dark"] .settingsHead p,:root[data-appearance="dark"] .pageHead p,:root[data-appearance="dark"] .settingsFoldText small,:root[data-appearance="dark"] .settingsToggleText small,:root[data-appearance="dark"] .themeRow small,:root[data-appearance="dark"] .settingsFoldBody,:root[data-appearance="dark"] .ruleFile,:root[data-appearance="dark"] .ruleMeta,:root[data-appearance="dark"] .infobody,:root[data-appearance="dark"] .status,:root[data-appearance="dark"] .guideCard p,:root[data-appearance="dark"] .logCard p,:root[data-appearance="dark"] .inlineVersion p{
+   color:#aeaeb2!important;
+ }
+:root[data-appearance="dark"] .homeEyebrow,:root[data-appearance="dark"] .homeFeedback{color:#0a84ff!important}
+:root[data-appearance="dark"] body.native-card-glass #searchInput::placeholder,:root[data-appearance="dark"] .ruleSearch::placeholder{color:#8e8e93!important}
+:root[data-appearance="dark"] .settingsFoldIcon,:root[data-appearance="dark"] .settingsToggleIcon,:root[data-appearance="dark"] .settingsEntryIcon,:root[data-appearance="dark"] .guideIcon,:root[data-appearance="dark"] .ruleIcon,:root[data-appearance="dark"] .themeColor button,:root[data-appearance="dark"] .themeFontControls button,:root[data-appearance="dark"] .nativeInfoHeader button,:root[data-appearance="dark"] .removeIcon{
+   background:#2c2c2e!important;color:#f2f2f7!important;
+ }
+:root[data-appearance="dark"] .preview{background:#2c2c2e!important}
+:root[data-appearance="dark"] .themeRow,:root[data-appearance="dark"] .settingsFoldBody,:root[data-appearance="dark"] .infobody,:root[data-appearance="dark"] .changeVersion,:root[data-appearance="dark"] .inlineVersion{
+   border-color:rgba(255,255,255,.12)!important;
+ }
+:root[data-appearance="dark"] .sharesheet{background:#1c1c1e!important;color:#f2f2f7!important}
+:root[data-appearance="dark"] .sharesheet p{color:#aeaeb2!important}
+:root[data-appearance="dark"] .sharesheet input{background:#2c2c2e!important;border-color:#48484a!important;color:#f2f2f7!important}
+:root[data-appearance="dark"] .sharecancel{background:#3a3a3c!important;color:#f2f2f7!important}
+:root[data-appearance="dark"] .sharego{background:#0a84ff!important;color:#fff!important}
+body.native-card-glass.native-segment-controls .categorytabs button:not(.active),
+body.native-card-glass.native-segment-controls .categorytabs button.active,
+body.native-segment-controls #materialModePicker button,
+body.native-segment-controls #materialModePicker button.active{color:transparent!important}
+</style><style id="compact-theme-and-settings-v103-build7">
+body{padding-bottom:calc(90px + env(safe-area-inset-bottom))!important}
+body.nav-settings #settingsTarget{display:flex!important;flex-direction:column;min-height:calc(var(--native-tab-top,100svh - 83px) - 8px)!important;padding-bottom:0!important}
+#settingsTarget>.settingsFold,#settingsTarget>.settingsHead{flex:0 0 auto}
+#settingsCredits{margin-top:auto;padding:16px 8px 0;text-align:center;font-size:10px;line-height:1.35;color:#8e8e93;flex:0 0 auto}
+.settingsFold{border-radius:22px!important;margin-bottom:8px!important}
+.settingsFold summary{min-height:48px!important;padding:7px 12px!important;grid-template-columns:28px minmax(0,1fr) 14px!important;gap:9px!important}
+.settingsFoldIcon{width:28px!important;height:28px!important;font-size:15px!important}
+.settingsFoldBody{transform:none!important;animation:none!important;transition:opacity 140ms ease!important}
+.settingsFold.is-expanded .settingsFoldBody{transform:none!important;animation:none!important}
+body.native-card-glass :is(.card,.ruleCard,.settingsFold,#homeTools,.infobox,.ruleSearch,.uploadbox,.settingsToggleCard,.homePill,.pick){border-width:0!important;border-color:transparent!important}
+.appearanceThemeRow{align-items:flex-start!important;flex-direction:column!important;padding:9px 0 10px!important;gap:8px!important}
+body.native-card-glass.native-segment-controls :is(.categorytabs,#materialModePicker,#appearanceModePicker,#bottomSearchModePicker){width:100%!important;height:32px!important;min-height:32px!important;max-width:none!important;padding:0!important;gap:0!important;border:0!important;overflow:hidden!important;border-radius:999px!important;background:transparent!important;box-shadow:none!important}
+body.native-card-glass.native-segment-controls .categorytabs{margin:10px 0 9px!important}
+body.native-card-glass.native-segment-controls :is(#appearanceModePicker,#bottomSearchModePicker){display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important}
+body.native-card-glass.native-segment-controls :is(.categorytabs,#materialModePicker,#appearanceModePicker,#bottomSearchModePicker) button,
+body.native-card-glass.native-segment-controls :is(.categorytabs,#materialModePicker,#appearanceModePicker,#bottomSearchModePicker) button.active,
+body.native-card-glass.native-segment-controls .categorytabs button:not(.active){height:32px!important;min-height:32px!important;min-width:0!important;margin:0!important;padding:0!important;font-size:12px!important;font-weight:600!important;color:transparent!important;background:transparent!important;border:0!important;box-shadow:none!important;text-shadow:none!important;transform:none!important}
+:root[data-appearance="dark"] #settingsCredits{color:#aeaeb2}
+</style><style id="native-material-appearance-enforcement-build7">:root[data-appearance] body.native-card-glass .card,
+:root[data-appearance] body.native-card-glass .ruleCard,
+:root[data-appearance] body.native-card-glass .settingsFold,
+:root[data-appearance] body.native-card-glass #homeTools,
+:root[data-appearance] body.native-card-glass .infobox,
+:root[data-appearance] body.native-card-glass .ruleSearch,
+:root[data-appearance] body.native-card-glass .uploadbox,
+:root[data-appearance] body.native-card-glass .modeTabs,
+:root[data-appearance] body.native-card-glass .settingsToggleCard,
+:root[data-appearance] body.native-card-glass .homePill,
+:root[data-appearance] body.native-card-glass .categorytabs,
+:root[data-appearance] body.native-card-glass #materialModePicker,
+:root[data-appearance] body.native-card-glass #appearanceModePicker,
+:root[data-appearance] body.native-card-glass #homeTools .batch,
+:root[data-appearance] body.native-card-glass #homeTools .fillpick,
+:root[data-appearance] body.native-card-glass #homeTools .fill,
+:root[data-appearance] body.native-card-glass #searchInput,
+:root[data-appearance] body.native-card-glass #homeTools .colorfold,
+:root[data-appearance] body.native-card-glass #homeTools .colorrow,
+:root[data-appearance] body.native-card-glass #homeTools .clear,
+:root[data-appearance] body.native-card-glass #homeTools .zip,
+:root[data-appearance] body.native-card-glass .pick{background:transparent!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:none!important}</style><style id="home-search-and-solid-actions-build8">
+#homeTarget #searchInput{display:block;width:100%;height:42px!important;margin:13px 0 0!important;border-radius:999px!important;border:0!important;padding:0 13px!important;font-size:13px!important;outline:0}
+:root[data-appearance] body.native-card-glass #searchInput{background:transparent!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+:root[data-appearance="light"] body.native-card-glass #searchInput{color:#202832!important}
+:root[data-appearance="dark"] body.native-card-glass #searchInput{color:#f2f2f7!important}
+:root[data-appearance] body.native-card-glass #homeTools .batch,
+:root[data-appearance] body.native-card-glass #homeTools .fillpick,
+:root[data-appearance] body.native-card-glass #homeTools .fill,
+:root[data-appearance] body.native-card-glass #homeTools .colorfold,
+:root[data-appearance] body.native-card-glass #homeTools .clear,
+:root[data-appearance] body.native-card-glass #homeTools .zip{background:var(--home-action-fill,#FFFFFF)!important;border:0!important;box-shadow:0 1px 2px rgba(0,0,0,.035)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+:root[data-appearance="dark"]{--home-action-fill:#FFFFFF}
+.changelogGroupTitle{font-size:12px;line-height:1.5;margin:14px 0 6px;font-weight:700}
+.changelogGroupTitle.add{color:#34a853}.changelogGroupTitle.opt{color:#0a84ff}.changelogGroupTitle.fix{color:#ed951e}
+.changelogInline .inlineVersion p{margin:5px 0;line-height:1.65}
+</style><style id="button-color-and-inline-release-notes-build9">
+:root[data-appearance] body.native-card-glass #homeTools .batch,
+:root[data-appearance] body.native-card-glass #homeTools .fillpick,
+:root[data-appearance] body.native-card-glass #homeTools .fill,
+:root[data-appearance] body.native-card-glass #homeTools .colorfold,
+:root[data-appearance] body.native-card-glass #homeTools .clear,
+:root[data-appearance] body.native-card-glass #homeTools .zip{color:var(--home-action-text,#202832)!important}
+.changelogInline .inlineVersion{margin:0 0 12px!important;padding:14px!important;border:0!important;border-radius:24px!important}
+.changelogInline .inlineVersion:last-child{margin-bottom:0!important}
+.changelogInline .inlineVersionTitle{font-size:13px!important;font-weight:500!important;margin:0 0 10px!important;line-height:1.5}
+.changelogInline .inlineVersionTitle span{font-size:11px!important;font-weight:500!important;margin-left:6px}
+.changelogInline .inlineVersion p{font-size:11.5px!important;line-height:1.65!important;margin:7px 0!important}
+.changelogInline .inlineVersion p b{font-weight:500!important}
+:root[data-appearance] body.native-card-glass .inlineVersion{background:transparent!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+</style><style id="compact-actions-and-readable-credits-v104">
+:root[data-appearance] #homeTools :is(.batch,.fillpick,.fill,.colorfold,.clear,.zip){height:36px!important;min-height:36px!important;padding:0 10px!important;font-size:12px!important}
+#homeTools .actions{gap:7px!important}
+#homeTools .colorfold{margin-top:7px!important;gap:8px!important}
+#homeTools .colorfold small{font-size:9px!important;margin-left:6px!important}
+#homeTools .exportrow{gap:7px!important;margin-top:7px!important}
+#settingsCredits{font-size:13px!important;line-height:1.45!important}
+</style><style id="semantic-action-colors-build12">
+:root[data-appearance] body.native-card-glass #homeTools .batch,
+:root[data-appearance] body.native-card-glass #homeTools .clear{background:var(--home-blue-fill,#007AFE)!important;color:var(--home-blue-text,#F2F2F7)!important}
+:root[data-appearance] body.native-card-glass #homeTools .fill{background:var(--home-green-fill,#46D86A)!important;color:var(--home-green-text,#202832)!important}
+:root[data-appearance] body.native-card-glass #homeTools .zip{background:#46D86A!important;color:#FFFFFF!important}
+</style><style id="solid-tool-card-and-bottom-search-build13">
+:root[data-appearance] body.native-card-glass #homeTools{background:var(--card-color,#FFFFFF)!important;border:0!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+:root[data-appearance] body.native-card-glass #homeTools .clear{background:#007AFE!important;color:#FFFFFF!important}
+body.bottom-search-enabled #homeTarget #searchInput,body.bottom-search-enabled #ruleSearch{display:none!important}
+.settingsFold.search-hidden{display:none!important}
+.bottomSearchThemeRow input{flex-shrink:0;accent-color:#007AFE}
+.bottomSearchLayoutRow select{font:inherit;font-size:12px;padding:7px 12px;border-radius:12px;background:var(--card-color,#fff);color:inherit;border:1px solid rgba(125,125,125,.24)}
+.appBottomNav:has([data-nav="search"]:not([hidden])){grid-template-columns:repeat(4,1fr)}
+#appBottomNav [hidden]{display:none!important}
+#homeTools .fillpick,#homeTools .colorfold{border:1px solid rgba(100,110,125,.24)!important;box-shadow:0 1px 2px rgba(0,0,0,.035)!important}
+:root[data-appearance="dark"] #homeTools .fillpick,:root[data-appearance="dark"] #homeTools .colorfold{border-color:rgba(210,215,225,.32)!important}
+/* Slightly clearer neutral controls without changing their size. */
+:root[data-appearance] body.native-card-glass #homeTools .fillpick,
+:root[data-appearance] body.native-card-glass #homeTools .colorfold,
+#homeTools .fillpick,#homeTools .colorfold{
+ border:1px solid rgba(104,112,126,.30)!important;
+ background:color-mix(in srgb,var(--home-action-fill,#FFFFFF) 95%,#647080 5%)!important;
+ box-shadow:0 1px 2px rgba(0,0,0,.025)!important;
+}
+:root[data-appearance="dark"] body.native-card-glass #homeTools .fillpick,
+:root[data-appearance="dark"] body.native-card-glass #homeTools .colorfold{border-color:rgba(125,135,150,.36)!important}
+</style><style id="luiyo-polish-20261008">
+/* Keep existing settings cards untouched; match the Rules page heading scale. */
 .pageHead h1,.settingsHead h1{font-size:25px!important;font-weight:800!important;line-height:1.2!important;letter-spacing:normal!important;margin:0 0 5px!important}
 .settingsHead p{font-size:15px!important}
 /* Soften only the two outlined home actions; keep card geometry unchanged. */
@@ -238,8 +605,8 @@ html.has-background-image body>.appBottomNav{position:fixed!important;z-index:80
         <li><b>双分类补全：</b>用一张补全图片同时填充 LiquidUI 与原版微信中还没有图片的项目。</li>
         <li><b>自动联动：</b>同一图标对应多个内部命名时，上传一次即可在导出时自动生成相关文件。</li>
         <li><b>颜色修改：</b>可分别设置浅色选中、深色选中和全部图标颜色；不开启时保留默认处理。</li>
-        <li><b>排除图标：</b>补全后不想更换的项目可以点卡片右上角 ×，该项目不会进入本次 ZIP。</li>
-        <li><b>导出：</b>生成 ZIP 后可改名，再通过 iPhone 系统分享菜单保存或分享。</li>
+        <li><b>排除图标：</b>补全后不想更换的项目可以点卡片上的删除按钮，该项目不会进入本次 ZIP。</li>
+        <li><b>导出：</b>生成 ZIP 后可改名，再通过 iPhone 系统分享菜单保存或分享。导出的 ZIP 解压后，把全部图片放进「文件」App → 微信 → LiquidUI/Icons 根目录（不带 @3x 的那组图也放这里），再到 LiquidUI 设置 → 全局换图标点「重新扫描图片文件夹」或重启微信。</li>
       </ul>
     </div>
   </details>
@@ -252,24 +619,4 @@ html.has-background-image body>.appBottomNav{position:fixed!important;z-index:80
 <section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.4</div><p><b class="add">新增</b> 主题支持工具栏卡片透明度、滚动缩小底栏及自定义背景图片；设置自动保存。</p><p><b class="add">新增</b> 底栏搜索改为关闭、合并、分开三段切换，保留已保存的搜索布局；关闭后恢复顶部搜索框。</p><p><b class="opt">优化</b> 相同或相近用途的图标合并为一个上传入口，共用图标归原版微信；LiquidUI 分类保留专属入口，导出保留全部对应文件名。</p><p><b class="opt">优化</b> 首页上传项每排两列，左图右标题；LiquidUI 与原版微信的导入项和规则分组标题统一缩小；更新规则按大标题合并展示。</p><p><b class="opt">优化</b> 导出 ZIP 改名使用系统原生弹窗。</p><p><b class="opt">优化</b> 补全图片和自定义颜色入口略微加粗描边，增加柔和淡色底。</p><p><b class="opt">优化</b> 首页工具卡片改用纯色，其他卡片保持原生材质。</p><p><b class="opt">优化</b> 清空固定蓝色、白色文字；导出 ZIP 固定绿色、白色文字。</p><p><b class="opt">优化</b> 首页分类和设置切换同步配色：未选中底色跟随卡片颜色，选中底色跟随按钮颜色。</p><p><b class="fix">修复</b> 合并和分开底栏搜索均可点击，打开原生全屏搜索页，自动弹出键盘，关闭后返回原页面。</p><p><b class="fix">修复</b> 深色液态玻璃下六个按钮不明显，按钮保持独立纯色并自动适配文字颜色。</p><p><b class="fix">修复</b> 原生底栏文字跟随导入字体，恢复默认和重新打开也同步生效。</p><p><b class="fix">修复</b> 分开搜索改用系统原生独立搜索标签，底栏与搜索统一对齐、尺寸及安全区位置。</p></section>
 <section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.3</div><p><b class="add">新增</b> 主题增加按钮颜色，首页按钮与分类底色同步；浅色、深色分别保存。</p><p><b class="add">新增</b> 跟随系统、浅色与深色外观；背景颜色分别保存并随外观切换。</p><p><b class="opt">优化</b> 搜索框位于反馈问题下方，随材质切换为液态玻璃或原生磨砂。</p><p><b class="opt">优化</b> 首页六个操作按钮保持纯色，其他卡片保留原有材质。</p><p><b class="opt">优化</b> 分类未选中底色使用按钮颜色，增加透明度以呈现柔和层次。</p><p><b class="opt">优化</b> 分类、材质与外观使用紧凑原生分段控件；缩短设置卡片。</p><p><b class="opt">优化</b> 移除自定义卡片描边，鸣谢仅在设置页随内容排布。</p><p><b class="fix">修复</b> 展开动画结束时的高度跳动和重复点击状态。</p></section>
 <section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.2</div><p><b class="add">新增</b> 卡片液态效果开关；关闭后切换为 UIKit 原生磨砂效果。</p><p><b class="add">新增</b> 主题内自定义字体，可导入 TTF、OTF、WOFF、WOFF2 文件并持久保存。</p><p><b class="add">新增</b> 卡片材质、液态玻璃、原生磨砂两种模式直接切换/低于26+不生效液态玻璃。</p><p><b class="add">新增</b> 主题增加卡片颜色，可修改纯色卡片颜色</p><p><b class="opt">优化</b> 规则页移除图片导入入口，仅显示规则名称与图标规则名。</p><p><b class="opt">优化</b> 首页采用新的双列卡片UI，上传区工具区与顶部信息重新布局。</p><p><b class="opt">优化</b> 设置页入口卡片进一步压缩高度与文字尺寸。</p><p><b class="opt">优化</b> 首页白色工具控件、搜索框、颜色展开项、清空按钮、分类未选中项和上传框统一接入 UIKit 原生玻璃/磨砂材质。</p><p><b class="opt">优化</b> 材质切换与首页分类分段切换改为参考图的胶囊式，选中项使用内嵌白色圆角块。</p><p><b class="opt">优化</b> 首页按钮、搜索框、颜色入口与导出操作统一为分类栏同类圆润胶囊轮廓。</p><p><b class="opt">优化</b> 纯色模式下首页操作框统一为同一中性底色，补全图片、自定义颜色、清空等入口保持清晰可见。</p><p><b class="fix">修复</b> 设置页使用说明与更新日志改为原位下拉拉伸卡片。</p><p><b class="fix">修复</b> 规则页顶部安全区与状态栏重叠问题。</p><p><b class="fix">修复</b> 首页、规则、设置三页卡片视觉统一，首页工具卡不再使用单独的透明样式。</p><p><b class="fix">修复</b> 使用说明、更新日志与主题卡片收起响应延迟，收起动画改为快速响应。</p><p><b class="fix">修复</b> 纯色模式默认不显示卡片描边；只有主动开启卡片描边后才显示所选描边颜色。</p><p><b class="fix">修复</b> 背景颜色现在同步到 UIKit 根视图，修改后立即生效并保存。</p><p><b class="fix">修复</b> 首页双分类切换中间露出的白色材质块；分类容器不再重复叠加玻璃。</p><p><b class="fix">修复</b> 液态玻璃与原生磨砂在刷新、筛选和重绘时原生材质层重新绑定导致的跳动。</p></section>
-<section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.1</div><p><b class="add">新增</b> 全局换图标规则页，可按规则名称与图标规则名查找。</p><p><b class="add">新增</b> 关键词批量导入、双分类补全、同名项目自动联动与 ZIP 自定义名称分享。</p><p><b class="add">新增</b> 浅色选中、深色选中及全部图标颜色自定义。</p><p><b class="opt">优化</b> 设置页的使用说明与更新日志改为原位下拉拉伸，不再弹出独立页面。</p><p><b class="opt">优化</b> iOS 26+ 使用 UIKit 系统原生 Liquid Glass；不使用 CSS 自绘玻璃。</p><p><b class="opt">优化</b> iOS 25 及以下自动回退 UIKit 原生 systemMaterial 磨砂。</p><p><b class="opt">优化</b> 规则页移除图片导入入口，只保留规则名称与图标规则名。</p><p><b class="fix">修复</b> 规则页安全区，避免标题与状态栏重叠。</p></section>
-<section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.0</div><p><b class="add">新增</b> 优优 LUI 图标补全基础功能。</p><p><b class="add">新增</b> LiquidUI / 原版微信图标上传、补全与 ZIP 导出。</p></section>
-    </div>
-  </details>
-  <details class="settingsFold" id="specialThanks" hidden>
-    <summary><span class="settingsFoldIcon" data-system-icon="heart">♡</span><span class="settingsFoldText"><b>特别鸣谢</b><small>感谢支持与帮助</small></span><span class="settingsFoldChevron"></span></summary>
-    <div class="settingsFoldBody"><p>感谢每一位为本项目提供反馈与帮助的朋友。</p></div>
-  </details>
-<footer id="settingsCredits">特别鸣谢 Mk · 作者：优优<br>仅供学习交流</footer></section><div class="categorytabs" role="tablist" aria-label="图标分类"><button role="tab" id="tabWechat" class="active">原版微信</button><button role="tab" id="tabLui">LiquidUI</button></div><div class="sectiontitle" id="sectionTitle">原版微信图标</div><main id="list" class="grid"></main>
-<section class="rulePage" id="rulePage">
-  <header class="pageHead"><h1>规则</h1><p>LiquidUI 全局换图标命名规则</p></header>
-  <input class="ruleSearch" id="ruleSearch" type="search" placeholder="搜索图标名称、位置或文件名">
-  <div class="ruleList" id="ruleList"></div>
-</section>
-</div><nav class="appBottomNav" id="appBottomNav" aria-label="底栏导航">
-<button type="button" class="active" data-nav="home" onclick="appNavTo('home')"><span class="navIcon">⌂</span><span>首页</span></button>
-<button type="button" data-nav="rules" onclick="appNavTo('rules')"><span class="navIcon">≡</span><span>规则</span></button>
-<button type="button" data-nav="settings" onclick="appNavTo('settings')"><span class="navIcon">⚙︎</span><span>设置</span></button>
-<button type="button" data-nav="search" hidden onclick="window.__openBottomSearch?.()"><span class="navIcon">⌕</span><span>搜索</span></button>
-</nav><div class="sharemodal" id="shareModal"><div class="sharesheet"><h3>分享 ZIP</h3><p>修改文件名后，再打开 iPhone 系统分享菜单</p><input id="zipNameInput" value="优优LUI图标包" autocomplete="off"><div class="shareactions"><button class="sharecancel" type="button" onclick="closeShareModal()">取消</button><button class="sharego" type="button" onclick="sharePreparedZip()">分享 ZIP</button></div></div></div><script src="jszip.min.js"></script><script>
-const namingRules=[{"section":"LiquidUI 底栏 dock（各款底栏通用）","title":"LiquidUI 底栏微信","file":"lui_tab_main_regular@3x.png"},{"section":"微信原生底栏","title":"底栏微信","file":"bubble_circle_regular@3x.png"},{"section":"LiquidUI 底栏 dock（各款底栏通用）","title":"LiquidUI 底栏微信选中","file":"lui_tab_main_filled@3x.png"},{"section":"微信原生底栏","title":"底栏微信选中","file":"bubble_circle_filled@3x.png"},{"section":"LiquidUI 底栏 dock（各款底栏通用）","title":"LiquidUI 底栏通讯录","file":"lui_tab_contacts_regular@3x.png"},{"section":"微信原生底栏","title":"底栏通讯录","file":"person_list_regular@3x.png"},{"section":"LiquidUI 底栏 dock（各款底栏通用）","title":"LiquidUI 底栏通讯录选中","file":"lui_tab_contacts_filled@3x.png"},{"section":"微信原生底栏","title":"底栏通讯录选中","file":"person_list_filled@3x.png"},{"section":"LiquidUI 底栏 dock（各款底栏通用）","title":"LiquidUI 底栏发现","file":"lui_tab_discover_regular@3x.png"},{"section":"微信原生底栏","title":"底栏发现","file":"discover_regular@3x.png"},{"section":"LiquidUI 底栏 dock（各款底栏通用）","title":"LiquidUI 底栏发现选中","file":"lui_tab_discover_filled@3x.png"},{"section":"微信原生底栏","title":"底栏发现选中","file":"discover_filled@3x.png"},{"section":"LiquidUI 底栏 dock（各款底栏通用）","title":"LiquidUI 底栏我的","file":"lui_tab_me_regular@3x.png"},{"section":"微信原生底栏","title":"底栏我的","file":"person_regular@3x.png"},{"section":"LiquidUI 底栏 dock（各款底栏通用）","title":"LiquidUI 底栏我的选中","file":"lui_tab_me_filled@3x.png"},{"section":"微信原生底栏","title":"底栏我的选中","file":"person_filled@3x.png"},{"section":"LiquidUI 其它自定图标","title":"「我」页插件入口（第三方插件管理器）","file":"lui_me_plugins@3x.png"},{"section":"通用字形（全 app 几百处共用，换了到处一起变）","title":"指引箭头","file":"arrow_right_regular@3x.png"},{"section":"LiquidUI 其它自定图标","title":"Morph 底栏第三格「朋友圈」","file":"lui_morph_moments@3x.png"},{"section":"通用字形（全 app 几百处共用，换了到处一起变）","title":"右箭头 · 实心（通用字形）","file":"arrow_right_filled@3x.png"},{"section":"LiquidUI 其它自定图标","title":"首页顶栏身份条菜单 · 顶栏美化设置","file":"lui_home_topbar_menu_settings@3x.png"},{"section":"通用字形（全 app 几百处共用，换了到处一起变）","title":"微信界面层级返回左上角箭头","file":"arrow_left_regular@3x.png"},{"section":"LiquidUI 其它自定图标","title":"聊天页长按头像菜单 · 加为好友","file":"lui_chat_avatar_menu_add_friend@3x.png"},{"section":"通用字形（全 app 几百处共用，换了到处一起变）","title":"右上角详情三个点","file":"dot_3_regular@3x.png"},{"section":"LiquidUI 其它自定图标","title":"聊天页长按头像菜单 · @他","file":"lui_chat_avatar_menu_at@3x.png"},{"section":"通用字形（全 app 几百处共用，换了到处一起变）","title":"共享分享文件已发送√图标","file":"check_mark_filled@3x.png"},{"section":"LiquidUI 其它自定图标","title":"聊天页长按头像菜单 · 屏蔽 / 取消屏蔽","file":"lui_chat_avatar_menu_block@3x.png"},{"section":"通用字形（全 app 几百处共用，换了到处一起变）","title":"叉 · 线稿（通用字形）","file":"xmark_regular@3x.png"},{"section":"LiquidUI 其它自定图标","title":"聊天页长按头像菜单 · 三个复制项","file":"lui_chat_avatar_menu_copy@3x.png"},{"section":"通用字形（全 app 几百处共用，换了到处一起变）","title":"叉 · 实心（通用字形）","file":"xmark_filled@3x.png"},{"section":"LiquidUI 其它自定图标","title":"聊天页长按头像菜单 · 设置遮罩","file":"lui_chat_avatar_menu_mask@3x.png"},{"section":"LiquidUI 其它自定图标","title":"聊天页长按头像菜单 · 拍一拍","file":"lui_chat_avatar_menu_pat@3x.png"},{"section":"LiquidUI 其它自定图标","title":"聊天页长按头像菜单 · 查看资料","file":"lui_chat_avatar_menu_profile@3x.png"},{"section":"LiquidUI 其它自定图标","title":"聊天页长按头像菜单 · 发红包","file":"lui_chat_avatar_menu_red_packet@3x.png"},{"section":"LiquidUI 其它自定图标","title":"聊天页长按头像菜单 · 发消息","file":"lui_chat_avatar_menu_send_message@3x.png"},{"section":"LiquidUI 其它自定图标","title":"聊天页长按头像菜单 · 转账","file":"lui_chat_avatar_menu_transfer@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI「改金额」","file":"lui_chat_msg_menu_amount_edit@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI「屏蔽群成员」长按菜单位","file":"lui_chat_msg_menu_block_member@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI「改文字」","file":"lui_chat_msg_menu_rewrite@3x.png"},{"section":"LiquidUI 其它自定图标","title":"TG 附件菜单底栏「相册」","file":"lui_chat_tg_attach_tab_album@3x.png"},{"section":"LiquidUI 其它自定图标","title":"TG 附件菜单底栏「文件」","file":"lui_chat_tg_attach_tab_file@3x.png"},{"section":"LiquidUI 其它自定图标","title":"TG 附件菜单底栏「位置」","file":"lui_chat_tg_attach_tab_location@3x.png"},{"section":"LiquidUI 其它自定图标","title":"TG 附件菜单底栏「更多」","file":"lui_chat_tg_attach_tab_more@3x.png"},{"section":"LiquidUI 其它自定图标","title":"TG 附件菜单底栏「贴纸」","file":"lui_chat_tg_attach_tab_sticker@3x.png"},{"section":"LiquidUI 其它自定图标","title":"输入胶囊功能区「冷应系统」","file":"lui_chat_input_fn_cold_reply@3x.png"},{"section":"LiquidUI 其它自定图标","title":"联系人资料页「发消息」","file":"lui_contact_profile_message@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI「切换账号」","file":"lui_shortcut_account_switch@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI「头像遮罩」","file":"lui_shortcut_avatar_mask@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI「背景 Diy」","file":"lui_shortcut_bg_diy@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI「深色模式」","file":"lui_shortcut_dark_mode@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI「字体 Font」","file":"lui_shortcut_global_font@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI「首页卡片」","file":"lui_shortcut_home_cards@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI「企业好友」选中","file":"lui_home_side_menu_enterprise_filled@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI「企业好友」","file":"lui_home_side_menu_enterprise_regular@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI「置顶」选中","file":"lui_home_side_menu_pinned_filled@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI「置顶」","file":"lui_home_side_menu_pinned_regular@3x.png"},{"section":"LiquidUI 其它自定图标","title":"朋友圈空间风帖底「评论」","file":"lui_moments_qz_comment@3x.png"},{"section":"LiquidUI 其它自定图标","title":"朋友圈空间风「换封面」","file":"lui_moments_qz_cover@3x.png"},{"section":"LiquidUI 其它自定图标","title":"朋友圈空间风帖底「转发」","file":"lui_moments_qz_forward@3x.png"},{"section":"LiquidUI 其它自定图标","title":"朋友圈空间风帖底「转发朋友圈」","file":"lui_moments_qz_forward_moments@3x.png"},{"section":"LiquidUI 其它自定图标","title":"朋友圈空间风帖底「转发会话」","file":"lui_moments_qz_forward_session@3x.png"},{"section":"LiquidUI 其它自定图标","title":"朋友圈空间风帖底「赞」","file":"lui_moments_qz_like@3x.png"},{"section":"LiquidUI 其它自定图标","title":"朋友圈空间风帖底「已赞」","file":"lui_moments_qz_liked@3x.png"},{"section":"LiquidUI 其它自定图标","title":"朋友圈空间风「消息」","file":"lui_moments_qz_messages@3x.png"},{"section":"LiquidUI 其它自定图标","title":"朋友圈空间风「说说」","file":"lui_moments_qz_post@3x.png"},{"section":"LiquidUI 其它自定图标","title":"朋友圈空间风「个人资料」","file":"lui_moments_qz_profile@3x.png"},{"section":"LiquidUI 其它自定图标","title":"设置齿轮 · 实心（LiquidUI 入口）","file":"gear_filled@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI「重启微信」","file":"refresh_filled@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI「卡包」","file":"icons_outlined_ticket@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI「听写」","file":"mike_no_circle@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI 输入胶囊听写位 · 听写中","file":"mike_no_circle_filled@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI「群聊」选中","file":"person_2_filled@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI「服务号」选中","file":"person_tie_filled@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI 自定义分组","file":"folder_regular@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI 收起首页会话","file":"eyes_off_regular@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI 展开首页会话","file":"eyes_on_regular@3x.png"},{"section":"微信主页面图标名称","title":"搜索框搜索图标","file":"magnifying_glass_regular@3x.png"},{"section":"微信主页面内+号内快捷功能小图标","title":"发起群聊","file":"bubble_circle_filled@3x.png"},{"section":"微信主页面图标名称","title":"搜索框点进去右侧语音图标","file":"mike_on_regular@3x.png"},{"section":"微信主页面内+号内快捷功能小图标","title":"添加朋友","file":"person_plus_filled@3x.png"},{"section":"微信主页面图标名称","title":"搜索框点进去最近再搜右侧删除按钮","file":"trash_on_regular@3x.png"},{"section":"微信主页面内+号内快捷功能小图标","title":"睁眼 · 实心（主题盒子一键已读）","file":"eyes_on_filled@3x.png"},{"section":"微信主页面图标名称","title":"搜索框点进去搜索历史记录前面小图标","file":"clock_regular@3x.png"},{"section":"微信主页面内+号内快捷功能小图标","title":"首页右上「+」菜单 · 扫一扫","file":"scan_filled@3x.png"},{"section":"微信主页面图标名称","title":"群聊免打扰小图标","file":"bell_off_regular@3x.png"},{"section":"微信主页面内+号内快捷功能小图标","title":"收付款","file":"pay_filled@3x.png"},{"section":"微信主页面图标名称","title":"微信界面层级返回左上角箭头","file":"arrow_left_regular@3x.png"},{"section":"微信主页面内+号内快捷功能小图标","title":"放大镜 · 实心（查找用户）","file":"magnifying_glass_filled@3x.png"},{"section":"微信主页面图标名称","title":"折叠的群聊","file":"icons_filled_chatbox@3x.png"},{"section":"微信主页面内+号内快捷功能小图标","title":"首页右上「+」菜单「支付」","file":"card_filled@3x.png"},{"section":"微信主页面图标名称","title":"右上角+号（同输入框右侧+）","file":"icons_outlined_addoutline@3x.png"},{"section":"微信主页面内+号内快捷功能小图标","title":"首页右上「+」菜单「写笔记」","file":"paper_pencil_filled@3x.png"},{"section":"微信主页面图标名称","title":"接收消息刷新动画图标","file":"icons_filled_loading@3x.png"},{"section":"微信主页面内+号内快捷功能小图标","title":"首页右上「+」菜单「朋友圈」","file":"moment_filled@3x.png"},{"section":"微信主页面图标名称","title":"搜索页悬浮语音输入按钮","file":"mike_on_heavy@3x.png"},{"section":"微信主页面内+号内快捷功能小图标","title":"首页右上「+」菜单
+<section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.1</div><p><b class="add">新增</b> 全局换图标规则页，可按规则名称与图标规则名查找。</p><p><b class="add">新增</b> 关键词批量导入、双分类补全、同名项目自动联动与 ZIP 自定义名称分享。</p><p><b class="add">新增</b> 浅色选中、深色选中及全部图标颜色自定义。</p><p><b class="opt">优化</b> 设置页的使用说明与更新日志改为原位下拉拉伸，不再弹出独立页面。</p><p><b class="opt">优化</b> iOS 26+ 使用 UIKit 系统原生 Liquid Glass；不使用 CSS 自绘玻璃。</p><p><b class="opt">优化</b> iOS 25 及以下自动回退 UIKit 原生 systemMaterial 磨砂。</p><p><b class="opt">优化</b> 规则页移除图片导入入口，只保留规则名称与图标规则名。</p><p><b class="fix">修复</b> 规则页安全区，避免标题与状态栏重叠。</p><
