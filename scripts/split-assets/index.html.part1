@@ -630,4 +630,10 @@ body.native-card-glass .materialModePicker{
    Solid: one visible neutral fill. Liquid/blur: UIKit draws the material. */
 body.solid-card-mode #homeTools .batch,
 body.solid-card-mode #homeTools .fillpick,
-body.solid-card-mod
+body.solid-card-mode #homeTools .fill,
+body.solid-card-mode #homeTools .colorfold,
+body.solid-card-mode #homeTools .clear,
+body.solid-card-mode #homeTools .zip{
+  background:#F1EFEC!important;
+  color:#202832!important;
+  border:0!important;
