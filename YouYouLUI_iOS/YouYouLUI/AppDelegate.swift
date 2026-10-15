@@ -242,6 +242,10 @@ private final class LUIYoActivationGate: UIViewController {
         guard !presenceInFlight, UIApplication.shared.applicationState != .background else { return }
         let secret = registrationSecret
         guard secret.count == 64 else { return }
+        // Fast path: if already authorized (token exists), skip re-registration
+        if !registrationReady, SecretStore.get("token") != nil {
+            registrationReady = true
+        }
         presenceInFlight = true
         if !registrationReady {
             var payload = presencePayload()
