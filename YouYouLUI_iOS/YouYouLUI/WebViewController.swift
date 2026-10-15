@@ -638,15 +638,18 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         // Content belongs to the selected tab. UIKit keeps its native floating
         // bar above this page and propagates the page's safe-area insets.
         if webView.superview !== host {
-            NSLayoutConstraint.deactivate(webHostConstraints)
-            webView.removeFromSuperview()
-            host.insertSubview(webView, at: 0)
+            UIView.performWithoutAnimation {
+                NSLayoutConstraint.deactivate(webHostConstraints)
+                webView.removeFromSuperview()
+                host.insertSubview(webView, at: 0)
             webView.translatesAutoresizingMaskIntoConstraints = false
-            webHostConstraints = [webView.topAnchor.constraint(equalTo: host.topAnchor),
-                webView.bottomAnchor.constraint(equalTo: host.bottomAnchor),
-                webView.leadingAnchor.constraint(equalTo: host.leadingAnchor),
-                webView.trailingAnchor.constraint(equalTo: host.trailingAnchor)]
-            NSLayoutConstraint.activate(webHostConstraints)
+                webHostConstraints = [webView.topAnchor.constraint(equalTo: host.topAnchor),
+                    webView.bottomAnchor.constraint(equalTo: host.bottomAnchor),
+                    webView.leadingAnchor.constraint(equalTo: host.leadingAnchor),
+                    webView.trailingAnchor.constraint(equalTo: host.trailingAnchor)]
+                NSLayoutConstraint.activate(webHostConstraints)
+                host.layoutIfNeeded()
+            }
         }
         attachNativeHome(to: parent, host: host)
         let scroll = nativePageName == "home" ? (nativeHomeScrollView ?? webView.scrollView) : webView.scrollView
