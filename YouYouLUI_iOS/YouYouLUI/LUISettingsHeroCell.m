@@ -217,7 +217,6 @@ static UILabel *LUISettingsHeroMakeChipLabel(UIFont *font) {
     LUISettingsApplyLiquidCardBackground(self);
     self.contentView.backgroundColor = UIColor.clearColor;
     self.key = key;
-    // 顶部品牌卡：硬编码 LUIYo，版本胶囊显示会员等级 · 设备码（无皇冠）
     self.nameLabel.text = @"LUIYo";
     NSString *_tier = [NSUserDefaults.standardUserDefaults stringForKey:@"youyou.auth.tier"] ?: @"free";
     NSString *_tname = @"免费用户";
@@ -231,7 +230,6 @@ static UILabel *LUISettingsHeroMakeChipLabel(UIFont *font) {
     }
     self.versionChip.text = [NSString stringWithFormat:@"%@ · %@", _tname, _dcode];
     self.versionChip.hidden = NO;
-    // 颜色：未授权灰色，会员金色
     if ([_tier isEqualToString:@"free"]) {
         self.versionChip.backgroundColor = [UIColor colorWithRed:0.92 green:0.92 blue:0.94 alpha:1.0];
         self.versionChip.textColor = [UIColor colorWithRed:0.45 green:0.45 blue:0.48 alpha:1.0];
