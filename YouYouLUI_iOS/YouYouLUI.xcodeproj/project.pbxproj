@@ -23,6 +23,7 @@
 /* Begin PBXBuildFile section */
 		A10000000000000000000001 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000001 /* AppDelegate.swift */; };
 		A20000000000000000000001 = {isa = PBXBuildFile; fileRef = B20000000000000000000001; };
+		A35000000000000000000001 = {isa = PBXBuildFile; fileRef = B35000000000000000000001; };
 		A10000000000000000000002 /* WebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000002 /* WebViewController.swift */; };
 		A10000000000000000000003 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000003 /* Assets.xcassets */; };
 		A10000000000000000000004 /* Web in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000004 /* Web */; };
@@ -31,6 +32,8 @@
 /* Begin PBXFileReference section */
 		B10000000000000000000001 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		B20000000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeHome.swift; sourceTree = "<group>"; };
+		B35000000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LUISettingsHeroAdapter.m; sourceTree = "<group>"; };
+		B35000000000000000000002 = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LUISettingsHeroAdapter.h; sourceTree = "<group>"; };
 		B10000000000000000000002 /* WebViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebViewController.swift; sourceTree = "<group>"; };
 		B10000000000000000000003 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B10000000000000000000004 /* Web */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Web; sourceTree = "<group>"; };
@@ -62,6 +65,7 @@
 			children = (
 				B10000000000000000000001 /* AppDelegate.swift */,
 				B20000000000000000000001,
+				B35000000000000000000001,B35000000000000000000002,
 				B10000000000000000000002 /* WebViewController.swift */,
 				B10000000000000000000003 /* Assets.xcassets */,
 				B10000000000000000000004 /* Web */,
@@ -137,6 +141,7 @@
 			files = (
 				A10000000000000000000001 /* AppDelegate.swift in Sources */,
 				A20000000000000000000001,
+				A35000000000000000000001,
 				A10000000000000000000002 /* WebViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -190,6 +195,7 @@
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_VERSION = 5.0;
+				SWIFT_OBJC_BRIDGING_HEADER = YouYouLUI/LUISettingsHeroAdapter.h;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -209,6 +215,7 @@
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_VERSION = 5.0;
+				SWIFT_OBJC_BRIDGING_HEADER = YouYouLUI/LUISettingsHeroAdapter.h;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
