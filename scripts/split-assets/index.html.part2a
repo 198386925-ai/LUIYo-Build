@@ -258,7 +258,7 @@ html.has-background-image body>.appBottomNav{position:fixed!important;z-index:80
     <summary><span class="settingsFoldIcon" data-system-icon="heart">♡</span><span class="settingsFoldText"><b>特别鸣谢</b><small>感谢支持与帮助</small></span><span class="settingsFoldChevron"></span></summary>
     <div class="settingsFoldBody"><p>感谢每一位为本项目提供反馈与帮助的朋友。</p></div>
   </details>
-<footer id="settingsCredits">特别鸣谢 Mk · 作者：优优<br>仅供学习交流</footer></section><div class="categorytabs" role="tablist" aria-label="图标分类"><button role="tab" id="tabWechat" class="active">原版微信</button><button role="tab" id="tabLui">LiquidUI</button></div><div class="sectiontitle" id="sectionTitle">原版微信图标</div><main id="list" class="grid"></main>
+<footer id="settingsCredits">特别鸣谢 Mk · 作者：优优<br>仅供学习交流</footer></section><div class="categorytabs" role="tablist" aria-label="图标分类"><button role="tab" id="tabWechat" class="active">原版微信</button><button role="tab" id="tabLui">LUIYo</button></div><div class="sectiontitle" id="sectionTitle">原版微信图标</div><main id="list" class="grid"></main>
 <section class="rulePage" id="rulePage">
   <header class="pageHead"><h1>规则</h1><p>LiquidUI 全局换图标命名规则</p></header>
   <input class="ruleSearch" id="ruleSearch" type="search" placeholder="搜索图标名称、位置或文件名">
