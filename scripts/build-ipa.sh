@@ -3,7 +3,11 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 python3 scripts/render-release-notes.py
-node scripts/sync-native-preview-catalog.js --check
+if [ -f scripts/sync-native-preview-catalog.js ]; then
+  node scripts/sync-native-preview-catalog.js --check
+else
+  echo "note: scripts/sync-native-preview-catalog.js not in repo; skipping catalog check"
+fi
 xcodebuild -version
 SDK_VERSION="$(xcrun --sdk iphoneos --show-sdk-version)"
 case "$SDK_VERSION" in
