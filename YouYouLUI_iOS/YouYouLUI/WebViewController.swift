@@ -1381,7 +1381,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     private func editHeroName() {
         guard presentedViewController == nil else { return }
         let alert = UIAlertController(title: "修改名字", message: nil, preferredStyle: .alert)
-        alert.addTextField { field in field.text = UserDefaults.standard.string(forKey: "youyou.hero.name") ?? "Liquid UI"; field.placeholder = "输入名字" }
+        alert.addTextField { field in field.text = UserDefaults.standard.string(forKey: "youyou.hero.name") ?? "LUIYo"; field.placeholder = "输入名字" }
         alert.addAction(UIAlertAction(title: "取消", style: .cancel))
         alert.addAction(UIAlertAction(title: "保存", style: .default) { [weak self, weak alert] _ in
             guard let self, let name = alert?.textFields?.first?.text?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty else { return }
