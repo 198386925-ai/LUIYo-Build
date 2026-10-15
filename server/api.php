@@ -32,7 +32,8 @@ function authenticate(PDO $db): array {
     $q=$db->prepare('SELECT d.*,l.disabled AS license_disabled,l.expires_at FROM devices d JOIN licenses l ON l.id=d.license_id WHERE d.token_hash=?');
     $q->execute([hashSecret($m[1])]); $d=$q->fetch(PDO::FETCH_ASSOC);
     if (!$d) response(401,['error'=>'invalid_token']);
-    if ($d['banned'] || $d['license_disabled']) response(403,['error'=>'access_revoked']);
+    if ($d['banned']) response(403,['error'=>'access_revoked','reason'=>(string)($d['ban_reason']??'')]);
+    if ($d['license_disabled']) response(403,['error'=>'access_revoked']);
     if ($d['expires_at'] !== null && (int)$d['expires_at'] < time()) response(403,['error'=>'expired']);
     return $d;
 }
@@ -44,7 +45,9 @@ $method=$_SERVER['REQUEST_METHOD'] ?? 'GET';
 if(($_GET['action']??$route)==='manual-claim'){if($method!=='POST')response(405,['error'=>'post_required']);luiyo_claim_grant($db);}
 luiyo_device_routes($db, (string)($_GET['action'] ?? $route), $method);
 if ($method==='POST' && ($route==='activate' || ($_GET['action'] ?? '')==='activate')) {
-    $v=body(); $code=strtoupper(trim((string)($v['code']??'')));
+    $v=body();
+    luiyo_version_guard_from_array($db, $v);
+    $code=strtoupper(trim((string)($v['code']??'')));
     $device=trim((string)($v['device_id']??''));
     if (!preg_match('/^LUI-[A-Z2-9]{5}(?:-[A-Z2-9]{5}){3}$/D',$code) ||
         !preg_match('/^[a-f0-9-]{36}$/Di',$device)) response(400,['error'=>'invalid_input']);
@@ -62,7 +65,7 @@ if ($method==='POST' && ($route==='activate' || ($_GET['action'] ?? '')==='activ
         $q=$db->prepare('SELECT * FROM devices WHERE device_hash=?');$q->execute([$deviceHash]);$d=$q->fetch(PDO::FETCH_ASSOC);
         if ($d) {
             if ((int)$d['license_id'] !== (int)$l['id']) response(409,['error'=>'device_already_registered']);
-            if ($d['banned']) response(403,['error'=>'access_revoked']);
+            if ($d['banned']) response(403,['error'=>'access_revoked','reason'=>(string)($d['ban_reason']??'')]);
         } else {
             $q=$db->prepare('SELECT COUNT(*) FROM devices WHERE license_id=?');$q->execute([$l['id']]);
             if ((int)$q->fetchColumn()>=(int)$l['max_devices']) response(403,['error'=>'device_limit']);
@@ -79,7 +82,21 @@ if ($method==='POST' && ($route==='activate' || ($_GET['action'] ?? '')==='activ
     } catch(Throwable $e) {if($db->inTransaction())$db->rollBack();throw $e;}
 }
 if ($method==='POST' && ($route==='check' || ($_GET['action']??'')==='check')) {
-    $d=authenticate($db);recordDeviceActivity($db,(int)$d['id']);
+    $payload = [];
+    $raw = file_get_contents('php://input');
+    if (is_string($raw) && $raw !== '') {
+        $j = json_decode($raw, true);
+        if (is_array($j)) $payload = $j;
+    }
+    // Authenticate first so we can fall back to the installation's last reported version
+    // (covers older clients that do not send app_version on /check).
+    $d=authenticate($db);
+    luiyo_version_guard_from_array($db, $payload, $d);
+    recordDeviceActivity($db,(int)$d['id']);
+    $ver = luiyo_resolve_client_version($db, $payload, $d);
+    if ($ver !== '' && !empty($d['device_hash'])) {
+        $db->prepare("UPDATE installations SET app_version=?, last_seen=? WHERE device_hash=?")->execute([$ver, time(), $d['device_hash']]);
+    }
     response(200,['status'=>'active']);
 }
 response(404,['error'=>'not_found']);

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render only the selected release; exclusive supplied history belongs to 1.0.5."""
+"""Render the selected release and the user-approved edited history."""
 from pathlib import Path
 import html
 import json
@@ -10,13 +10,14 @@ ROOT=Path(__file__).resolve().parents[1]
 
 def render(version, notes):
     current=notes['releases'].get(version, {'status':'正式版','entries':[{'kind':'opt','text':'修复已知问题。'}]})
-    sections=[{'version':version,'status':current['status'],'entries':current['entries']}]
-    sections+=notes.get('exclusive_history_by_version',{}).get(version,[])
+    sections=[{'version':version,'entries':current['entries']}]
+    history=notes.get('shared_history',[]) if version != '1.0.5' else notes.get('exclusive_history_by_version',{}).get(version,[])
+    sections += [section for section in history if section['version'] != version]
     labels={'add':'新增','opt':'优化','fix':'修复'}
     result=[]
     for section in sections:
         title='Version '+html.escape(section['version'])
-        if section.get('status'):title+=' <span>'+html.escape(section['status'])+'</span>'
+        if section['version']==version:title+=' <span>当前版本</span>'
         paragraphs=[]
         for entry in section['entries']:
             text=html.escape(entry['text'])
@@ -29,7 +30,7 @@ def update(page,version,notes):
     body=render(version,notes)
     page,n=re.subn(r'(<div class="settingsFoldBody changelogInline">)[\s\S]*?(\n    </div>\n  </details>)',lambda m:m[1]+'\n'+body+m[2],page,count=1)
     assert n==1,'Missing changelog container'
-    page=re.sub(r'(<b>更新日志</b><small>)[^<]*(</small>)',lambda m:m[1]+'Version '+html.escape(version)+' · 正式版'+m[2],page,count=1)
+    page=re.sub(r'<b>(?:更新日志|当前版本)</b><small>[^<]*(</small>)',lambda m:'<b>更新日志</b><small>'+'Version '+html.escape(version)+' · 当前版本'+m[1],page,count=1)
     # The old alternative info page must not expose a second stale history.
     page,n=re.subn(r'(<div class="logCards">)[\s\S]*?(\n  </div>\n</div>\n<script>\nfunction openInfoPage)',lambda m:m[1]+'\n'+body.replace('section class="inlineVersion"','article class="logCard"').replace('</section>','</article>').replace('inlineVersionTitle','logTitle')+m[2],page,count=1)
     assert n==1,'Missing alternate changelog container'

@@ -1,5 +1,7 @@
 'use strict';
+/* LUIYo admin-devices v3: toggle switch (添加授权/取消授权) */
 (() => {
+  console.log('[LUIYo] admin-devices v3 loaded: toggle switch active');
   const rows = document.getElementById('presence-rows');
   const filter = document.getElementById('presence-filter');
   const query = document.getElementById('presence-query');
@@ -23,7 +25,10 @@
     .presence-card-page{color:#66758d}
     .presence-card-meta{grid-area:meta;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;font-size:11px;line-height:1.5;color:#66758d}
     .presence-card-time{grid-area:time;white-space:nowrap;font-size:10px;line-height:1.5;color:#66758d}
-    .presence-device-card button.presence-card-action{grid-area:action;align-self:center;justify-self:end;flex:0 0 auto;height:auto!important;min-height:28px!important;padding:6px 9px!important;margin:0!important;line-height:1.4;font-size:10.5px!important;border-radius:10px!important;white-space:nowrap!important}
+    .presence-card-actions{grid-area:action;align-self:center;justify-self:end;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;max-width:190px}
+    .presence-device-card button.presence-card-action{flex:0 0 auto;height:auto!important;min-height:28px!important;padding:6px 9px!important;margin:0!important;line-height:1.4;font-size:10.5px!important;border-radius:10px!important;white-space:nowrap!important}
+    .presence-device-card button.presence-card-revoke{background:#fff!important;color:#e2475a!important;border:1px solid #f4a0a9!important}
+    .presence-device-card button.presence-card-grant{background:#2878f4!important;color:#fff!important}
     @media(max-width:350px){.presence-card-heading{gap:7px;font-size:10px}.presence-card-code{font-size:11px}.presence-device-card{gap:3px 8px;padding:9px}}
   `;
   document.head.appendChild(style);
@@ -56,6 +61,38 @@
       const meta=[d.model,d.os_version&&'iOS '+d.os_version,d.app_version&&'App '+d.app_version].filter(Boolean).join(' / ');
       card.append(heading,part('div','presence-card-meta',meta),part('div','presence-card-time',format(d.last_seen)));
       row.title='首次登记：'+format(d.created_at)+(d.installation_count>1?'\n安装记录：'+d.installation_codes.join('、'):'');
+      const actions=document.createElement('div');actions.className='presence-card-actions';
+      // Single toggle switch: 取消授权 when an active device-code grant exists, otherwise 添加授权.
+      const hasGrant = Number(d.active_grant || 0) > 0;
+      const toggleAction = hasGrant ? 'revoke_device' : 'grant_device';
+      const toggleLabel = hasGrant ? '取消授权' : '添加授权';
+      const toggleClass = hasGrant ? 'presence-card-action presence-card-revoke' : 'presence-card-action presence-card-grant';
+      {
+        const toggle=part('button',toggleClass,toggleLabel);toggle.type='button';
+        toggle.addEventListener('click', async () => {
+          const doing = toggleAction === 'revoke_device' ? '取消' : '添加';
+          if (!confirm(doing + ' ' + d.device_code + ' 的设备码授权？')) return;
+          toggle.disabled = true; toggle.textContent = '处理中…';
+          try {
+            const payload = new URLSearchParams({
+              csrf: document.getElementById('presence-csrf').value,
+              action: toggleAction, return_panel: 'devices',
+              device_code: d.device_code
+            });
+            const response = await fetch('admin.php', {
+              method: 'POST', credentials: 'same-origin', cache: 'no-store',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'fetch' },
+              body: payload
+            });
+            const data = await response.json().catch(() => null);
+            if (!response.ok) throw new Error((data && data.error) || ('HTTP ' + response.status));
+            await refresh();
+          } catch (error) {
+            alert(doing + '授权失败：' + error.message + '。请重新登录后台重试。');
+          } finally { toggle.disabled = false; toggle.textContent = toggleLabel; }
+        });
+        actions.appendChild(toggle);
+      }
       const button=part('button','danger presence-card-action','移出列表');button.type='button';
       button.addEventListener('click', async () => {
         const codes = Array.isArray(d.installation_codes) ? d.installation_codes : [d.device_code];
@@ -78,7 +115,7 @@
           alert('移出设备失败，请重新登录后台重试。' + error.message);
         } finally { button.disabled = false; button.textContent = '移出列表'; }
       });
-      card.appendChild(button);cell.appendChild(card);row.appendChild(cell);
+      actions.appendChild(button);card.appendChild(actions);cell.appendChild(card);row.appendChild(cell);
       rows.appendChild(row);
     }
     if (!matching.length) { const row = document.createElement('tr'), cell = document.createElement('td'); cell.colSpan = 7; cell.textContent = '暂无符合条件的设备'; row.appendChild(cell); rows.appendChild(row); }

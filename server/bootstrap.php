@@ -18,7 +18,8 @@ $db->exec('PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000;');
 $db->exec('CREATE TABLE IF NOT EXISTS licenses (
  id INTEGER PRIMARY KEY AUTOINCREMENT, code_hash TEXT NOT NULL UNIQUE,
  label TEXT NOT NULL DEFAULT \'\', max_devices INTEGER NOT NULL DEFAULT 1,
- expires_at INTEGER, disabled INTEGER NOT NULL DEFAULT 0, created_at INTEGER NOT NULL)');
+ expires_at INTEGER, disabled INTEGER NOT NULL DEFAULT 0, created_at INTEGER NOT NULL,
+ code_plain TEXT NOT NULL DEFAULT \'\')');
 $db->exec('CREATE TABLE IF NOT EXISTS devices (
  id INTEGER PRIMARY KEY AUTOINCREMENT, license_id INTEGER NOT NULL,
  device_hash TEXT NOT NULL UNIQUE, token_hash TEXT NOT NULL UNIQUE,
@@ -36,3 +37,11 @@ luiyo_device_schema($db);
 
 require_once __DIR__.'/device-grants.php';
 luiyo_grant_schema($db);
+
+// Migration: add code_plain column to existing licenses tables
+try {
+    $cols = $db->query("PRAGMA table_info(licenses)")->fetchAll(PDO::FETCH_ASSOC);
+    $hasPlain = false;
+    foreach ($cols as $c) { if (($c['name'] ?? '') === 'code_plain') { $hasPlain = true; break; } }
+    if (!$hasPlain) { $db->exec("ALTER TABLE licenses ADD COLUMN code_plain TEXT NOT NULL DEFAULT ''"); }
+} catch (Throwable $e) {}

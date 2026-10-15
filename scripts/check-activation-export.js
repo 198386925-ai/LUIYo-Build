@@ -22,7 +22,7 @@ const dom=new JSDOM(html,{url:'https://test.local',runScripts:'dangerously',pret
  assert(messages.some(m=>m.name==='activationSubmit'&&m.body.code==='TEST-CODE'));
  w.__luiyoSetAuthorized(false,'检查中',true);assert(field.disabled);assert(!form.hidden);
  w.__luiyoSetAuthorized(true);assert(form.hidden);assert.equal(field.value,'');assert.equal(d.getElementById('luiyoAuthState').textContent,'已授权');
- assert(swift.includes('syncAuthorization()\n        updateLayoutMetrics'),'Native authorization must replay after document load');
+ assert(swift.includes('nativeHomeReady = true\n        syncAuthorization()'),'Native authorization must replay after document load');
  const gate=fs.readFileSync('YouYouLUI_iOS/YouYouLUI/AppDelegate.swift','utf8');assert(!gate.includes('openActivation()'),'No activation overlay');assert(!gate.includes('offerIdentification')&&!gate.includes('startIdentification')&&!swift.includes('deviceIdentification'),'No user-facing UDID collection bridge');assert(!/udid/i.test(gate)&&! /udidStart|luiyoUDIDAction|__luiyoSetUDID/.test(swift),'UDID mode must be removed');assert(gate.includes('action: "register"')&&gate.includes('action: "heartbeat"'),'Presence remains enabled');
  w.eval(fs.readFileSync(htmlPath.replace('index.html','jszip.min.js'),'utf8'));
  w.eval("const generate=JSZip.prototype.generateAsync;JSZip.prototype.generateAsync=async function(options){const bytes=await generate.call(this,{...options,type:'uint8array'});return new Blob([bytes],{type:'application/zip'})}");

@@ -33,7 +33,7 @@ function luiyo_revoke_grant(PDO $db,string $code): ?string {
     try {
         $q=$db->prepare('SELECT * FROM device_grants WHERE installation_id=? AND revoked_at IS NULL');$q->execute([(int)$m[1]]);$g=$q->fetch(PDO::FETCH_ASSOC);
         if(!$g){$db->exec('ROLLBACK');return '该设备没有可撤销的设备码授权';}
-        // 仅撤销设备码授权，不禁用设备/卡密
+        $db->prepare('UPDATE licenses SET disabled=1 WHERE id=?')->execute([$g['license_id']]);
         $db->prepare('UPDATE device_grants SET revoked_at=? WHERE installation_id=?')->execute([time(),$m[1]]);
         $db->exec('COMMIT');return null;
     }catch(Throwable $e){try{$db->exec('ROLLBACK');}catch(Throwable){}throw $e;}
