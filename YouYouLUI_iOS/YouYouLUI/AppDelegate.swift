@@ -111,8 +111,13 @@ private final class LUIYoActivationGate: UIViewController {
             claimDeviceGrant()
             return
         }
-        // Always recheck on foreground, even if previously allowed.
-        check(token: token)
+        // Fast path: token exists -> show the app immediately and verify in
+        // the background instead of hiding the UI behind "正在验证使用权限…"
+        // until the server answers. A revoked/expired token still hides the
+        // app as soon as the server answers (and the 30s heartbeat enforces
+        // revocation anyway).
+        appController?.setAuthorization(true)
+        check(token: token, blocking: false)
     }
 
     private func url(action: String) -> URL {
@@ -181,11 +186,13 @@ private final class LUIYoActivationGate: UIViewController {
         }
     }
 
-    private func check(token: String) {
+    private func check(token: String, blocking: Bool = true) {
         checkInFlight = true
-        // Fail closed on foreground: hide app content until the server answers.
-        hideApp()
-        appController?.setAuthorization(false, message: "正在验证使用权限…", busy: true)
+        if blocking {
+            // Fail closed on foreground: hide app content until the server answers.
+            hideApp()
+            appController?.setAuthorization(false, message: "正在验证使用权限…", busy: true)
+        }
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
         let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? ""
         request(action: "check", payload: ["app_version": version, "app_build": build], token: token) { [weak self] code, body, diagnostic in
