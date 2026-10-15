@@ -611,3 +611,8 @@ body.solid-card-mode .settingsToggleCard{
 #homeTools .colorrow{border-radius:22px!important}
 #homeTools{border-radius:28px!important}
 .card{border-radius:24px!important}
+
+/* Native material mode: HTML never paints fake glass. Keep selected segmented pill white. */
+body.native-card-glass .categorytabs{
+  background:#F1EFEC!important;
+}
