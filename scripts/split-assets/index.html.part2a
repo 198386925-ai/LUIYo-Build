@@ -1,0 +1,273 @@
+existing settings cards untouched; match the Rules page heading scale. */
+.pageHead h1,.settingsHead h1{font-size:25px!important;font-weight:800!important;line-height:1.2!important;letter-spacing:normal!important;margin:0 0 5px!important}
+.settingsHead p{font-size:15px!important}
+/* Soften only the two outlined home actions; keep card geometry unchanged. */
+#homeTools .fillpick,#homeTools .customColor{border-color:rgba(120,130,145,.18)!important;box-shadow:none!important}
+#homeTools{box-shadow:none!important}
+</style><style id="compact-upload-grouped-rules-preview">
+#list.grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important;align-items:stretch!important}
+#list .card{display:flex!important;align-items:center!important;gap:10px!important;padding:10px!important;min-height:76px!important;height:auto!important;border-radius:24px!important}
+#list .uploadThumb{display:flex;align-items:center;justify-content:center;position:relative;flex:0 0 44px;width:44px;height:44px;border:1px solid rgba(128,134,144,.20);border-radius:16px;background:transparent;overflow:hidden;cursor:pointer}
+#list .uploadThumb input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer}
+#list .uploadPlus{font-size:28px;line-height:1;color:#8b929d;font-weight:400}
+#list .preview{position:absolute!important;inset:0!important;margin:0!important;width:100%!important;height:100%!important;padding:0!important;background:transparent!important;border:0!important;border-radius:15px!important;display:none;box-sizing:border-box}
+#list .preview img{width:100%!important;height:100%!important;max-height:none!important;object-fit:contain;padding:0!important;border-radius:0!important}
+#list .uploadText{min-width:0;flex:1}
+#list .title{padding-right:0!important;margin:0!important;font-size:12.5px!important;line-height:1.4!important;font-weight:600!important;min-height:0!important}
+#list .uploadHint{font-size:11px;color:#8b929d;margin-top:4px}
+#list .card{position:relative!important}
++#list .removeIcon{position:absolute!important;right:5px!important;top:5px!important;width:20px!important;height:20px!important;min-width:20px!important;font-size:15px!important;line-height:20px!important}
++#list .card:has(.removeIcon) .uploadText{padding-top:8px}
+#ruleList{gap:16px!important}
+#ruleList .ruleCard{display:block!important;padding:16px!important;border-radius:24px!important}
+#ruleList .ruleGroupHead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-bottom:10px}
+#ruleList .ruleGroupHead h2{font-size:15px;line-height:1.4;margin:0;font-weight:650;color:inherit}
+#ruleList .ruleGroupHead>span{flex-shrink:0;font-size:12px;color:#8b929d;line-height:24px}
+#ruleList .ruleRow{padding:11px 0;border-top:1px solid rgba(128,134,144,.16)}
+#ruleList .ruleName{font-size:14px!important;font-weight:500!important;line-height:1.4}
+#ruleList .ruleFile{font-size:11px!important;line-height:1.45!important;margin-top:4px;overflow-wrap:anywhere;white-space:normal!important;color:#8b929d}
+.searchEmpty{font-size:14px;color:#8b929d;text-align:center;padding:24px}
+</style>
+<style id="theme-and-layout-build18">
+body{padding-bottom:max(20px,calc(100svh - var(--native-tab-top,calc(100svh - 90px)) + 12px))!important}
+.app{padding-bottom:0!important}
+body.nav-settings #settingsTarget{min-height:0!important;padding-bottom:0!important}
+#settingsCredits{margin-top:20px!important;padding-top:12px!important}
+.settingsFold:not([open])>.settingsFoldBody{display:none!important}
+body.nav-settings ::-webkit-scrollbar{display:none;width:0;height:0}
+:root[data-appearance] body.native-card-glass #homeTools,#homeTools{background:rgba(var(--card-rgb,255,255,255),var(--tool-opacity,1))!important}
+.themeSliderRow{flex-direction:column;align-items:stretch;gap:8px;padding:10px 0}
+.themeSliderLine{display:flex;align-items:center;gap:12px}
+.themeSliderLine input{flex:1;min-width:0;height:32px;accent-color:#007AFE}
+.themeSliderLine output{min-width:42px;text-align:right;font-size:12px;color:inherit}
+.themeSwitch{width:46px;height:28px;flex:0 0 auto;accent-color:#34c759}
+html.has-background-image,html.has-background-image body{background:transparent!important}
+</style><style id="current-version-alignment-v106">
+:root[data-appearance] body *, :root[data-appearance] body *::before, :root[data-appearance] body *::after{box-shadow:none!important;text-shadow:none!important}
+:root[data-appearance] .settingsFold summary,:root[data-appearance] .settingsAuthHeading{display:grid!important;grid-template-columns:28px minmax(0,1fr) 14px!important;gap:9px!important;align-items:center!important;min-height:44px!important;padding:6px 12px!important;box-sizing:border-box}
+:root[data-appearance] .luiyoActivationEntry{padding:0!important}
+:root[data-appearance] .luiyoActivationForm{margin:8px 12px 12px!important}
+:root[data-appearance] .settingsFoldIcon,:root[data-appearance] .settingsToggleIcon{width:28px!important;height:28px!important;display:flex!important;align-items:center!important;justify-content:center!important;font-size:20px!important;line-height:1!important;background:transparent!important}
+:root[data-appearance] body.native-symbol-icons .settingsFoldIcon,:root[data-appearance] body.native-symbol-icons .settingsToggleIcon{color:transparent!important}
+:root[data-appearance] .settingsFoldText{display:flex!important;flex-direction:column!important;justify-content:center!important;min-width:0}
+:root[data-appearance] .settingsFoldText b{font-size:13px!important;line-height:1.2!important;margin:0!important}
+:root[data-appearance] .settingsFoldText small{font-size:9.5px!important;line-height:1.25!important;margin:2px 0 0!important}
+:root[data-appearance] .inlineVersionTitle,:root[data-appearance] .logTitle{display:flex!important;align-items:baseline!important;gap:8px!important}
+:root[data-appearance] .inlineVersionTitle span,:root[data-appearance] .logTitle span{margin:0!important}
+body.custom-font-active :is(button,input,summary,span,b,p,small,label,select,textarea){font-family:inherit!important}
+</style>
+<style id="native-material-content-only-build30">
+/* WebKit provides text and input targets. UIKit supplies every card material. */
+html.native-material-host[data-appearance],html.native-material-host[data-appearance] body{background:transparent!important;background-image:none!important}
+:root[data-appearance] body.native-card-glass :is(.luiyoActivationEntry,.ruleCard,.settingsFold,.settingsFoldBody,.inlineVersion,.guideCard,.logCard,.ruleSearch,.categorytabs,#materialModePicker,#appearanceModePicker,#bottomSearchModePicker){background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+</style><style id="compact-clean-controls-build34">
+.themeRow[hidden]{display:none!important}
+#ruleList .ruleRow,#ruleList .ruleGroupHead{border:0!important;box-shadow:none!important}
+</style>
+<style id="v106-selection-refinement">
+#ruleList .ruleRow{padding:5px 0!important}
+#ruleList .ruleGroupHead{padding-bottom:5px!important}
+#ruleList .ruleFile{margin-top:2px!important}
+#settingsTarget .themeColor button,#settingsTarget .themeFontControls button{background:#fff!important;color:#202832!important}
+.themeColor input[type=color]{border:1px solid rgba(110,115,125,.35)!important;border-radius:50%;box-sizing:border-box}
+</style><style id="day-night-switch-v106">
+input[type=checkbox]{appearance:none!important;-webkit-appearance:none!important;width:44px!important;height:26px!important;flex-shrink:0;position:relative;cursor:pointer;margin:0;background:transparent!important;border:0!important;border-radius:0!important;overflow:visible}
+input[type=checkbox]::before{content:"";position:absolute;left:0;top:3px;width:44px;height:20px;border:1px solid #85bac9;border-radius:10px;background:#363d61;box-sizing:border-box}
+input[type=checkbox]::after{content:"☾";position:absolute;left:2px;top:4px;width:18px;height:18px;border:1px solid #d9bd61;border-radius:50%;background:#7582b8;color:white;text-align:center;font:12px/16px system-ui;box-sizing:border-box;transition:transform .15s ease}
+input[type=checkbox]:checked::before{background:radial-gradient(ellipse at center,white 0 65%,transparent 70%) 14px 9px/13px 7px no-repeat,#a6e0f0}
+input[type=checkbox]:checked::after{content:"";background:#ffde63;transform:translateX(22px)}
+input[type=checkbox]:checked{background:radial-gradient(ellipse at center,white 0 65%,transparent 70%) 14px 12px/13px 7px no-repeat!important}
+input[type=checkbox]:focus-visible{outline:2px solid #007afe;outline-offset:3px}
+</style><style>body.native-day-night-switches input[type=checkbox]{opacity:0!important}</style><style id="luiyo-wallpaper-layout-auth-hotfix">
+/* <!-- LUIYo wallpaper/layout + settings auth surface hotfix -->
+   Keep image-card rows content-driven after background changes and avoid the
+   old fixed/implicit grid row sizing that can let labels collide. */
+#list,.grid,.categorytabs,.tools,.dashboard{min-width:0}
+#list,.grid{align-content:start;grid-auto-rows:max-content;align-items:stretch}
+.grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+.grid>.card{position:relative!important;display:grid!important;grid-template-columns:54px minmax(0,1fr)!important;grid-template-rows:minmax(32px,auto) auto!important;align-content:start!important;align-items:center!important;height:auto!important;min-height:78px!important;overflow:hidden!important}
+.grid>.card .title{min-width:0!important;min-height:32px!important;height:auto!important;white-space:normal!important;overflow-wrap:anywhere!important}
+.grid>.card .pick,.grid>.card .preview{grid-row:1 / span 2!important;align-self:center!important}
+.grid>.card:after{grid-column:2!important;grid-row:2!important;align-self:start!important;min-width:0!important;pointer-events:none!important}
+#homeTarget,#homeTools,#list,.settingsTarget,#settingsTarget{min-width:0}
+body{padding-bottom:calc(112px + env(safe-area-inset-bottom))!important}
+#list{padding-bottom:calc(28px + env(safe-area-inset-bottom))!important}
+@media(max-width:390px){.grid>.card{grid-template-columns:46px minmax(0,1fr)!important;min-height:74px!important}.grid>.card .pick,.grid>.card .preview{width:46px!important;height:46px!important}}
+/* Native iOS renders the real glass. Keep the injected authorization entry
+   readable and neutral instead of inheriting an opaque dark hero surface. */
+body.native-card-glass #luiyoActivationCard{
+  background:rgba(255,255,255,.24)!important;
+  border:1px solid rgba(255,255,255,.62)!important;
+  color:var(--text,#202832)!important;
+  border-radius:26px!important;
+}
+:root[data-appearance="dark"] body.native-card-glass #luiyoActivationCard{
+  background:rgba(44,44,46,.26)!important;
+  border-color:rgba(255,255,255,.14)!important;
+  color:#f5f5f7!important;
+}
+</style>
+<style id="v107-real-upload-card-wallpaper-fix">
+/* v107: renderList() creates .uploadThumb + .uploadText, not .pick/.preview
+   as direct children. Keep these real elements in a stable two-column row. */
+#list.grid{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  grid-auto-rows:max-content!important;
+  align-content:start!important;
+  align-items:stretch!important;
+  gap:10px!important;
+}
+#list.grid>.card{
+  box-sizing:border-box!important;
+  display:flex!important;
+  flex-direction:row!important;
+  flex-wrap:nowrap!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:9px!important;
+  width:auto!important;
+  min-width:0!important;
+  min-height:78px!important;
+  height:auto!important;
+  max-height:none!important;
+  padding:10px!important;
+  margin:0!important;
+  position:relative!important;
+  overflow:hidden!important;
+  align-self:stretch!important;
+}
+#list.grid>.card>.uploadThumb{
+  box-sizing:border-box!important;
+  display:flex!important;
+  flex:0 0 48px!important;
+  width:48px!important;
+  min-width:48px!important;
+  height:48px!important;
+  min-height:48px!important;
+  margin:0!important;
+  align-self:center!important;
+  position:relative!important;
+  overflow:hidden!important;
+}
+#list.grid>.card>.uploadText{
+  display:block!important;
+  flex:1 1 0!important;
+  width:auto!important;
+  min-width:0!important;
+  max-width:100%!important;
+  margin:0!important;
+  padding:0 12px 0 0!important;
+  overflow:hidden!important;
+  align-self:center!important;
+}
+#list.grid>.card>.uploadText>.title{
+  display:block!important;
+  width:auto!important;
+  min-width:0!important;
+  min-height:0!important;
+  height:auto!important;
+  margin:0!important;
+  padding:0!important;
+  line-height:1.35!important;
+  white-space:normal!important;
+  overflow-wrap:anywhere!important;
+  word-break:normal!important;
+}
+#list.grid>.card>.uploadText>.uploadHint{
+  display:block!important;
+  min-width:0!important;
+  height:auto!important;
+  margin:4px 0 0!important;
+  line-height:1.35!important;
+  white-space:normal!important;
+  overflow-wrap:anywhere!important;
+}
+#list.grid>.card>.removeIcon{
+  position:absolute!important;
+  top:4px!important;
+  right:4px!important;
+  z-index:5!important;
+}
+@media(max-width:390px){
+  #list.grid>.card{gap:7px!important;padding:8px!important;min-height:72px!important}
+  #list.grid>.card>.uploadThumb{flex-basis:42px!important;width:42px!important;min-width:42px!important;height:42px!important;min-height:42px!important}
+  #list.grid>.card>.uploadText{padding-right:10px!important}
+}
+html.has-background-image #webBackgroundImage{z-index:0!important;pointer-events:none!important}
+html.has-background-image body>.app{position:relative!important;z-index:1!important;isolation:isolate}
+html.has-background-image body>.appBottomNav{position:fixed!important;z-index:80!important}
+</style>
+</head><body><div class="app"><section class="homeHero" id="homeTarget">
+  <div class="homeEyebrow">LIQUIDUI ICON STUDIO</div>
+  <h1>微信图标生成器</h1>
+  <div class="homeSub">上传一次，自动处理 LiquidUI / 微信图标补全与打包。</div>
+  <div class="homeSummary">
+    <div class="homePill" id="count"></div>
+    <div class="homePill" id="liveImported">当前上传项目：0 项</div>
+  </div>
+  <a class="homeFeedback" href="https://qm.qq.com/q/th1QshgzHW" target="_blank" rel="noopener noreferrer">反馈问题 · 联系客服</a>
+  <input class="search" id="searchInput" type="search" placeholder="搜索：转账、位置、底栏微信…">
+</section><section class="tools" id="homeTools"><div class="actions"><label class="batch">关键词批量导入<input id="batchInput" type="file" accept="image/*" multiple></label><label class="fillpick">补全图片<input id="fillInput" type="file" accept="image/*"></label><button class="fill" id="fillBtn">双分类补全</button></div><button type="button" class="colorfold" id="colorFoldBtn" aria-expanded="false"><span>自定义修改颜色 <small>浅色 / 深色 / 全部图标</small></span><span class="chev">⌄</span></button><div class="colorpanel" id="colorPanel"><div class="colorrow disabled" id="selectedLightRow"><div><span>自定义选中浅色模式</span><small>默认自动加深；启用后使用这个颜色</small></div><div class="colorcontrols"><label class="switchlabel"><input id="selectedLightEnabled" type="checkbox">启用</label><input id="selectedColor" type="color" value="#1677ff"></div></div><div class="colorrow disabled" id="selectedDarkRow"><div><span>自定义选中深色模式</span><small>默认自动反转；启用后使用这个颜色</small></div><div class="colorcontrols"><label class="switchlabel"><input id="selectedDarkEnabled" type="checkbox">启用</label><input id="selectedDarkColor" type="color" value="#ffffff"></div></div><div class="colorrow disabled" id="allColorRow"><div><span>自定义全部图标颜色</span><small>默认保持上传图片原本颜色</small></div><div class="colorcontrols"><label class="switchlabel"><input id="allColorEnabled" type="checkbox">启用</label><input id="allColor" type="color" value="#222222"></div></div></div><div class="exportrow"><button class="clear" onclick="clearAll()">清空</button><button class="zip" onclick="makeZip(this)">导出 ZIP</button></div><div class="status" id="status">已上传 0 项</div></section><section class="settingsTarget" id="settingsTarget">
+  <div class="settingsHead"><h1>设置</h1><p>主题、使用说明与更新日志</p></div>
+
+  <details class="settingsFold themeFold">
+    <summary aria-label="主题"><span class="settingsFoldIcon" data-system-icon="circle.lefthalf.filled">◐</span><span class="settingsFoldText"><b>主题</b><small>卡片材质、背景、按钮与字体</small></span><span class="settingsFoldChevron"></span></summary>
+    <div class="settingsFoldBody themeBody">
+      <div class="themeRow appearanceThemeRow"><div><b>外观模式</b><small id="appearanceHint">跟随系统</small></div><div id="appearanceModePicker" class="appearanceModePicker" role="radiogroup" aria-label="外观模式"><button type="button" data-appearance-mode="system">跟随系统</button><button type="button" data-appearance-mode="light">浅色</button><button type="button" data-appearance-mode="dark">深色</button></div></div>
+      <div class="themeRow materialThemeRow"><div><b>卡片材质</b><small id="cardMaterialHint">iOS 26+ 原生液态玻璃 / UIKit 原生磨砂</small></div><div class="materialModePicker" id="materialModePicker" role="radiogroup" aria-label="卡片材质"><button type="button" data-material="liquid">液态玻璃</button><button type="button" data-material="blur">原生磨砂</button></div></div>
+      <div class="themeRow"><div><b>背景颜色</b><small id="backgroundHint">浅色背景</small></div><div class="themeColor"><input id="appBackgroundColor" type="color" value="#F4F2EE"><button type="button" id="resetBackgroundColor">恢复</button></div></div>
+      <div class="themeRow"><div><b>卡片颜色</b><small>仅修改激活授权上方的品牌卡</small></div><div class="themeColor"><input id="appCardColor" type="color" value="#FFFFFF"><button type="button" id="resetCardColor">恢复</button></div></div>
+      <div class="themeRow" hidden><div><b>按钮颜色</b><small>首页工具按钮与上传图标；选中保持白色，清空、导出 ZIP 颜色固定</small></div><div class="themeColor"><input id="appButtonColor" type="color" value="#FFFFFF"><button type="button" id="resetButtonColor">恢复</button></div></div>
+      <div class="themeRow appearanceThemeRow bottomSearchThemeRow"><div><b>底栏搜索按钮</b><small id="bottomSearchModeHint">关闭后使用顶部搜索框</small></div><div id="bottomSearchModePicker" role="radiogroup" aria-label="底栏搜索按钮"><button type="button" data-bottom-search-mode="off">关闭</button><button type="button" data-bottom-search-mode="merged">合并</button><button type="button" data-bottom-search-mode="separate">分开</button></div></div>
+      <div class="themeRow themeSliderRow" hidden><div><b>工具栏卡片透明度</b><small>仅调整首页工具栏卡片，不影响文字和按钮</small></div><div class="themeSliderLine"><input id="toolbarTransparency" aria-label="工具栏卡片透明度" type="range" min="0" max="100" step="1" value="0"><output id="toolbarTransparencyValue">0%</output></div></div>
+      <div class="themeRow"><div><b>滚动时缩小底栏</b><small>向下滚动缩小，向上滚动恢复</small></div><input id="minimizeBottomBar" aria-label="滚动时缩小底栏" class="themeSwitch" type="checkbox" switch role="switch"></div>
+      <div class="themeRow themeFontRow"><div><b>自定义字体</b><small id="customFontName">使用默认字体</small></div><div class="themeFontControls"><button type="button" id="chooseCustomFont">导入字体</button><button type="button" id="resetCustomFont">恢复</button><input id="customFontFile" type="file" accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2" hidden></div></div>
+    </div>
+  </details>
+
+  <details class="settingsFold">
+    <summary><span class="settingsFoldIcon" data-system-icon="questionmark.circle">?</span><span class="settingsFoldText"><b>使用说明</b><small>查看功能说明与操作方法</small></span><span class="settingsFoldChevron"></span></summary>
+    <div class="settingsFoldBody guideInline">
+      <h3>这个工具有什么用？</h3>
+      <p>用于快速制作 LiquidUI / 微信图标替换包。只需按网页标题上传图片，管理器会自动处理对应命名、同名同步、补全、颜色和 ZIP 打包，不需要自己逐个查内部文件名。</p>
+      <ul>
+        <li><b>关键词批量导入：</b>图片文件名使用网页标题中的关键词即可模糊匹配，模糊关键词至少 3 个字，两个字请使用完整标题。</li>
+        <li><b>双分类补全：</b>用一张补全图片同时填充 LiquidUI 与原版微信中还没有图片的项目。</li>
+        <li><b>自动联动：</b>同一图标对应多个内部命名时，上传一次即可在导出时自动生成相关文件。</li>
+        <li><b>颜色修改：</b>可分别设置浅色选中、深色选中和全部图标颜色；不开启时保留默认处理。</li>
+        <li><b>排除图标：</b>补全后不想更换的项目可以点卡片右上角 ×，该项目不会进入本次 ZIP。</li>
+        <li><b>导出：</b>生成 ZIP 后可改名，再通过 iPhone 系统分享菜单保存或分享。</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="settingsFold">
+    <summary><span class="settingsFoldIcon" data-system-icon="clock.arrow.circlepath">↻</span><span class="settingsFoldText"><b>更新日志</b><small>Version 1.0.6 · 当前版本</small></span><span class="settingsFoldChevron"></span></summary>
+    <div class="settingsFoldBody changelogInline">
+<section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.6 <span>当前版本</span></div><p><b class="add">新增</b> 支持图标上传、关键词批量导入、双分类补全与 ZIP 导出。</p><p><b class="opt">优化</b> 首页、规则与设置采用系统原生玻璃，低版本自动使用原生磨砂；缩小工具栏文字与规则条目间距。</p><p><b class="opt">优化</b> 原版微信与 LiquidUI 分类及导入入口互换，默认显示原版微信；统一反馈与客服联系入口图标。</p><p><b class="opt">优化</b> 移除分类描边、规则分割线及多余阴影；卡片颜色仅作用于授权上方的品牌卡，统一开关样式。</p><p><b class="fix">修复</b> 修复导入图片删除、补全导出、主题字体保存及底栏搜索布局切换。</p><p><b class="fix">修复</b> 优化底栏切换响应，恢复悬浮底栏与首页安全区，保持设置展开状态。</p><p><b class="fix">修复</b> 插件信息与更新日志支持定位展开，再次点击收起。</p></section>
+<section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.5</div><p><b class="opt">优化</b> 修复已知问题。</p><p>该版本为首发测试。</p></section>
+<section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.4</div><p><b class="add">新增</b> 主题支持工具栏卡片透明度、滚动缩小底栏及自定义背景图片；设置自动保存。</p><p><b class="add">新增</b> 底栏搜索改为关闭、合并、分开三段切换，保留已保存的搜索布局；关闭后恢复顶部搜索框。</p><p><b class="opt">优化</b> 相同或相近用途的图标合并为一个上传入口，共用图标归原版微信；LiquidUI 分类保留专属入口，导出保留全部对应文件名。</p><p><b class="opt">优化</b> 首页上传项每排两列，左图右标题；LiquidUI 与原版微信的导入项和规则分组标题统一缩小；更新规则按大标题合并展示。</p><p><b class="opt">优化</b> 导出 ZIP 改名使用系统原生弹窗。</p><p><b class="opt">优化</b> 补全图片和自定义颜色入口略微加粗描边，增加柔和淡色底。</p><p><b class="opt">优化</b> 首页工具卡片改用纯色，其他卡片保持原生材质。</p><p><b class="opt">优化</b> 清空固定蓝色、白色文字；导出 ZIP 固定绿色、白色文字。</p><p><b class="opt">优化</b> 首页分类和设置切换同步配色：未选中底色跟随卡片颜色，选中底色跟随按钮颜色。</p><p><b class="fix">修复</b> 合并和分开底栏搜索均可点击，打开原生全屏搜索页，自动弹出键盘，关闭后返回原页面。</p><p><b class="fix">修复</b> 深色液态玻璃下六个按钮不明显，按钮保持独立纯色并自动适配文字颜色。</p><p><b class="fix">修复</b> 原生底栏文字跟随导入字体，恢复默认和重新打开也同步生效。</p><p><b class="fix">修复</b> 分开搜索改用系统原生独立搜索标签，底栏与搜索统一对齐、尺寸及安全区位置。</p></section>
+<section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.3</div><p><b class="add">新增</b> 主题增加按钮颜色，首页按钮与分类底色同步；浅色、深色分别保存。</p><p><b class="add">新增</b> 跟随系统、浅色与深色外观；背景颜色分别保存并随外观切换。</p><p><b class="opt">优化</b> 搜索框位于反馈问题下方，随材质切换为液态玻璃或原生磨砂。</p><p><b class="opt">优化</b> 首页六个操作按钮保持纯色，其他卡片保留原有材质。</p><p><b class="opt">优化</b> 分类未选中底色使用按钮颜色，增加透明度以呈现柔和层次。</p><p><b class="opt">优化</b> 分类、材质与外观使用紧凑原生分段控件；缩短设置卡片。</p><p><b class="opt">优化</b> 移除自定义卡片描边，鸣谢仅在设置页随内容排布。</p><p><b class="fix">修复</b> 展开动画结束时的高度跳动和重复点击状态。</p></section>
+<section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.2</div><p><b class="add">新增</b> 卡片液态效果开关；关闭后切换为 UIKit 原生磨砂效果。</p><p><b class="add">新增</b> 主题内自定义字体，可导入 TTF、OTF、WOFF、WOFF2 文件并持久保存。</p><p><b class="add">新增</b> 卡片材质、液态玻璃、原生磨砂两种模式直接切换/低于26+不生效液态玻璃。</p><p><b class="add">新增</b> 主题增加卡片颜色，可修改纯色卡片颜色</p><p><b class="opt">优化</b> 规则页移除图片导入入口，仅显示规则名称与图标规则名。</p><p><b class="opt">优化</b> 首页采用新的双列卡片UI，上传区工具区与顶部信息重新布局。</p><p><b class="opt">优化</b> 设置页入口卡片进一步压缩高度与文字尺寸。</p><p><b class="opt">优化</b> 首页白色工具控件、搜索框、颜色展开项、清空按钮、分类未选中项和上传框统一接入 UIKit 原生玻璃/磨砂材质。</p><p><b class="opt">优化</b> 材质切换与首页分类分段切换改为参考图的胶囊式，选中项使用内嵌白色圆角块。</p><p><b class="opt">优化</b> 首页按钮、搜索框、颜色入口与导出操作统一为分类栏同类圆润胶囊轮廓。</p><p><b class="opt">优化</b> 纯色模式下首页操作框统一为同一中性底色，补全图片、自定义颜色、清空等入口保持清晰可见。</p><p><b class="fix">修复</b> 设置页使用说明与更新日志改为原位下拉拉伸卡片。</p><p><b class="fix">修复</b> 规则页顶部安全区与状态栏重叠问题。</p><p><b class="fix">修复</b> 首页、规则、设置三页卡片视觉统一，首页工具卡不再使用单独的透明样式。</p><p><b class="fix">修复</b> 使用说明、更新日志与主题卡片收起响应延迟，收起动画改为快速响应。</p><p><b class="fix">修复</b> 纯色模式默认不显示卡片描边；只有主动开启卡片描边后才显示所选描边颜色。</p><p><b class="fix">修复</b> 背景颜色现在同步到 UIKit 根视图，修改后立即生效并保存。</p><p><b class="fix">修复</b> 首页双分类切换中间露出的白色材质块；分类容器不再重复叠加玻璃。</p><p><b class="fix">修复</b> 液态玻璃与原生磨砂在刷新、筛选和重绘时原生材质层重新绑定导致的跳动。</p></section>
+<section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.1</div><p><b class="add">新增</b> 全局换图标规则页，可按规则名称与图标规则名查找。</p><p><b class="add">新增</b> 关键词批量导入、双分类补全、同名项目自动联动与 ZIP 自定义名称分享。</p><p><b class="add">新增</b> 浅色选中、深色选中及全部图标颜色自定义。</p><p><b class="opt">优化</b> 设置页的使用说明与更新日志改为原位下拉拉伸，不再弹出独立页面。</p><p><b class="opt">优化</b> iOS 26+ 使用 UIKit 系统原生 Liquid Glass；不使用 CSS 自绘玻璃。</p><p><b class="opt">优化</b> iOS 25 及以下自动回退 UIKit 原生 systemMaterial 磨砂。</p><p><b class="opt">优化</b> 规则页移除图片导入入口，只保留规则名称与图标规则名。</p><p><b class="fix">修复</b> 规则页安全区，避免标题与状态栏重叠。</p></section>
+<section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.0</div><p><b class="add">新增</b> 优优 LUI 图标补全基础功能。</p><p><b class="add">新增</b> LiquidUI / 原版微信图标上传、补全与 ZIP 导出。</p></section>
+    </div>
+  </details>
+  <details class="settingsFold" id="specialThanks" hidden>
+    <summary><span class="settingsFoldIcon" data-system-icon="heart">♡</span><span class="settingsFoldText"><b>特别鸣谢</b><small>感谢支持与帮助</small></span><span class="settingsFoldChevron"></span></summary>
+    <div class="settingsFoldBody"><p>感谢每一位为本项目提供反馈与帮助的朋友。</p></div>
+  </details>
+<footer id="settingsCredits">特别鸣谢 Mk · 作者：优优<br>仅供学习交流</footer></section><div class="categorytabs" role="tablist" aria-label="图标分类"><button role="tab" id="tabWechat" class="active">原版微信</button><button role="tab" id="tabLui">LiquidUI</button></div><div class="sectiontitle" id="sectionTitle">原版微信图标</div><main id="list" class="grid"></main>
+<section class="rulePage" id="rulePage">
+  <header class="pageHead"><h1>规则</h1><p>LiquidUI 全局换图标命名规则</p></header>
+  <input class="ruleSearch" id="ruleSearch" type="search" placeholder="搜索图标名称、位置或文件名">
+  <div class="ruleList" id="ruleList"></div>
+</section>
+</div><nav class="appBottomNav" id="appBottomNav" aria-label="底栏导航">
+<button type="button" class="active" data-nav="home" onclick="appNavTo('home')"><span class="navIcon">⌂</span><span>首页</span></button>
+<button type="button" data-nav="rules" onclick="appNavTo('rules')"><span class="navIcon">≡</span><span>规则</span></button>
+<button type="button" data-nav="settings" onclick="appNavTo('settings')"><span class="navIcon">⚙︎</span><span>设置</span></button>
+<button type="button" data-nav="search" hidden onclick="window.__openBottomSearch?.()"><span class="navIcon">⌕</span><span>搜索</span></button>
+</nav><div class="sharemodal" id="shareModal"><div class="sharesheet"><h3>分享 ZIP</h3><p>修改文件名后，再打开 iPhone 系统分享菜单</p><input id="zipNameInput" value="优优LUI图标包" autocomplete="off"><div class="shareactions"><button class="sharecancel" type="button" onclick="closeShareModal()">取消</button><button class="sharego" type="button" onclick="sharePreparedZip()">分享 ZIP</button></div></div></div><script src="jszip.min.js"></script><script>
+const namingRules=[{"section":"LiquidUI 底栏 dock（各款底栏通用）","title":"LiquidUI 底栏微信","file":"lui_tab_main_regular@3x.png"},{"section":"微信原生底栏","title":"底栏微信","file":"bubble_circle_regular@3x.png"},{"section":"LiquidUI 底栏 dock（各款底栏通用）","title":"LiquidUI 底栏微信选中","file":"lui_tab_main_filled@3x.png"},{"section":"微信原生底栏","title":"底栏微信选中","file":"bubble_circle_filled@3x.png"},{"section":"LiquidUI 底栏 dock（各款底栏通用）","title":"LiquidUI 底栏通讯录","file":"lui_tab_contacts_regular@3x.png"},{"section":"微信原生底栏","title":"底栏通讯录","file":"person_list_regular@3x.png"},{"section":"LiquidUI 底栏 dock（各款底栏通用）","title":"LiquidUI 底栏通讯录选中","file":"lui_tab_contacts_filled@3x.png"},{"section":"微信原生底栏","title":"底栏通讯录选中","file":"person_list_filled@3x.png"},{"section":"LiquidUI 底栏 dock（各款底栏通用）","title":"LiquidUI 底栏发现","file":"lui_tab_discover_regular@3x.png"},{"section":"微信原生底栏","title":"底栏发现","file":"discover_regular@3x.png"},{"section":"LiquidUI 底栏 dock（各款底栏通用）","title":"LiquidUI 底栏发现选中","file":"lui_tab_discover_filled@3x.png"},{"section":"微信原生底栏","title":"底栏发现选中","file":"discover_filled@3x.png"},{"section":"LiquidUI 底栏 dock（各款底栏通用）","title":"LiquidUI 底栏我的","file":"lui_tab_me_regular@3x.png"},{"section":"微信原生底栏","title":"底栏我的","file":"person_regular@3x.png"},{"section":"LiquidUI 底栏 dock（各款底栏通用）","title":"LiquidUI 底栏我的选中","file":"lui_tab_me_filled@3x.png"},{"section":"微信原生底栏","title":"底栏我的选中","file":"person_filled@3x.png"},{"section":"LiquidUI 其它自定图标","title":"「我」页插件入口（第三方插件管理器）","file":"lui_me_plugins@3x.png"},{"section":"通用字形（全 app 几百处共用，换了到处一起变）","title":"指引箭头","file":"arrow_right_regular@3x.png"},{"section":"LiquidUI 其它自定图标","title":"Morph 底栏第三格「朋友圈」","file":"lui_morph_moments@3x.png"},{"section":"通用字形（全 app 几百处共用，换了到处一起变）","title":"右箭头 · 实心（通用字形）","file":"arrow_right_filled@3x.png"},{"section":"LiquidUI 其它自定图标","title":"首页顶栏身份条菜单 · 顶栏美化设置","file":"lui_home_topbar_menu_settings@3x.png"},{"section":"通用字形（全 app 几百处共用，换了到处一起变）","title":"微信界面层级返回左上角箭头","file":"arrow_left_regular@3x.png"},{"section":"LiquidUI 其它自定图标","title":"聊天页长按头像菜单 · 加为好友","file":"lui_chat_avatar_menu_add_friend@3x.png"},{"section":"通用字形（全 app 几百处共用，换了到处一起变）","title":"右上角详情三个点","file":"dot_3_regular@3x.png"},{"section":"LiquidUI 其它自定图标","title":"聊天页长按头像菜单 · @他","file":"lui_chat_avatar_menu_at@3x.png"},{"section":"通用字形（全 app 几百处共用，换了到处一起变）","title":"共享分享文件已发送√图标","file":"check_mark_filled@3x.png"},{"section":"LiquidUI 其它自定图标","title":"聊天页长按头像菜单 · 屏蔽 / 取消屏蔽","file":"lui_chat_avatar_menu_block@3x.png"},{"section":"通用字形（全 app 几百处共用，换了到处一起变）","title":"叉 · 线稿（通用字形）","file":"xmark_regular@3x.png"},{"section":"LiquidUI 其它自定图标","title":"聊天页长按头像菜单 · 三个复制项","file":"lui_chat_avatar_menu_copy@3x.png"},{"section":"通用字形（全 app 几百处共用，换了到处一起变）","title":"叉 · 实心（通用字形）","file":"xmark_filled@3x.png"},{"section":"LiquidUI 其它自定图标","title":"聊天页长按头像菜单 · 设置遮罩","file":"lui_chat_avatar_menu_mask@3x.png"},{"section":"LiquidUI 其它自定图标","title":"聊天页长按头像菜单 · 拍一拍","file":"lui_chat_avatar_menu_pat@3x.png"},{"section":"LiquidUI 其它自定图标","title":"聊天页长按头像菜单 · 查看资料","file":"lui_chat_avatar_menu_profile@3x.png"},{"section":"LiquidUI 其它自定图标","title":"聊天页长按头像菜单 · 发红包","file":"lui_chat_avatar_menu_red_packet@3x.png"},{"section":"LiquidUI 其它自定图标","title":"聊天页长按头像菜单 · 发消息","file":"lui_chat_avatar_menu_send_message@3x.png"},{"section":"LiquidUI 其它自定图标","title":"聊天页长按头像菜单 · 转账","file":"lui_chat_avatar_menu_transfer@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI「改金额」","file":"lui_chat_msg_menu_amount_edit@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI「屏蔽群成员」长按菜单位","file":"lui_chat_msg_menu_block_member@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI「改文字」","file":"lui_chat_msg_menu_rewrite@3x.png"},{"section":"LiquidUI 其它自定图标","title":"TG 附件菜单底栏「相册」","file":"lui_chat_tg_attach_tab_album@3x.png"},{"section":"LiquidUI 其它自定图标","title":"TG 附件菜单底栏「文件」","file":"lui_chat_tg_attach_tab_file@3x.png"},{"section":"LiquidUI 其它自定图标","title":"TG 附件菜单底栏「位置」","file":"lui_chat_tg_attach_tab_location@3x.png"},{"section":"LiquidUI 其它自定图标","title":"TG 附件菜单底栏「更多」","file":"lui_chat_tg_attach_tab_more@3x.png"},{"section":"LiquidUI 其它自定图标","title":"TG 附件菜单底栏「贴纸」","file":"lui_chat_tg_attach_tab_sticker@3x.png"},{"section":"LiquidUI 其它自定图标","title":"输入胶囊功能区「冷应系统」","file":"lui_chat_input_fn_cold_reply@3x.png"},{"section":"LiquidUI 其它自定图标","title":"联系人资料页「发消息」","file":"lui_contact_profile_message@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI「切换账号」","file":"lui_shortcut_account_switch@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI「头像遮罩」","file":"lui_shortcut_avatar_mask@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI「背景 Diy」","file":"lui_shortcut_bg_diy@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI「深色模式」","file":"lui_shortcut_dark_mode@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI「字体 Font」","file":"lui_shortcut_global_font@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI「首页卡片」","file":"lui_shortcut_home_cards@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI「企业好友」选中","file":"lui_home_side_menu_enterprise_filled@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI「企业好友」","file":"lui_home_side_menu_enterprise_regular@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI「置顶」选中","file":"lui_home_side_menu_pinned_filled@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI「置顶」","file":"lui_home_side_menu_pinned_regular@3x.png"},{"section":"LiquidUI 其它自定图标","title":"朋友圈空间风帖底「评论」","file":"lui_moments_qz_comment@3x.png"},{"section":"LiquidUI 其它自定图标","title":"朋友圈空间风「换封面」","file":"lui_moments_qz_cover@3x.png"},{"section":"LiquidUI 其它自定图标","title":"朋友圈空间风帖底「转发」","file":"lui_moments_qz_forward@3x.png"},{"section":"LiquidUI 其它自定图标","title":"朋友圈空间风帖底「转发朋友圈」","file":"lui_moments_qz_forward_moments@3x.png"},{"section":"LiquidUI 其它自定图标","title":"朋友圈空间风帖底「转发会话」","file":"lui_moments_qz_forward_session@3x.png"},{"section":"LiquidUI 其它自定图标","title":"朋友圈空间风帖底「赞」","file":"lui_moments_qz_like@3x.png"},{"section":"LiquidUI 其它自定图标","title":"朋友圈空间风帖底「已赞」","file":"lui_moments_qz_liked@3x.png"},{"section":"LiquidUI 其它自定图标","title":"朋友圈空间风「消息」","file":"lui_moments_qz_messages@3x.png"},{"section":"LiquidUI 其它自定图标","title":"朋友圈空间风「说说」","file":"lui_moments_qz_post@3x.png"},{"section":"LiquidUI 其它自定图标","title":"朋友圈空间风「个人资料」","file":"lui_moments_qz_profile@3x.png"},{"section":"LiquidUI 其它自定图标","title":"设置齿轮 · 实心（LiquidUI 入口）","file":"gear_filled@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI「重启微信」","file":"refresh_filled@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI「卡包」","file":"icons_outlined_ticket@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI「听写」","file":"mike_no_circle@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI 输入胶囊听写位 · 听写中","file":"mike_no_circle_filled@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI「群聊」选中","file":"person_2_filled@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI「服务号」选中","file":"person_tie_filled@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI 自定义分组","file":"folder_regular@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI 收起首页会话","file":"eyes_off_regular@3x.png"},{"section":"LiquidUI 其它自定图标","title":"LiquidUI 展开首页会话","file":"eyes_on_regular@3x.png"},{"section":"微信主页面图标名称","title":"搜索框搜索图标","file":"magnifying_glass_regular@3x.png"},{"section":"微信主页面内+号内快捷功能小图标","title":"发起群聊","file":"bubble_circle_filled@3x.png"},{"section":"微信主页面图标名称","title":"搜索框点进去右侧语音图标","file":"mike_on_regular@3x.png"},{"section":"微信主页面内+号内快捷功能小图标","title":"添加朋友","file":"person_plus_filled@3x.png"},{"section":"微信主页面图标名称","title":"搜索框点进去最近再搜右侧删除按钮","file":"trash_on_regular@3x.png"},{"section":"微信主页面内+号内快捷功能小图标","title":"睁眼 · 实心（主题盒子一键已读）","file":"eyes_on_filled@3x.png"},{"section":"微信主页面图标名称","title":"搜索框点进去搜索历史记录前面小图标","file":"clock_regular@3x.png"},{"section":"微信主页面内+号内快捷功能小图标","title":"首页右上「+」菜单 · 扫一扫","file":"scan_filled@3x.png"},{"section":"微信主页面图标名称","title":"群聊免打扰小图标","file":"bell_off_regular@3x.png"},{"section":"微信主页面内+号内快捷功能小图标","title":"收付款","file":"pay_filled@3x.png"},{"section":"微信主页面图标名称","title":"微信界面层级返回左上角箭头","file":"arrow_left_regular@3x.png"},{"section":"微信主页面内+号内快捷功能小图标","title":"放大镜 · 实心（查找用户）","file":"magnifying_glass_filled@3x.png"},{"section":"微信主页面图标名称","title":"折叠的群聊","file":"icons_filled_chatbox@3x.png"},{"section":"微信主页面内+号内快捷功能小图标","title":"首页右上「+」菜单「支付」","file":"card_filled@3x.png"},{"section":"微信主页面图标名称","title":"右上角+号（同输入框右侧+）","file":"icons_outlined_addoutline@3x.png"},{"section":"微信主页面内+号内快捷功能小图标","title":"首页右上「+」菜单「写笔记」","file":"paper_pencil_filled@3x.png"},{"section":"微信主页面图标名称","title":"接收消息刷新动画图标","file":"icons_filled_loading@3x.png"},{"section":"微信主页面内+号内快捷功能小图标","title":"首页右上「+」菜单「朋友圈」","file":"moment_filled@3x.png"},{"section":"微信主页面图标名称","title":"搜索页悬浮语音输入按钮","file":"mike_on_heavy@3x.png"},{"section":"微信主页面内+号内快捷功能小图标","title":"首页右上「+」菜单
