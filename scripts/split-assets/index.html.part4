@@ -1,9 +1,4 @@
-rim()||'优优LUI图标包';
-  base=base.replace(/[\/:*?"<>|]/g,'_').replace(/\.zip$/i,'');
-  return base||'优优LUI图标包';
-}
-function openShareModal(){
-  if(window.webkit?.messageHandlers?.zipName){window.webkit.messageHandlers.zipName.postMessage({name:safeZipBaseName(document.getElementById('zipNameInput').value)});return}
+.postMessage({name:safeZipBaseName(document.getElementById('zipNameInput').value)});return}
   const m=document.getElementById('shareModal');
   const input=document.getElementById('zipNameInput');
   if(!input.value.trim())input.value='优优LUI图标包';
