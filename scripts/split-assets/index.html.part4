@@ -593,12 +593,11 @@ document.getElementById('ruleSearch')?.addEventListener('input',renderRuleRefere
 function appNavTo(name){
   const previous=document.body.classList.contains('nav-settings')?'settings':document.body.classList.contains('nav-rules')?'rules':'home';
   if(previous===name){setAppNavActive(name);window.__refreshBottomSearch?.();window.__syncNativeCardGlass?.();return}
-  document.body.classList.remove('nav-rules','nav-settings');
+  document.body.classList.toggle('nav-rules',name==='rules');
+  document.body.classList.toggle('nav-settings',name==='settings');
   if(name==='rules'){
-    document.body.classList.add('nav-rules');
     // The reference is built once; search input refreshes it when needed.
   }else if(name==='settings'){
-    document.body.classList.add('nav-settings');
     window.__resetSettingsFolds?.();
   }
   setAppNavActive(name);
