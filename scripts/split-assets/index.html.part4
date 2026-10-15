@@ -1,0 +1,1086 @@
+ormal","titles":["礼物气泡"]},{"file":"ChatRoom_Bubble_Gift_Sender@3x.png","targetFile":"gift_filled_icon@3x.png","mode":"normal","titles":["礼物气泡"]},{"file":"ChatRoom_Bubble_Gift_Receiver_Handled@3x.png","targetFile":"gift_filled_icon@3x.png","mode":"normal","titles":["礼物气泡"]},{"file":"ChatRoom_Bubble_Gift_Receiver@3x.png","targetFile":"gift_filled_icon@3x.png","mode":"normal","titles":["礼物气泡"]},{"file":"icons_multitalk_scroll@3x.png","targetFile":null,"mode":"normal","titles":["复用","换行同复用"]},{"file":"expression@3x.png","targetFile":null,"mode":"normal","titles":["净化小丑","净化转发同小丑"]},{"file":"wcpay_records.svg","targetFile":"icons_filled_filter@3x.png","mode":"normal","titles":["misaka备忘录"]},{"file":"icons_filled_channels_recommend_group@3x.png","targetFile":"icons_filled_setting@3x.png","mode":"normal","titles":["黄白助手还原"]},{"file":"icons_outlined_table@3x.png","targetFile":null,"mode":"normal","titles":["编辑文字"]},{"file":"icons_filled_AddSticker@3x.png","targetFile":"smile_regular@3x.png","mode":"normal","titles":["长按图片添加至表情长按表情添加"]},{"file":"icons_red_story_volume_off@3x.png","targetFile":"volume_off_filled@3x.png","mode":"normal","titles":["视频静音播放"]},{"file":"ad_finder_link_icon@3x.png","targetFile":null,"mode":"normal","titles":["PKC密图密视转发","pkc解图"]},{"file":"icons_filled_retransmission@3x.png","targetFile":null,"mode":"normal","titles":["pkc解密","随机小姐姐"]},{"file":"icons_regualr_note_2@3x.png","targetFile":null,"mode":"normal","titles":["pkc语音转MP3"]},{"file":"icons_filled_effects@3x.png","targetFile":"icons_filled_filter@3x.png","mode":"normal","titles":["misaka"]},{"file":"icons_outlined_emoji_ani@3x.png","targetFile":"icons_filled_chats@3x.png","mode":"normal","titles":["Ai回复"]},{"file":"icons_outlined_like_1@3x.png","targetFile":"heart_regular@3x.png","mode":"normal","titles":["朋友圈点赞后爱心按钮"]},{"file":"AlbumReflashIcon@3x.png","targetFile":"refresh_regular@3x.png","mode":"normal","titles":["朋友圈下拉刷新图标"]},{"file":"icons_finder_minimize@3x.png","targetFile":null,"mode":"normal","titles":["语音视频电话时左上角缩小"]},{"file":"icons_outlined_channels_bulletscreen_open@3x.png","targetFile":"icons_outlined_channels_comment@3x.png","mode":"normal","titles":["视频号视频下面评论"]},{"file":"icon_color_momentcover@3x.png","targetFile":"lui_moments_qz_cover@3x.png","mode":"normal","titles":["视频号设为朋友圈封面"]},{"file":"icons_outlined_channels_bulletscreen_off@3x.png","targetFile":null,"mode":"normal","titles":["不看弹幕"]},{"file":"icons_outlined_channels_bulletscreen_on@3x.png","targetFile":null,"mode":"normal","titles":["显示弹幕"]},{"file":"finder_colorring@3x.png","targetFile":null,"mode":"normal","titles":["设为来电铃声"]},{"file":"icon_finder_pat_music@3x.png","targetFile":"icon_music_filled@3x.png","mode":"normal","titles":["视频号背景声音"]},{"file":"icons_filled_channel@3x","targetFile":"icons_outlined_finder@3x.png","mode":"normal","titles":["视频号封面up主前面符号"]},{"file":"icons_outline_author_copyid@3x.pmg","targetFile":"icons_outlined_finder@3x.png","mode":"normal","titles":["个人视频号复制视频id"]},{"file":"fileicon_zip_icon@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件zip图标命名"]},{"file":"fileicon_pdf_icon@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件PDF图标命名"]},{"file":"fileicon_excel_icon@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件Excel图标命名"]},{"file":"fileicon_word_icon@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件word图标命名"]},{"file":"fileicon_txt_icon@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件txt图标命名"]},{"file":"fileicon_music_icon@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件音乐图标命名"]},{"file":"fileicon_photo_icon_light@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件图像图标命名"]},{"file":"fileicon_ofd_icon@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件ofd图标命名"]},{"file":"fileicon_voice_icon_light@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件MP3图标命名"]},{"file":"fileicon_video_icon_light@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件视频图标命名"]},{"file":"fileicon_unknown_icon_light@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件视未知命名"]}];
+let extraFillApplied=false;
+const chosen=new Map();
+const excluded=new Set(); // 用户点 × 后，本次导出不包含这些图标；再次手动上传可恢复
+const list=document.getElementById('list');
+let activeCategory='wechat';
+// LiquidUI 与原版微信通用同名联动：两个分类里只要显示标题相同，任意一边上传，另一边自动同步同一张图片。
+// 例如“底栏微信”“底栏通讯录”，以及以后新增的其它同名图标，都无需再单独写同步规则。
+function syncTitleKey(title){
+  return String(title||'')
+    .replace(/^LiquidUI\s*/i,'')
+    .replace(/\s+/g,'')
+    .trim()
+    .toLowerCase();
+}
+// Reuse one upload for the same action across stock and LiquidUI file names.
+// Distinct states (flash on/off, call on/off, etc.) retain separate entries.
+function uploadRole(it){
+  const f=it.file,t=String(it.title||'').replace(/^LiquidUI\s*/i,'').trim();
+  if(/^底栏(?:微信|通讯录|发现|我的)$/.test(t))return 'dock:'+t;
+  const families=[
+    [/^(?:magnifying_glass_|icons_filled_(?:new_)?search@|tabbar_search\.|search_sms\.)/,'搜索'],
+    [/^person_plus_/,'添加朋友'],
+    [/^(?:scan_(?:regular|filled)@|icons_filled_scan@)/,'扫一扫'],
+    [/^(?:pay_(?:regular|filled)@|icons_filled_qr_code@)/,'收付款'],
+    [/^qr_code_(?:regular|filled)@/,'我的二维码'],
+    [/^(?:favorites_(?:regular|filled)@|icons_outlined_colorful_favorites@)/,'收藏'],
+    [/^(?:camera_(?:regular|filled)@|icons_filled_camera@)/,'拍摄'],
+    [/^picture_filled@/,'相册'],[/^transfer_filled@/,'转账'],[/^location_filled@/,'位置'],
+    [/^icons_filled_red_envelope@/,'红包'],[/^folder_filled@/,'文件'],
+    [/^(?:icons_filled_video(?:call|_phone)@|video_(?:regular|filled)@)/,'视频通话'],
+    [/^call_on_filled@/,'语音通话'],[/^smile_regular@/,'表情'],
+    [/^voice_circle_(?:regular|filled)@/,'语音按钮'],
+    [/^(?:arrow_left_regular@|back_(?:flame|duo)\.)/,'返回'],
+    [/^(?:dot_3_(?:regular|filled)@|more_(?:flame|duo|qz)\.)/,'更多'],
+    [/^(?:xmark_(?:regular|filled)@|close_duo\.|duo_ring_close\.)/,'关闭'],
+    [/^gear_regular@/,'设置'],[/^(?:copy_filled@|doc_filled@)/,'复制'],
+    [/^(?:download_(?:regular|filled)@)/,'保存图片'],
+  ];
+  for(const [pattern,key] of families)if(pattern.test(f))return 'shared:'+key;
+  const quoted=t.match(/「([^」]+)」$/);
+  const tail=(quoted?quoted[1]:t.split('·').pop()).trim().replace(/^「|」$/g,'');
+  const aliases={'加为好友':'添加朋友','右上返回':'返回','右上更多':'更多','更改标题':'更改备注','语音键':'语音按钮','表情键':'表情','相机':'拍摄','视频通话':'视频通话','语音通话':'语音通话'};
+  const common=new Set(['扫一扫','收付款','我的二维码','收藏','拍摄','相册','转账','位置','红包','文件','搜索','设置','复制','发消息','添加朋友','返回','更多','关闭','表情','语音按钮','视频通话','语音通话','保存图片']);
+  const key=aliases[tail]||tail;
+  if(common.has(key)||aliases[tail])return 'shared:'+key;
+  if(f==='input_tg_voice.png')return 'shared:语音按钮';
+  if(f==='input_tg_emoji.png')return 'shared:表情';
+  return 'title:'+syncTitleKey(t).replace(/(?:按钮)?图标$/,'');
+}
+const titleGroups=new Map();
+items.forEach((it,i)=>{
+  const key=uploadRole(it);
+  if(!titleGroups.has(key))titleGroups.set(key,[]);
+  titleGroups.get(key).push(i);
+});
+const sameNameSyncMap=new Map();
+for(const idxs of titleGroups.values()){
+  const representative=idxs.find(i=>items[i].category==='wechat')??idxs[0];
+  const stock=idxs.some(i=>items[i].category==='wechat')||uploadRole(items[representative]).startsWith('shared:');
+  items[representative].category=stock?'wechat':'liquidui';
+  items[representative].aliases=[...new Set(idxs.flatMap(i=>[items[i].title,...(items[i].aliases||[])]))];
+  items[representative].sections=[...new Set(idxs.flatMap(i=>[items[i].section,...(items[i].sections||[])]).filter(Boolean))];
+  for(const i of idxs){
+    items[i].hiddenFromUI=i!==representative;
+    items[i].uploadRepresentative=representative;
+    sameNameSyncMap.set(i,idxs.filter(j=>j!==i));
+  }
+}
+function setChosenWithSync(i,f){
+  chosen.set(i,f);
+  excluded.delete(i);
+  const peers=sameNameSyncMap.get(i)||[];
+  peers.forEach(j=>{chosen.set(j,f);excluded.delete(j)});
+  return peers.length;
+}
+function removeChosenWithSync(i){
+  const targets=[i,...(sameNameSyncMap.get(i)||[])];
+  targets.forEach(j=>{chosen.delete(j);excluded.add(j)});
+  renderList();
+  updateStatus();
+}
+document.getElementById('count').textContent='共 '+items.filter(x=>!x.hiddenFromUI).length+' 个上传项';
+function normalizeSearchText(v){
+  return String(v??'').toLowerCase()
+    .normalize('NFKC')
+    .replace(/[^\p{L}\p{N}]+/gu,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+function itemSearchText(it){
+  return normalizeSearchText([
+    it.title,it.file,it.section,
+    ...(it.aliases||[]),...(it.sections||[]),
+    ...(it.files||[]),...(it.selectedFiles||[])
+  ].filter(Boolean).join(' '));
+}
+function itemMatchesQuery(it,q){
+  const tokens=normalizeSearchText(q).split(' ').filter(Boolean);
+  if(!tokens.length)return true;
+  const hay=itemSearchText(it);
+  return tokens.every(t=>hay.includes(t));
+}
+function escapeRuleHtml(v){
+  return String(v??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+}
+function renderList(){
+  list.querySelectorAll('.preview img[data-url]').forEach(img=>URL.revokeObjectURL(img.dataset.url));
+  list.innerHTML='';
+  const q=document.getElementById('searchInput')?.value||'';
+  items.forEach((it,i)=>{
+    if(it.category!==activeCategory || it.hiddenFromUI || !itemMatchesQuery(it,q)) return;
+    const c=document.createElement('div');c.className='card'+(excluded.has(i)?' excluded':'');c.dataset.i=i;
+    const removeBtn=chosen.has(i)?`<button type="button" class="removeIcon" data-remove="${i}" aria-label="移除这个图标">×</button>`:'';
+    c.innerHTML=`<label class="uploadThumb" aria-label="上传${escapeRuleHtml(it.title)}图标"><span class="uploadPlus" aria-hidden="true">+</span><div class="preview" id="p${i}"><img alt="${escapeRuleHtml(it.title)}"></div><input type="file" accept="image/*" data-i="${i}"></label><div class="uploadText"><div class="title">${escapeRuleHtml(it.title.replace(/^LiquidUI\s*/,''))}</div><div class="uploadHint">${chosen.has(i)?'已上传 · 点击左图替换':'点击左图上传'}</div></div>${removeBtn}`;
+    list.appendChild(c);
+    if(chosen.has(i)) showPreviewOnly(i,chosen.get(i));
+  });
+}
+const previewThumbnails=new WeakMap();
+function previewBounds(pixels,width,height){
+  let left=width,top=height,right=-1,bottom=-1;
+  for(let y=0;y<height;y++)for(let x=0;x<width;x++)if(pixels[(y*width+x)*4+3]>0){left=Math.min(left,x);right=Math.max(right,x);top=Math.min(top,y);bottom=Math.max(bottom,y)}
+  return right<left?null:{left,top,width:right-left+1,height:bottom-top+1};
+}
+async function thumbnailFor(file){
+  if(previewThumbnails.has(file))return previewThumbnails.get(file);
+  const work=(async()=>{
+    const image=await createImageBitmap(file),scale=Math.min(1,1024/Math.max(image.width,image.height));
+    const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(image.width*scale));canvas.height=Math.max(1,Math.round(image.height*scale));
+    const context=canvas.getContext('2d',{willReadFrequently:true});context.drawImage(image,0,0,canvas.width,canvas.height);image.close();
+    const bounds=previewBounds(context.getImageData(0,0,canvas.width,canvas.height).data,canvas.width,canvas.height);
+    if(!bounds)return canvas.toDataURL('image/png');
+    const inset=Math.max(1,Math.ceil(Math.max(bounds.width,bounds.height)*.04)),crop=document.createElement('canvas');crop.width=bounds.width+inset*2;crop.height=bounds.height+inset*2;
+    crop.getContext('2d').drawImage(canvas,bounds.left,bounds.top,bounds.width,bounds.height,inset,inset,bounds.width,bounds.height);
+    return crop.toDataURL('image/png');
+  })();previewThumbnails.set(file,work);return work;
+}
+function showPreviewOnly(i,f){
+  const p=document.getElementById('p'+i);if(!p)return;const img=p.querySelector('img');if(img.dataset.url)URL.revokeObjectURL(img.dataset.url);
+  const u=URL.createObjectURL(f);img.src=u;img.dataset.url=u;p.style.display='flex';
+  thumbnailFor(f).then(thumbnail=>{if(img.isConnected&&chosen.get(i)===f)img.src=thumbnail}).catch(()=>{});
+}
+function showFile(i,f){
+  setChosenWithSync(i,f);
+  showPreviewOnly(i,f);
+  const peers=sameNameSyncMap.get(i)||[];
+  peers.forEach(j=>showPreviewOnly(j,f));
+  updateStatus()
+}
+function updateStatus(){const total=items.filter(x=>x.category===activeCategory&&!x.hiddenFromUI).length, done=[...chosen.keys()].filter(i=>items[i].category===activeCategory&&!items[i].hiddenFromUI).length;document.getElementById('status').textContent='已上传 '+done+' / '+total+' 项';const live=document.getElementById('liveImported');if(live)live.textContent='当前上传项目：'+items.filter((it,i)=>!it.hiddenFromUI&&chosen.has(i)).length+' 项'}
+function switchCategory(cat){activeCategory=cat;document.getElementById('tabLui').classList.toggle('active',cat==='liquidui');document.getElementById('tabWechat').classList.toggle('active',cat==='wechat');document.getElementById('sectionTitle').textContent=cat==='liquidui'?'LiquidUI 图标':'原版微信图标';renderList();updateStatus()}
+document.getElementById('tabLui').onclick=()=>switchCategory('liquidui');
+document.getElementById('tabWechat').onclick=()=>switchCategory('wechat');
+list.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.removeIcon');if(!b)return;e.preventDefault();e.stopPropagation();removeChosenWithSync(+b.dataset.remove)});
+list.addEventListener('change',e=>{if(!e.target.matches('input[type=file]'))return;const f=e.target.files&&e.target.files[0];if(!f)return;showFile(+e.target.dataset.i,f);renderList()});
+// 批量导入：按照网页上显示的中文标题 / 关键词自动匹配，而不是要求图片使用内部资源文件名。
+function importKeywordNormalize(v){
+  return String(v||'')
+    .replace(/\.[a-z0-9]{1,8}$/i,'')
+    .replace(/liquid\s*ui/ig,'')
+    .replace(/\blui\b/ig,'')
+    .replace(/@\d+x/ig,'')
+    .replace(/[「」『』【】\[\]（）()<>《》·•—–_\-+.,，。:：;；'\"“”‘’/\\|\s]/g,'')
+    .toLowerCase();
+}
+function itemImportKeywords(it){
+  // 批量导入关键词严格来自网页卡片当前显示的标题。
+  // LiquidUI 前缀在网页卡片里不会显示，因此匹配时也去掉。
+  const visibleTitle=String(it.title||'').replace(/^LiquidUI\s*/,'').trim();
+  const k=importKeywordNormalize(visibleTitle);
+  return k?[k]:[];
+}
+function longestCommonSubstringLen(a,b){
+  if(!a||!b)return 0;
+  const dp=new Array(b.length+1).fill(0);
+  let best=0;
+  for(let i=1;i<=a.length;i++){
+    let prev=0;
+    for(let j=1;j<=b.length;j++){
+      const old=dp[j];
+      if(a[i-1]===b[j-1]){
+        dp[j]=prev+1;
+        if(dp[j]>best)best=dp[j];
+      }else dp[j]=0;
+      prev=old;
+    }
+  }
+  return best;
+}
+function findItemByWebKeyword(filename){
+  const stem=importKeywordNormalize(filename);
+  // 完整标题可精确匹配两个字；模糊匹配需连续三个字以上，避免误导入。
+  if(!stem || stem.length<2) return {index:-1,ambiguous:false,tooShort:true};
+  const scored=[];
+  items.forEach((it,i)=>{
+    for(const k of itemImportKeywords(it)){
+      if(!k || k.length<2) continue;
+      let score=0;
+      let fuzzy=0;
+      if(stem===k) score=20000+k.length;
+      else if(k.length>=3 && stem.includes(k)) score=15000+k.length;
+      else if(stem.length>=3 && k.includes(stem)) score=12000+stem.length;
+      else {
+        fuzzy=longestCommonSubstringLen(stem,k);
+        if(fuzzy>=3) score=5000+fuzzy*100-Math.abs(stem.length-k.length);
+      }
+      if(score) scored.push({i,score,k,fuzzy});
+    }
+  });
+  if(!scored.length) return {index:-1,ambiguous:false,tooShort:false};
+  scored.sort((a,b)=>b.score-a.score || b.k.length-a.k.length || a.i-b.i);
+  const best=scored[0];
+  const tied=[...new Set(scored.filter(x=>x.score===best.score).map(x=>x.i))];
+  if(tied.length>1){
+    // 同名跨分类优先当前分类，随后由同名联动同步到另一分类。
+    const same=tied.every(i=>syncTitleKey(items[i].title)===syncTitleKey(items[best.i].title));
+    if(same){const current=tied.find(i=>items[i].category===activeCategory);return {index:current??tied[0],ambiguous:false,tooShort:false}}
+    return {index:-1,ambiguous:true,tooShort:false};
+  }
+  return {index:best.i,ambiguous:false,tooShort:false};
+}
+document.getElementById('batchInput').addEventListener('change',e=>{
+  let n=0,synced=0;
+  const unmatched=[];
+  const tooShort=[];
+  for(const f of e.target.files){
+    const result=findItemByWebKeyword(f.name);
+    const i=result.index;
+    if(i>=0){
+      const before=chosen.size;
+      setChosenWithSync(i,f);
+      n++;
+      synced+=Math.max(0,chosen.size-before-1);
+    }else{
+      if(result.tooShort) tooShort.push(f.name); else unmatched.push(f.name);
+    }
+  }
+  renderList();updateStatus();
+  e.target.value='';
+  if(n){
+    let msg='已按网页标题模糊关键词自动匹配 '+n+' 张图片';
+    if(synced) msg+='，并同步 '+synced+' 个同名对应项';
+    if(unmatched.length){
+      msg+='\n\n未匹配 '+unmatched.length+' 张：\n'+unmatched.slice(0,8).join('\n');
+      if(unmatched.length>8) msg+='\n…还有 '+(unmatched.length-8)+' 张';
+      msg+='\n\n可使用网页标题中的模糊关键词，例如：微信.png、通讯录.png、转账.png；模糊关键词至少 3 个字，两个字请使用完整标题。';
+    }
+    if(tooShort.length){
+      msg+='\n\n关键词少于 2 个字，已跳过 '+tooShort.length+' 张：\n'+tooShort.slice(0,8).join('\n');
+    }
+    alert(msg);
+  }else{
+    let msg='没有匹配到网页标题关键词。\n\n模糊关键词至少 3 个字，例如：\n底栏微信.png\n通讯录.png\n搜索按钮.png\n两个字请使用完整标题，如：转账.png';
+    if(tooShort.length) msg+='\n\n其中 '+tooShort.length+' 张图片的关键词少于 2 个字，已跳过。';
+    alert(msg);
+  }
+});
+let fillFile=null;
+document.getElementById('fillInput').addEventListener('change',e=>{fillFile=e.target.files&&e.target.files[0]||null;document.getElementById('status').textContent=fillFile?'补全图片已选择：'+fillFile.name:'已上传 '+chosen.size+' 项'});
+document.getElementById('fillBtn').addEventListener('click',()=>{if(!fillFile){alert('请先选择一张“一键补全图片”');return}extraFillApplied=true;let n=0;items.forEach((it,i)=>{if(!chosen.has(i)&&!excluded.has(i)){chosen.set(i,fillFile);n++}});renderList();updateStatus();alert('已同时补全 LiquidUI + 原版微信，共 '+n+' 个空缺图标；没有网页关键词对应的命名规则也会使用这张补全图片'+(excluded.size?'；已排除的图标保持不补全':'') )});
+function applySearch(){renderList()}
+document.getElementById('searchInput')?.addEventListener('input',applySearch);
+const colorFoldBtn=document.getElementById('colorFoldBtn');
+const colorPanel=document.getElementById('colorPanel');
+if(colorFoldBtn&&colorPanel){
+  colorFoldBtn.addEventListener('click',()=>{
+    const open=colorPanel.classList.toggle('open');
+    colorFoldBtn.classList.toggle('open',open);
+    colorFoldBtn.setAttribute('aria-expanded',open?'true':'false');
+  });
+}
+const selectedLightEnabled=document.getElementById('selectedLightEnabled');
+const selectedLightRow=document.getElementById('selectedLightRow');
+function updateSelectedLightState(){selectedLightRow.classList.toggle('disabled',!selectedLightEnabled.checked)}
+selectedLightEnabled.addEventListener('change',updateSelectedLightState);
+updateSelectedLightState();
+const selectedDarkEnabled=document.getElementById('selectedDarkEnabled');
+const selectedDarkRow=document.getElementById('selectedDarkRow');
+function updateSelectedDarkState(){selectedDarkRow.classList.toggle('disabled',!selectedDarkEnabled.checked)}
+selectedDarkEnabled.addEventListener('change',updateSelectedDarkState);
+updateSelectedDarkState();
+const allColorEnabled=document.getElementById('allColorEnabled');
+const allColorRow=document.getElementById('allColorRow');
+function updateAllColorState(){allColorRow.classList.toggle('disabled',!allColorEnabled.checked)}
+allColorEnabled.addEventListener('change',updateAllColorState);
+updateAllColorState();
+renderList();updateStatus();
+function clearAll(){chosen.clear();excluded.clear();fillFile=null;extraFillApplied=false;document.querySelectorAll('input[type=file]').forEach(x=>x.value='');renderList();updateStatus()}
+async function drawToCanvas(file){
+  const url=URL.createObjectURL(file);
+  try{
+    const im=new Image();
+    await new Promise((ok,no)=>{im.onload=ok;im.onerror=no;im.src=url});
+    const size=128,c=document.createElement('canvas');c.width=c.height=size;
+    const x=c.getContext('2d');
+    const sc=Math.min(size/im.width,size/im.height),w=im.width*sc,h=im.height*sc;
+    x.drawImage(im,(size-w)/2,(size-h)/2,w,h);
+    return c;
+  }finally{URL.revokeObjectURL(url)}
+}
+function recolorCanvas(c,hex){
+  const x=c.getContext('2d'),data=x.getImageData(0,0,c.width,c.height);
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  for(let i=0;i<data.data.length;i+=4){
+    if(data.data[i+3]>0){data.data[i]=r;data.data[i+1]=g;data.data[i+2]=b}
+  }
+  x.putImageData(data,0,0);
+  return c;
+}
+function darkenCanvas(c,factor=0.68){
+  const x=c.getContext('2d'),d=x.getImageData(0,0,c.width,c.height);
+  for(let i=0;i<d.data.length;i+=4){
+    if(d.data[i+3]>0){
+      d.data[i]=Math.round(d.data[i]*factor);
+      d.data[i+1]=Math.round(d.data[i+1]*factor);
+      d.data[i+2]=Math.round(d.data[i+2]*factor);
+    }
+  }
+  x.putImageData(d,0,0);
+  return c;
+}
+function invertCanvas(c){
+  const x=c.getContext('2d'),d=x.getImageData(0,0,c.width,c.height);
+  for(let i=0;i<d.data.length;i+=4){
+    if(d.data[i+3]>0){d.data[i]=255-d.data[i];d.data[i+1]=255-d.data[i+1];d.data[i+2]=255-d.data[i+2]}
+  }
+  x.putImageData(d,0,0);
+  return c;
+}
+function canvasBlob(c){return new Promise(ok=>c.toBlob(ok,'image/png'))}
+async function toPng(file){
+  const c=await drawToCanvas(file);
+  if(document.getElementById('allColorEnabled').checked){
+    recolorCanvas(c,document.getElementById('allColor').value||'#222222');
+  }
+  return await canvasBlob(c);
+}
+async function toSelectedPng(file){
+  const c=await drawToCanvas(file);
+  if(document.getElementById('selectedLightEnabled').checked){
+    recolorCanvas(c,document.getElementById('selectedColor').value||'#1677ff');
+  }else{
+    // 未启用自定义浅色时，按之前的规则自动把选中图标加深。
+    darkenCanvas(c,0.68);
+  }
+  return await canvasBlob(c);
+}
+async function toDarkPng(file, selected=false){
+  const c=await drawToCanvas(file);
+  if(selected){
+    if(document.getElementById('selectedDarkEnabled').checked){
+      recolorCanvas(c,document.getElementById('selectedDarkColor').value||'#ffffff');
+      return await canvasBlob(c);
+    }
+    // 深色选中未自定义时：先生成浅色选中效果，再自动反转。
+    if(document.getElementById('selectedLightEnabled').checked){
+      recolorCanvas(c,document.getElementById('selectedColor').value||'#1677ff');
+    }else{
+      darkenCanvas(c,0.68);
+    }
+  }else if(document.getElementById('allColorEnabled').checked){
+    recolorCanvas(c,document.getElementById('allColor').value||'#222222');
+  }
+  invertCanvas(c);
+  return await canvasBlob(c);
+}
+
+async function invertPng(file){const c=await drawToCanvas(file);invertCanvas(c);return await canvasBlob(c)}
+let preparedZipBlob=null;
+function safeZipBaseName(v){
+  let base=(v||'').trim()||'优优LUI图标包';
+  base=base.replace(/[\/:*?"<>|]/g,'_').replace(/\.zip$/i,'');
+  return base||'优优LUI图标包';
+}
+function openShareModal(){
+  if(window.webkit?.messageHandlers?.zipName){window.webkit.messageHandlers.zipName.postMessage({name:safeZipBaseName(document.getElementById('zipNameInput').value)});return}
+  const m=document.getElementById('shareModal');
+  const input=document.getElementById('zipNameInput');
+  if(!input.value.trim())input.value='优优LUI图标包';
+  m.classList.add('show');
+  setTimeout(()=>{try{input.focus();input.select()}catch(e){}},80);
+}
+function closeShareModal(){document.getElementById('shareModal').classList.remove('show')}
+document.getElementById('shareModal').addEventListener('click',e=>{if(e.target.id==='shareModal')closeShareModal()});
+
+function resolveExistingRuleSource(rule){
+  if(rule.targetFile)return rule.targetFile;
+  const ranked=[];
+  items.forEach(it=>{
+    let score=0;
+    for(const title of rule.titles||[]){
+      const a=importKeywordNormalize(title);
+      for(const name of [it.title,...(it.aliases||[])]){
+        const b=importKeywordNormalize(name),common=longestCommonSubstringLen(a,b);
+        if(a&&a===b)score=Math.max(score,10000+a.length);
+        else if(common>=3)score=Math.max(score,common*100-Math.abs(a.length-b.length));
+      }
+    }
+    if(score)ranked.push({file:it.file,score,key:syncTitleKey(it.title),category:it.category});
+  });
+  ranked.sort((a,b)=>b.score-a.score);
+  if(!ranked.length)return null;
+  const best=ranked.filter(row=>row.score===ranked[0].score);
+  if(best.length>1&&!best.every(row=>row.key===best[0].key))return null;
+  return (best.find(row=>row.category==='wechat')||best[0]).file;
+}
+for(const rule of extraNamingRules)rule.targetFile=resolveExistingRuleSource(rule);
+function findChosenForExtraRule(rule){
+  if(!rule.targetFile) return null;
+  for(const [i,f] of chosen){
+    const it=items[i];
+    const names=[...(it.files||[it.file]),...(it.selectedFiles||[])];
+    if(names.includes(rule.targetFile) && !excluded.has(i)) return {i,f};
+  }
+  return null;
+}
+function addDarkVariantForExtra(zip,name,blob){
+  if(!/@3x\.png$/i.test(name)) return;
+  if(/_dark@3x\.png$/i.test(name) || /darkmode@3x\.png$/i.test(name) || /_light@3x\.png$/i.test(name)) return;
+  const darkName=name.replace(/@3x\.png$/i,'_Dark@3x.png');
+  zip.file(darkName,blob);
+}
+
+async function makeZip(btn){
+  if(!chosen.size){alert('请先上传至少一张图片');return}
+  if(!window.JSZip){alert('ZIP组件没有加载成功，请检查网络后刷新页面');return}
+  const oldText=btn?btn.textContent:'导出 ZIP';
+  if(btn){btn.disabled=true;btn.textContent='正在生成…'}
+  document.getElementById('status').textContent='正在生成 ZIP，请稍候…';
+  try{
+    const zip=new JSZip();
+    // A fill image is reused by hundreds of filenames. Convert each image/mode
+    // once per export instead of decoding and drawing it for every filename.
+    const convertedImages=new WeakMap();
+    function converted(file,mode){
+      let modes=convertedImages.get(file);if(!modes){modes=new Map();convertedImages.set(file,modes)}
+      if(!modes.has(mode)){
+        const image=mode==='normal'?toPng(file):mode==='dark'?toDarkPng(file,false):mode==='selected'?toSelectedPng(file):toDarkPng(file,true);
+        modes.set(mode,Promise.resolve(image).then(async blob=>new Uint8Array(await blob.arrayBuffer())));
+      }
+      return modes.get(mode);
+    }
+    for(const [i,f] of chosen){
+      const it=items[i];
+      const b=await converted(f,'normal'),db=await converted(f,'dark');
+      const names=it.files||[it.file];
+      for(const name of names){
+        zip.file(name,b);
+        const darkName=name.replace(/@3x\.png$/i,'_Dark@3x.png');
+        if(darkName!==name)zip.file(darkName,db)
+      }
+      if(it.selectedFiles&&it.selectedFiles.length){
+        const sb=await converted(f,'selected'),sdb=await converted(f,'selectedDark');
+        for(const name of it.selectedFiles){
+          zip.file(name,sb);
+          const darkName=name.replace(/@3x\.png$/i,'_Dark@3x.png');
+          if(darkName!==name)zip.file(darkName,sdb)
+        }
+      }
+    }
+    // 命名规则扩展：不新增上传卡片。能对应现有网页标题的规则复用该卡片图片；其余仅在“双分类补全”后用补全图片生成。
+    for(const rule of extraNamingRules){
+      let src=null;
+      const hit=findChosenForExtraRule(rule);
+      if(hit) src=hit.f;
+      else if(extraFillApplied && fillFile) src=fillFile;
+      if(!src) continue;
+      const selected=rule.mode==='selected';
+      const normalBlob=await converted(src,selected?'selected':'normal');
+      const darkBlob=await converted(src,selected?'selectedDark':'dark');
+      zip.file(rule.file,normalBlob);
+      addDarkVariantForExtra(zip,rule.file,darkBlob);
+    }
+    const required=['location_filled@3x.png','location_filled_Dark@3x.png','transfer_filled@3x.png','transfer_filled_Dark@3x.png'];
+    const missing=required.filter(n=>!zip.file(n));
+    if(missing.length)console.warn('未生成（对应项目未上传/补全）：',missing);
+    preparedZipBlob=await zip.generateAsync({type:'blob'});
+    document.getElementById('status').textContent='ZIP 已生成，可以改名并分享';
+    openShareModal();
+  }catch(err){
+    console.error(err);
+    alert('ZIP 生成失败，请刷新页面后再试');
+    updateStatus();
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent=oldText}
+  }
+}
+window.__shareZipWithName=name=>{document.getElementById('zipNameInput').value=safeZipBaseName(name);sharePreparedZip()};
+async function sharePreparedZip(){
+  if(!preparedZipBlob){alert('ZIP 还没有生成，请先点“导出 ZIP”');return}
+  const base=safeZipBaseName(document.getElementById('zipNameInput').value);
+  const fileName=base+'.zip';
+  const file=new File([preparedZipBlob],fileName,{type:'application/zip'});
+  // IPA 内优先交给原生 iOS 分享菜单，网页版本继续使用 Web Share。
+  if(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.shareZip){
+    try{
+      const reader=new FileReader();
+      reader.onload=function(){
+        const dataUrl=String(reader.result||'');
+        const base64=dataUrl.includes(',')?dataUrl.split(',')[1]:dataUrl;
+        window.webkit.messageHandlers.shareZip.postMessage({fileName:fileName,base64:base64});
+        closeShareModal();
+        document.getElementById('status').textContent='已打开系统分享';
+      };
+      reader.onerror=function(){alert('ZIP 分享准备失败，请重新生成');};
+      reader.readAsDataURL(preparedZipBlob);
+      return;
+    }catch(err){console.warn('原生分享失败，尝试网页分享',err);}
+  }
+  // 第二次点击“分享 ZIP”直接调用系统分享，避免 iPhone 的用户手势权限过期。
+  if(navigator.share && (!navigator.canShare || navigator.canShare({files:[file]}))){
+    try{
+      await navigator.share({files:[file],title:base});
+      closeShareModal();
+      document.getElementById('status').textContent='已打开系统分享';
+      return;
+    }catch(err){
+      if(err && err.name==='AbortError')return;
+      console.warn('系统分享失败，改用保存 ZIP',err);
+    }
+  }
+  const url=URL.createObjectURL(preparedZipBlob);
+  const a=document.createElement('a');
+  a.href=url;a.download=fileName;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1500);
+  closeShareModal();
+  alert('当前浏览器不能直接打开系统分享，已改为保存 ZIP 文件。');
+  document.getElementById('status').textContent='ZIP 已保存';
+}
+</script>
+<script>
+// iPhone/Safari：禁止双击页面内容触发放大，同时保留正常单击操作。
+let __lastTouchEnd=0;
+document.addEventListener('touchend',function(e){
+  const now=Date.now();
+  if(now-__lastTouchEnd<320){e.preventDefault();}
+  __lastTouchEnd=now;
+},{passive:false});
+document.addEventListener('dblclick',function(e){e.preventDefault();},{passive:false});
+
+// App 悬浮底栏导航：三个真正独立页面
+function setAppNavActive(name){
+  document.querySelectorAll('#appBottomNav button').forEach(btn=>btn.classList.toggle('active',btn.dataset.nav===name));
+}
+function ruleDescription(it){
+  const places=[...(it.aliases||[]),...(it.sections||[])].map(x=>String(x).trim()).filter(Boolean);
+  const own=String(it.title||'').replace(/^LiquidUI\s*/i,'').trim();
+  const uniq=[...new Set(places.filter(x=>x!==own && x!==it.file))];
+  if(uniq.length) return uniq.join(' · ');
+  return it.section ? '位置：'+it.section : '对应图标位置：'+own;
+}
+// Only group the reference display; import and export keep the original rules.
+function ruleReferenceRows(rows){
+  const selectedBase=title=>title.endsWith('选中')&&!title.endsWith('未选中')?title.slice(0,-2):null;
+  const normalTitles=new Set(rows.filter(row=>selectedBase(row.title)===null).map(row=>row.title));
+  const selectedByTitle=new Map();
+  for(const row of rows){
+    const base=selectedBase(row.title);
+    if(base!==null&&normalTitles.has(base)){
+      if(!selectedByTitle.has(base))selectedByTitle.set(base,[]);
+      selectedByTitle.get(base).push(row);
+    }
+  }
+  return rows.flatMap(row=>{
+    const base=selectedBase(row.title);
+    if(base!==null&&selectedByTitle.has(base))return [];
+    const selected=selectedByTitle.get(row.title)||[];
+    return [{title:row.title+(selected.length?' + 选中':''),rules:[row,...selected]}];
+  });
+}
+function renderRuleReference(){
+  const box=document.getElementById('ruleList');if(!box)return;
+  const q=document.getElementById('ruleSearch')?.value||'';
+  const groups=new Map();
+  for(const rule of namingRules){
+    if(!groups.has(rule.section))groups.set(rule.section,[]);
+    groups.get(rule.section).push(rule);
+  }
+  box.innerHTML='';
+  for(const [section,rows] of groups){
+    const visible=ruleReferenceRows(rows).filter(row=>itemMatchesQuery(row,q)||row.rules.some(rule=>itemMatchesQuery(rule,q)));
+    if(!visible.length)continue;
+    const card=document.createElement('section');card.className='ruleCard';card.dataset.section=section;
+    card.innerHTML=`<div class="ruleGroupHead"><h2>${escapeRuleHtml(section)}</h2><span>${visible.length} 项</span></div><div class="ruleRows">${visible.map(row=>`<div class="ruleRow"><div class="ruleName">${escapeRuleHtml(row.title)}</div>${row.rules.map((rule,index)=>`<div class="ruleFile"><span class="ruleFileName">${escapeRuleHtml(rule.file)}</span>${row.rules.length>1?`<span class="ruleState">（${index===0?'不选中':'选中'}）</span>`:''}</div>`).join('')}</div>`).join('')}</div>`;
+    box.appendChild(card);
+  }
+  if(!box.children.length)box.innerHTML='<p class="searchEmpty">没有匹配的规则</p>';
+  window.__syncNativeCardGlass?.();
+}
+document.getElementById('ruleSearch')?.addEventListener('input',renderRuleReference);
+
+function appNavTo(name){
+  const previous=document.body.classList.contains('nav-settings')?'settings':document.body.classList.contains('nav-rules')?'rules':'home';
+  if(previous===name){setAppNavActive(name);window.__refreshBottomSearch?.();window.__syncNativeCardGlass?.();return}
+  document.body.classList.remove('nav-rules','nav-settings');
+  if(name==='rules'){
+    document.body.classList.add('nav-rules');
+    // The reference is built once; search input refreshes it when needed.
+  }else if(name==='settings'){
+    document.body.classList.add('nav-settings');
+    window.__resetSettingsFolds?.();
+  }
+  setAppNavActive(name);
+  window.__refreshBottomSearch?.();
+  window.webkit?.messageHandlers?.pageState?.postMessage({page:name});
+  window.scrollTo({top:0,behavior:'instant'});
+}
+renderRuleReference();
+</script>
+
+<div class="nativeInfoPage" id="guideInfoPage" aria-hidden="true">
+  <div class="nativeInfoHeader"><h2>使用说明</h2><button type="button" onclick="closeInfoPage('guide')" aria-label="关闭">×</button></div>
+  <div class="guideCards">
+    <article class="guideCard"><span class="guideIcon">▣</span><div><h3>这个工具有什么用？</h3><p>用于快速制作 LiquidUI / 微信图标替换包。只需按网页标题上传图片，管理器会自动处理对应命名、同名同步、补全、颜色和 ZIP 打包，不需要自己逐个查内部文件名。</p></div></article>
+    <article class="guideCard"><span class="guideIcon">⌕</span><div><h3>关键词批量导入</h3><p>图片文件名使用网页标题中的关键词即可模糊匹配，模糊关键词至少 3 个字，两个字请使用完整标题。</p></div></article>
+    <article class="guideCard"><span class="guideIcon">◇</span><div><h3>双分类补全</h3><p>用一张补全图片同时填充 LiquidUI 与原版微信中还没有图片的项目。</p></div></article>
+    <article class="guideCard"><span class="guideIcon">↗</span><div><h3>自动联动</h3><p>同一图标对应多个内部命名时，上传一次即可在导出时自动生成相关文件。</p></div></article>
+    <article class="guideCard"><span class="guideIcon">◉</span><div><h3>颜色修改</h3><p>可分别设置浅色选中、深色选中和全部图标颜色；不开启时保留默认处理。</p></div></article>
+    <article class="guideCard"><span class="guideIcon">×</span><div><h3>排除图标</h3><p>补全后不想更换的项目可以点卡片右上角 ×，该项目不会进入本次 ZIP。</p></div></article>
+    <article class="guideCard"><span class="guideIcon">⇧</span><div><h3>导出</h3><p>生成 ZIP 后可改名，再通过 iPhone 系统分享菜单保存或分享。</p></div></article>
+  </div>
+</div>
+<div class="nativeInfoPage" id="logInfoPage" aria-hidden="true">
+  <div class="nativeInfoHeader"><h2>更新日志</h2><button type="button" onclick="closeInfoPage('log')" aria-label="关闭">×</button></div>
+  <div class="logCards">
+<article class="logCard"><div class="logTitle">Version 1.0.6 <span>当前版本</span></div><p><b class="add">新增</b> 支持图标上传、关键词批量导入、双分类补全与 ZIP 导出。</p><p><b class="opt">优化</b> 首页、规则与设置采用系统原生玻璃，低版本自动使用原生磨砂；缩小工具栏文字与规则条目间距。</p><p><b class="opt">优化</b> 原版微信与 LiquidUI 分类及导入入口互换，默认显示原版微信；统一反馈与客服联系入口图标。</p><p><b class="opt">优化</b> 移除分类描边、规则分割线及多余阴影；卡片颜色仅作用于授权上方的品牌卡，统一开关样式。</p><p><b class="fix">修复</b> 修复导入图片删除、补全导出、主题字体保存及底栏搜索布局切换。</p><p><b class="fix">修复</b> 优化底栏切换响应，恢复悬浮底栏与首页安全区，保持设置展开状态。</p><p><b class="fix">修复</b> 插件信息与更新日志支持定位展开，再次点击收起。</p></article>
+<article class="logCard"><div class="logTitle">Version 1.0.5</div><p><b class="opt">优化</b> 修复已知问题。</p><p>该版本为首发测试。</p></article>
+<article class="logCard"><div class="logTitle">Version 1.0.4</div><p><b class="add">新增</b> 主题支持工具栏卡片透明度、滚动缩小底栏及自定义背景图片；设置自动保存。</p><p><b class="add">新增</b> 底栏搜索改为关闭、合并、分开三段切换，保留已保存的搜索布局；关闭后恢复顶部搜索框。</p><p><b class="opt">优化</b> 相同或相近用途的图标合并为一个上传入口，共用图标归原版微信；LiquidUI 分类保留专属入口，导出保留全部对应文件名。</p><p><b class="opt">优化</b> 首页上传项每排两列，左图右标题；LiquidUI 与原版微信的导入项和规则分组标题统一缩小；更新规则按大标题合并展示。</p><p><b class="opt">优化</b> 导出 ZIP 改名使用系统原生弹窗。</p><p><b class="opt">优化</b> 补全图片和自定义颜色入口略微加粗描边，增加柔和淡色底。</p><p><b class="opt">优化</b> 首页工具卡片改用纯色，其他卡片保持原生材质。</p><p><b class="opt">优化</b> 清空固定蓝色、白色文字；导出 ZIP 固定绿色、白色文字。</p><p><b class="opt">优化</b> 首页分类和设置切换同步配色：未选中底色跟随卡片颜色，选中底色跟随按钮颜色。</p><p><b class="fix">修复</b> 合并和分开底栏搜索均可点击，打开原生全屏搜索页，自动弹出键盘，关闭后返回原页面。</p><p><b class="fix">修复</b> 深色液态玻璃下六个按钮不明显，按钮保持独立纯色并自动适配文字颜色。</p><p><b class="fix">修复</b> 原生底栏文字跟随导入字体，恢复默认和重新打开也同步生效。</p><p><b class="fix">修复</b> 分开搜索改用系统原生独立搜索标签，底栏与搜索统一对齐、尺寸及安全区位置。</p></article>
+<article class="logCard"><div class="logTitle">Version 1.0.3</div><p><b class="add">新增</b> 主题增加按钮颜色，首页按钮与分类底色同步；浅色、深色分别保存。</p><p><b class="add">新增</b> 跟随系统、浅色与深色外观；背景颜色分别保存并随外观切换。</p><p><b class="opt">优化</b> 搜索框位于反馈问题下方，随材质切换为液态玻璃或原生磨砂。</p><p><b class="opt">优化</b> 首页六个操作按钮保持纯色，其他卡片保留原有材质。</p><p><b class="opt">优化</b> 分类未选中底色使用按钮颜色，增加透明度以呈现柔和层次。</p><p><b class="opt">优化</b> 分类、材质与外观使用紧凑原生分段控件；缩短设置卡片。</p><p><b class="opt">优化</b> 移除自定义卡片描边，鸣谢仅在设置页随内容排布。</p><p><b class="fix">修复</b> 展开动画结束时的高度跳动和重复点击状态。</p></article>
+<article class="logCard"><div class="logTitle">Version 1.0.2</div><p><b class="add">新增</b> 卡片液态效果开关；关闭后切换为 UIKit 原生磨砂效果。</p><p><b class="add">新增</b> 主题内自定义字体，可导入 TTF、OTF、WOFF、WOFF2 文件并持久保存。</p><p><b class="add">新增</b> 卡片材质、液态玻璃、原生磨砂两种模式直接切换/低于26+不生效液态玻璃。</p><p><b class="add">新增</b> 主题增加卡片颜色，可修改纯色卡片颜色</p><p><b class="opt">优化</b> 规则页移除图片导入入口，仅显示规则名称与图标规则名。</p><p><b class="opt">优化</b> 首页采用新的双列卡片UI，上传区工具区与顶部信息重新布局。</p><p><b class="opt">优化</b> 设置页入口卡片进一步压缩高度与文字尺寸。</p><p><b class="opt">优化</b> 首页白色工具控件、搜索框、颜色展开项、清空按钮、分类未选中项和上传框统一接入 UIKit 原生玻璃/磨砂材质。</p><p><b class="opt">优化</b> 材质切换与首页分类分段切换改为参考图的胶囊式，选中项使用内嵌白色圆角块。</p><p><b class="opt">优化</b> 首页按钮、搜索框、颜色入口与导出操作统一为分类栏同类圆润胶囊轮廓。</p><p><b class="opt">优化</b> 纯色模式下首页操作框统一为同一中性底色，补全图片、自定义颜色、清空等入口保持清晰可见。</p><p><b class="fix">修复</b> 设置页使用说明与更新日志改为原位下拉拉伸卡片。</p><p><b class="fix">修复</b> 规则页顶部安全区与状态栏重叠问题。</p><p><b class="fix">修复</b> 首页、规则、设置三页卡片视觉统一，首页工具卡不再使用单独的透明样式。</p><p><b class="fix">修复</b> 使用说明、更新日志与主题卡片收起响应延迟，收起动画改为快速响应。</p><p><b class="fix">修复</b> 纯色模式默认不显示卡片描边；只有主动开启卡片描边后才显示所选描边颜色。</p><p><b class="fix">修复</b> 背景颜色现在同步到 UIKit 根视图，修改后立即生效并保存。</p><p><b class="fix">修复</b> 首页双分类切换中间露出的白色材质块；分类容器不再重复叠加玻璃。</p><p><b class="fix">修复</b> 液态玻璃与原生磨砂在刷新、筛选和重绘时原生材质层重新绑定导致的跳动。</p></article>
+<article class="logCard"><div class="logTitle">Version 1.0.1</div><p><b class="add">新增</b> 全局换图标规则页，可按规则名称与图标规则名查找。</p><p><b class="add">新增</b> 关键词批量导入、双分类补全、同名项目自动联动与 ZIP 自定义名称分享。</p><p><b class="add">新增</b> 浅色选中、深色选中及全部图标颜色自定义。</p><p><b class="opt">优化</b> 设置页的使用说明与更新日志改为原位下拉拉伸，不再弹出独立页面。</p><p><b class="opt">优化</b> iOS 26+ 使用 UIKit 系统原生 Liquid Glass；不使用 CSS 自绘玻璃。</p><p><b class="opt">优化</b> iOS 25 及以下自动回退 UIKit 原生 systemMaterial 磨砂。</p><p><b class="opt">优化</b> 规则页移除图片导入入口，只保留规则名称与图标规则名。</p><p><b class="fix">修复</b> 规则页安全区，避免标题与状态栏重叠。</p></article>
+<article class="logCard"><div class="logTitle">Version 1.0.0</div><p><b class="add">新增</b> 优优 LUI 图标补全基础功能。</p><p><b class="add">新增</b> LiquidUI / 原版微信图标上传、补全与 ZIP 导出。</p></article>
+  </div>
+</div>
+<script>
+function openInfoPage(kind){
+  var el=document.getElementById(kind==='guide'?'guideInfoPage':'logInfoPage');
+  if(!el)return;
+  el.classList.add('show'); el.setAttribute('aria-hidden','false');
+  document.body.classList.add('info-open');
+  try{ window.webkit?.messageHandlers?.infoPage?.postMessage({open:true}); }catch(e){}
+}
+function closeInfoPage(kind){
+  var el=document.getElementById(kind==='guide'?'guideInfoPage':'logInfoPage');
+  if(!el)return;
+  el.classList.remove('show'); el.setAttribute('aria-hidden','true');
+  document.body.classList.remove('info-open');
+  try{ window.webkit?.messageHandlers?.infoPage?.postMessage({open:false}); }catch(e){}
+}
+</script><script id="native-feel-settings-fold-v102">(function(){
+ window.__foldMotionChecks=[];
+ const states=new WeakMap();
+ function sync(){window.__syncNativeCardGlass?.()}
+ function setFold(details,expanded,animate=true){
+   const state=states.get(details);if(!state)return;
+   const from=details.getBoundingClientRect().height;
+   if(state.raf)cancelAnimationFrame(state.raf);
+   state.raf=0;state.expanded=expanded;
+   details.style.setProperty('height',from+'px','important');
+   details.open=true;
+   details.classList.toggle('is-expanded',expanded);
+   const to=state.summary.getBoundingClientRect().height+(expanded?state.body.getBoundingClientRect().height:0);
+   let previous=from,monotonic=true;
+   function finish(){
+     details.open=expanded;details.style.removeProperty('height');
+     details.classList.remove('is-animating');state.raf=0;
+     const finalHeight=details.getBoundingClientRect().height;
+     window.__foldMotionChecks.push({expanded,to,finalHeight,jump:Math.abs(finalHeight-to),monotonic});
+     sync();
+   }
+   if(!animate||matchMedia('(prefers-reduced-motion:reduce)').matches){finish();return}
+   details.classList.add('is-animating');
+   const start=performance.now(),duration=expanded?260:180;
+   function tick(now){
+     const progress=Math.min(1,(now-start)/duration),ease=1-Math.pow(1-progress,3);
+     const height=from+(to-from)*ease;
+     if(expanded?height<previous-0.5:height>previous+0.5)monotonic=false;
+     previous=height;details.style.setProperty('height',height+'px','important');sync();
+     if(progress<1)state.raf=requestAnimationFrame(tick);else finish();
+   }
+   state.raf=requestAnimationFrame(tick);
+ }
+ document.querySelectorAll('.settingsFold').forEach(details=>{
+   const summary=details.querySelector('summary'),body=details.querySelector('.settingsFoldBody');
+   if(!summary||!body)return;
+   states.set(details,{summary,body,expanded:details.open,raf:0});
+   details.classList.toggle('is-expanded',details.open);
+   summary.addEventListener('click',e=>{e.preventDefault();setFold(details,!states.get(details).expanded)});
+ });
+ let heroScrollFrame=0;
+ window.__toggleHeroSection=selector=>{
+   const details=document.querySelector(selector)?.closest('.settingsFold');if(!details)return false;
+   const expanded=!(states.get(details)?.expanded??details.open);
+   setFold(details,expanded,false);
+   if(heroScrollFrame)cancelAnimationFrame(heroScrollFrame);
+   heroScrollFrame=requestAnimationFrame(()=>{heroScrollFrame=0;const target=expanded?details:document.getElementById('luiyoSettingsHero');target?.scrollIntoView({block:'start',behavior:'smooth'});window.__syncNativeCardGlass?.()});
+   return expanded;
+ };
+ window.__resetSettingsFolds=()=>document.querySelectorAll('.settingsFold').forEach(d=>setFold(d,false,false));
+ window.__settleSettingsFold=details=>{const state=states.get(details);if(state?.raf)setFold(details,state.expanded,false)};
+ window.__setNativeTabTop=y=>{document.documentElement.style.setProperty('--native-tab-top',y+'px');sync()};
+})();</script><script id="material-toggle-bridge-v102">
+(function(){
+  const key='youyou.cardMaterialMode';
+  const picker=document.getElementById('materialModePicker');
+  const hint=document.getElementById('cardMaterialHint');
+  if(!picker)return;
+  const buttons=[...picker.querySelectorAll('[data-material]')];
+  let mode='liquid';
+  try{
+    const saved=localStorage.getItem(key);
+    mode=saved==='blur'?'blur':'liquid';
+    localStorage.setItem(key,mode);
+    localStorage.removeItem('youyou.cardLiquidGlass');
+  }catch(e){}
+  function apply(value){
+    mode=value==='blur'?'blur':'liquid';
+    document.body.classList.remove('solid-card-mode');
+    document.body.classList.add('native-card-glass');
+    buttons.forEach(b=>{
+      const on=b.dataset.material===mode;
+      b.classList.toggle('active',on);
+      b.setAttribute('aria-checked',on?'true':'false');
+    });
+    if(hint) hint.textContent=mode==='liquid'?'液态玻璃：iOS 26+ UIKit 原生 Liquid Glass':'原生磨砂：UIKit systemMaterial';
+    try{localStorage.setItem(key,mode)}catch(e){}
+    try{window.webkit?.messageHandlers?.materialMode?.postMessage({mode})}catch(e){}
+    if(window.__syncNativeCardGlass)requestAnimationFrame(window.__syncNativeCardGlass);
+  }
+  buttons.forEach(b=>b.addEventListener('click',()=>apply(b.dataset.material)));
+  apply(mode);
+})();
+</script><script id="theme-settings-bridge-v102">(function(){
+ const root=document.documentElement,media=matchMedia('(prefers-color-scheme:dark)');
+ const bg=document.getElementById('appBackgroundColor'),reset=document.getElementById('resetBackgroundColor');
+ const card=document.getElementById('appCardColor'),resetCard=document.getElementById('resetCardColor');
+ const buttonColor=document.getElementById('appButtonColor'),resetButton=document.getElementById('resetButtonColor');
+ const buttons=[...document.querySelectorAll('[data-appearance-mode]')];
+ const key='youyou.theme.appearance';let mode='system';
+ function get(k,fallback){try{return localStorage.getItem(k)||fallback}catch(e){return fallback}}
+ function save(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+ mode=get(key,'system');if(!['system','light','dark'].includes(mode))mode='system';
+ // Migrate former default fills once; retain deliberately customized colors.
+ if(get('youyou.theme.whiteButtonDefaults.v104','')!=='1'){
+   for(const [appearance,oldDefault] of [['light','#F4F2EE'],['dark','#2C2C2E']]){
+     const key='youyou.theme.buttonColor.'+appearance,value=get(key,'');
+     if(value.toUpperCase()===oldDefault)save(key,'#FFFFFF');
+   }
+   save('youyou.theme.whiteButtonDefaults.v104','1');
+ }
+ // Restore the former native homepage base, migrating only the legacy default.
+ if(get('youyou.theme.homeBackground.v106','')!=='1'){
+   const value=get('youyou.theme.background.light',get('youyou.theme.background',''));
+   if(value.toUpperCase()==='#F4F2EE'&&get('youyou.theme.background.custom.light','0')!=='1'){
+     save('youyou.theme.background.light','#F2F2F7');save('youyou.theme.background','#F2F2F7');
+   }
+   save('youyou.theme.homeBackground.v106','1');
+ }
+ const colors={light:{bg:get('youyou.theme.background.light',get('youyou.theme.background','#F2F2F7')),card:get('youyou.theme.heroCardColor.light','#FFFFFF'),button:get('youyou.theme.buttonColor.light','#FFFFFF')},dark:{bg:get('youyou.theme.background.dark','#121214'),card:get('youyou.theme.heroCardColor.dark','#1C1C1E'),button:get('youyou.theme.buttonColor.dark','#FFFFFF')}};
+ for(const appearance of ['light','dark']){
+   colors[appearance].custom=get('youyou.theme.buttonColor.custom.'+appearance,colors[appearance].button.toUpperCase()==='#FFFFFF'?'0':'1')==='1';
+ }
+ function actionText(hex){const rgb=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255);return rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722>.5?'#202832':'#F2F2F7'}
+ function effective(){return mode==='dark'||(mode==='system'&&media.matches)?'dark':'light'}
+ function send(name,payload){try{window.webkit?.messageHandlers?.[name]?.postMessage(payload)}catch(e){}}
+ function applyColors(){
+   const appearance=effective(),values=colors[appearance];
+   root.dataset.appearance=appearance;root.style.colorScheme=appearance;
+   root.style.setProperty('--app-bg',values.bg,'important');root.style.setProperty('--yy-page',values.bg,'important');
+   const fixedCard=appearance==='dark'?'#1C1C1E':'#FFFFFF';root.style.setProperty('--card-rgb',appearance==='dark'?'28,28,30':'255,255,255');root.style.setProperty('--card-color',fixedCard,'important');root.style.setProperty('--surface',fixedCard,'important');
+   bg.value=values.bg;card.value=values.card;buttonColor.value=values.button;
+   root.style.setProperty('--home-action-fill',values.button,'important');
+   root.style.setProperty('--home-action-text',actionText(values.button),'important');
+   const blue=values.custom?values.button:'#007AFE',green=values.custom?values.button:'#46D86A';
+   root.style.setProperty('--home-blue-fill',blue,'important');root.style.setProperty('--home-blue-text',actionText(blue),'important');
+   root.style.setProperty('--home-green-fill',green,'important');root.style.setProperty('--home-green-text',actionText(green),'important');
+   document.getElementById('backgroundHint').textContent=appearance==='dark'?'深色背景':'浅色背景';
+   document.getElementById('appearanceHint').textContent={system:'跟随系统外观',light:'始终使用浅色外观',dark:'始终使用深色外观'}[mode];
+   send('themeBackground',{color:values.bg,appearance});send('cardColor',{color:values.card,appearance});send('buttonColor',{color:values.button,appearance});
+   window.__syncNativeCardGlass?.();
+ }
+ function applyMode(value){
+   mode=['light','dark'].includes(value)?value:'system';save(key,mode);
+   buttons.forEach(b=>{const selected=b.dataset.appearanceMode===mode;b.classList.toggle('active',selected);b.setAttribute('aria-checked',String(selected))});
+   send('appearanceMode',{mode});applyColors();
+ }
+ buttons.forEach(b=>b.addEventListener('click',()=>applyMode(b.dataset.appearanceMode)));
+ media.addEventListener('change',()=>{if(mode==='system')applyColors()});
+ bg.addEventListener('input',()=>{const a=effective();colors[a].bg=bg.value;save('youyou.theme.background.custom.'+a,'1');save('youyou.theme.background.'+a,bg.value);applyColors()});
+ card.addEventListener('input',()=>{const a=effective();colors[a].card=card.value;save('youyou.theme.heroCardColor.'+a,card.value);applyColors()});
+ buttonColor.addEventListener('input',()=>{const a=effective();colors[a].button=buttonColor.value;colors[a].custom=true;save('youyou.theme.buttonColor.custom.'+a,'1');save('youyou.theme.buttonColor.'+a,buttonColor.value);applyColors()});
+ resetButton.addEventListener('click',()=>{const a=effective();colors[a].button='#FFFFFF';colors[a].custom=false;save('youyou.theme.buttonColor.custom.'+a,'0');save('youyou.theme.buttonColor.'+a,colors[a].button);applyColors()});
+ reset.addEventListener('click',()=>{const a=effective();colors[a].bg=a==='dark'?'#121214':'#F2F2F7';save('youyou.theme.background.custom.'+a,'0');save('youyou.theme.background.'+a,colors[a].bg);applyColors()});
+ resetCard.addEventListener('click',()=>{const a=effective();colors[a].card=a==='dark'?'#1C1C1E':'#FFFFFF';save('youyou.theme.heroCardColor.'+a,colors[a].card);applyColors()});
+ root.style.setProperty('--surface-border','transparent','important');root.style.setProperty('--yy-card-border','transparent','important');
+ try{localStorage.removeItem('youyou.theme.border.enabled');localStorage.removeItem('youyou.theme.border.color')}catch(e){}
+ applyMode(mode);
+})();</script><script id="true-native-card-glass-bridge-v103">
+(function(){
+ const handler=window.webkit?.messageHandlers?.cardGlassRects;if(!handler)return;
+ document.body.classList.add("native-segment-controls","native-symbol-icons");
+ document.documentElement.classList.add("native-material-host");
+ const selector="#luiyoLicenseCode,#luiyoLicenseSubmit,.guideCard,.logCard,.luiyoActivationEntry,.inlineVersion,.card,.ruleCard,.settingsFold,.infobox,.ruleSearch,.uploadbox,.modeTabs,.settingsToggleCard,.homePill,.categorytabs,#materialModePicker,#appearanceModePicker,#bottomSearchModePicker,#searchInput,#homeTools .colorrow,.pick";
+ let raf=0,lastPayload="";
+ const nodeKeys=new WeakMap();let nextKey=0;
+ function stableKey(el){
+   if(el.id)return "id:"+el.id;
+   if(el.classList.contains("card")&&el.dataset.i!=null)return "card:"+el.dataset.i;
+   if(el.classList.contains("pick"))return "pick:"+(el.closest(".card")?.dataset.i??nextKey++);
+   if(!nodeKeys.has(el))nodeKeys.set(el,"node:"+nextKey++);
+   return nodeKeys.get(el);
+ }
+ function visibleClip(el,r){
+   const clip={left:r.left,top:r.top,right:r.left+r.width,bottom:r.top+r.height};
+   for(let p=el.parentElement;p&&p!==document.body;p=p.parentElement){
+     // Closed <details> descendants may still report nonzero WebKit rectangles.
+     // A closing animated fold also keeps "open" briefly, but its body is hidden.
+     if(p.tagName==="DETAILS"&&(!p.open||(p.classList.contains("settingsFold")&&!p.classList.contains("is-expanded"))))return null;
+     const cs=getComputedStyle(p);
+     if(cs.display==="none"||cs.visibility==="hidden"||parseFloat(cs.opacity)===0)return null;
+     const pr=p.getBoundingClientRect();
+     if(/hidden|clip|auto|scroll/.test(cs.overflowX||cs.overflow||"")){
+       clip.left=Math.max(clip.left,pr.left);clip.right=Math.min(clip.right,pr.left+pr.width);
+     }
+     if(/hidden|clip|auto|scroll/.test(cs.overflowY||cs.overflow||"")){
+       clip.top=Math.max(clip.top,pr.top);clip.bottom=Math.min(clip.bottom,pr.top+pr.height);
+     }
+   }
+   return clip.right>clip.left&&clip.bottom>clip.top?clip:null;
+ }
+ function sync(){
+   raf=0;
+   const rects=[];
+   document.querySelectorAll(selector).forEach(function(el){
+     const cs=getComputedStyle(el);
+     if(cs.display==="none"||cs.visibility==="hidden"||parseFloat(cs.opacity)===0)return;
+     const r=el.getBoundingClientRect();if(r.width<2||r.height<2)return;
+     const clip=visibleClip(el,r);if(!clip)return;
+     const homeControl=el.matches("#homeTools .batch,#homeTools .fillpick,#homeTools .fill,#homeTools .colorfold,#homeTools .clear,#homeTools .zip");
+     if(homeControl)return; // These six actions are opaque CSS surfaces.
+     const segment=el.classList.contains("categorytabs")?"category":el.id==="materialModePicker"?"material":el.id==="appearanceModePicker"?"appearance":el.id==="bottomSearchModePicker"?"search":null;
+     const buttons=segment?[...el.querySelectorAll("button")]:[];
+     const icon=el.querySelector('.settingsFoldIcon,.settingsToggleIcon');
+     const ir=icon?.getBoundingClientRect();
+     const systemIcon=icon?.dataset.systemIcon||({'◐':'circle.lefthalf.filled','?':'questionmark.circle','↻':'clock.arrow.circlepath','♡':'heart','✓':'checkmark.shield'}[icon?.textContent.trim()]||null);
+     rects.push({
+       key:stableKey(el),x:r.left+scrollX,y:r.top+scrollY,width:r.width,height:r.height,
+       radius:Math.min(parseFloat(cs.borderTopLeftRadius)||0,r.width/2,r.height/2),
+       clipX:clip.left+scrollX,clipY:clip.top+scrollY,clipWidth:clip.right-clip.left,clipHeight:clip.bottom-clip.top,
+       forceLiquid:false,homeControl,segment,systemIcon,licenseButton:el.id==="luiyoLicenseSubmit",licenseTitle:el.id==="luiyoLicenseSubmit"?el.textContent:null,ruleSurface:el.classList.contains("ruleCard"),
+       iconX:ir?ir.left-r.left:0,iconY:ir?ir.top-r.top:0,iconWidth:ir?.width||28,iconHeight:ir?.height||28,
+       selectedColor:segment?'#FFFFFF':null,
+       selected:segment?Math.max(0,buttons.findIndex(b=>b.classList.contains("active"))):0
+     });
+   });
+   const payload=JSON.stringify(rects);if(payload===lastPayload)return;
+   lastPayload=payload;try{handler.postMessage(rects)}catch(e){}
+ }
+ function req(){if(!raf)raf=requestAnimationFrame(sync)}
+ window.__syncNativeCardGlass=req;
+ // Document coordinates are stable during scroll. UIScrollView moves both layers.
+ addEventListener("resize",req,{passive:true});
+ document.addEventListener("input",req,true);document.addEventListener("change",req,true);
+ document.addEventListener("click",function(){req();setTimeout(req,90);setTimeout(req,220)},true);
+ new MutationObserver(req).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:["class","style","open","hidden"]});
+ if(window.ResizeObserver)new ResizeObserver(req).observe(document.body);
+ if(document.fonts)document.fonts.ready.then(req);
+ req();setTimeout(req,100);setTimeout(req,320);
+})();
+</script><script id="custom-font-import-v102">
+(function(){
+ const input=document.getElementById('customFontFile');
+ const choose=document.getElementById('chooseCustomFont');
+ const reset=document.getElementById('resetCustomFont');
+ const label=document.getElementById('customFontName');
+ if(!input||!choose||!reset||!label||!window.FontFace)return;
+
+ const DB='YouYouLUITheme', STORE='assets', KEY='customFont';
+ function dbOpen(){return new Promise((resolve,reject)=>{const r=indexedDB.open(DB,1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains(STORE))r.result.createObjectStore(STORE)};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
+ async function saveFont(record){const db=await dbOpen();return new Promise((resolve,reject)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).put(record,KEY);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)})}
+ async function loadSaved(){const db=await dbOpen();return new Promise((resolve,reject)=>{const r=db.transaction(STORE).objectStore(STORE).get(KEY);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
+ async function clearSaved(){const db=await dbOpen();return new Promise((resolve,reject)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).delete(KEY);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)})}
+ async function applyFont(buffer,name){
+   try{
+     const old=[...document.fonts].find(f=>f.family==='YouYouCustomFont');if(old)document.fonts.delete(old);
+     const face=new FontFace('YouYouCustomFont',buffer);
+     await face.load();document.fonts.add(face);
+     document.body.classList.add('custom-font-active');
+     label.textContent=name||'已导入自定义字体';
+     const bytes=new Uint8Array(buffer);let raw='';
+     for(let i=0;i<bytes.length;i+=32768)raw+=String.fromCharCode(...bytes.subarray(i,i+32768));
+     window.webkit?.messageHandlers?.themeFont?.postMessage({data:btoa(raw),name:name||''});
+     window.__syncNativeCardGlass?.();
+     return true;
+   }catch(e){alert('字体文件无法读取，请使用 TTF、OTF、WOFF 或 WOFF2 文件。');return false}
+ }
+ choose.addEventListener('click',()=>input.click());
+ input.addEventListener('change',async()=>{
+   const file=input.files&&input.files[0];if(!file)return;
+   const buffer=await file.arrayBuffer();
+   if(await applyFont(buffer,file.name)){
+     try{await saveFont({name:file.name,blob:new Blob([buffer],{type:file.type||'application/octet-stream'})})}catch(e){}
+   }
+   input.value='';
+ });
+ reset.addEventListener('click',async()=>{
+   document.body.classList.remove('custom-font-active');
+   const old=[...document.fonts].find(f=>f.family==='YouYouCustomFont');if(old)document.fonts.delete(old);
+   label.textContent='使用默认字体';
+   window.webkit?.messageHandlers?.themeFont?.postMessage({reset:true});
+   window.__syncNativeCardGlass?.();
+   try{await clearSaved()}catch(e){}
+ });
+ window.__importThemeFontForTest=async(buffer,name)=>{if(await applyFont(buffer,name))await saveFont({name,blob:new Blob([buffer])})};
+ loadSaved().then(async rec=>{if(rec&&rec.blob){const b=await rec.blob.arrayBuffer();await applyFont(b,rec.name)}}).catch(()=>{});
+})();
+</script><script id="bottom-search-bridge-build13">(function(){
+ const key='youyou.theme.bottomSearchEnabled',layoutKey='youyou.theme.bottomSearchLayout',modeKey='youyou.theme.bottomSearchMode';
+ const picker=document.getElementById('bottomSearchModePicker');
+ let mode='off';
+ try{const saved=localStorage.getItem(modeKey);mode=['off','merged','separate'].includes(saved)?saved:localStorage.getItem(key)==='1'?(localStorage.getItem(layoutKey)==='separate'?'separate':'merged'):'off'}catch(e){}
+ const home=document.getElementById('searchInput'),rules=document.getElementById('ruleSearch');
+ const fallback=document.querySelector('#appBottomNav [data-nav="search"]');
+ let enabled=false,settingsQuery='';
+
+ function page(){return document.body.classList.contains('nav-settings')?'settings':document.body.classList.contains('nav-rules')?'rules':'home'}
+ function query(which){return which==='settings'?settingsQuery:(which==='rules'?rules:home).value}
+ function refresh(){
+   const which=page(),q=query(which).trim();
+   document.querySelectorAll('#settingsTarget .settingsFold:not([hidden])').forEach(fold=>{
+     const hide=enabled&&which==='settings'&&q&&!fold.textContent.toLowerCase().includes(q.toLowerCase());
+     if(hide&&!fold.classList.contains('search-hidden'))window.__settleSettingsFold?.(fold);
+     fold.classList.toggle('search-hidden',Boolean(hide));
+   });
+   window.__syncNativeCardGlass?.();
+ }
+ function apply(value){
+   mode=['off','merged','separate'].includes(value)?value:'off';enabled=mode!=='off';
+   picker.querySelectorAll('button').forEach(button=>{const active=button.dataset.bottomSearchMode===mode;button.classList.toggle('active',active);button.setAttribute('aria-checked',String(active))});
+   document.getElementById('bottomSearchModeHint').textContent=mode==='off'?'关闭后使用顶部搜索框':mode==='merged'?'搜索按钮合并到悬浮底栏':'搜索按钮与悬浮底栏分开显示';
+   document.body.classList.toggle('bottom-search-enabled',enabled);
+   fallback.hidden=!enabled;
+   if(!enabled)settingsQuery='';
+   try{localStorage.setItem(modeKey,mode);localStorage.setItem(key,enabled?'1':'0');localStorage.setItem(layoutKey,mode==='separate'?'separate':'merged')}catch(e){}
+   try{window.webkit?.messageHandlers?.bottomSearch?.postMessage({enabled,layout:mode==='separate'?'separate':'merged'})}catch(e){}
+   refresh();
+ }
+ window.__bottomSearchState=()=>{const which=page();return {page:which,query:query(which),placeholder:which==='settings'?'搜索主题、字体或更新日志':which==='rules'?rules.placeholder:home.placeholder}};
+ window.__applyBottomSearch=(value,which=page())=>{
+   if(!enabled)return;
+   const q=String(value??'');
+   if(which==='settings')settingsQuery=q;
+   else{const input=which==='rules'?rules:home;input.value=q;input.dispatchEvent(new Event('input',{bubbles:true}))}
+   refresh();
+   // Remain on current page.
+ };
+ window.__clearBottomSearch=()=>{
+   settingsQuery='';home.value='';rules.value='';
+   home.dispatchEvent(new Event('input',{bubbles:true}));rules.dispatchEvent(new Event('input',{bubbles:true}));refresh();
+ };
+ window.__refreshBottomSearch=refresh;
+ window.__openBottomSearch=()=>{
+   const handler=window.webkit?.messageHandlers?.bottomSearch;
+   if(handler)handler.postMessage({open:true});
+   else{const state=window.__bottomSearchState(),q=prompt(state.placeholder,state.query);if(q!==null)window.__applyBottomSearch(q,state.page)}
+ };
+ picker.querySelectorAll('button').forEach(button=>button.addEventListener('click',()=>apply(button.dataset.bottomSearchMode)));
+ window.__setBottomSearchMode=apply;
+ home.addEventListener('input',refresh);rules.addEventListener('input',refresh);
+ apply(mode);
+})();</script><script id="advanced-theme-build18">(function(){
+ const slider=document.getElementById('toolbarTransparency'),value=document.getElementById('toolbarTransparencyValue');
+ const shrink=document.getElementById('minimizeBottomBar');
+ function get(key,fallback){try{return localStorage.getItem(key)??fallback}catch(e){return fallback}}
+ function send(name,payload){window.webkit?.messageHandlers?.[name]?.postMessage(payload)}
+ function applyTransparency(raw){const n=Math.max(0,Math.min(100,Number(raw)||0));slider.value=n;value.textContent=n+'%';document.documentElement.style.setProperty('--tool-opacity',String((100-n)/100));try{localStorage.setItem('youyou.theme.toolbarTransparency',String(n))}catch(e){}}
+ function applyShrink(enabled){shrink.checked=enabled;try{localStorage.setItem('youyou.theme.minimizeBottomBar',enabled?'1':'0')}catch(e){}send('minimizeBottomBar',{enabled});}
+ if(slider&&value){slider.addEventListener('input',()=>applyTransparency(slider.value));applyTransparency(get('youyou.theme.toolbarTransparency','0'))}
+ if(shrink){shrink.addEventListener('change',()=>applyShrink(shrink.checked));applyShrink(get('youyou.theme.minimizeBottomBar','0')==='1')}
+ // Clear any previously stored custom background (feature removed)
+ try{
+   const native=Boolean(window.webkit?.messageHandlers?.backgroundImage);
+   if(native)window.webkit.messageHandlers.backgroundImage.postMessage({reset:true});
+   document.getElementById('webBackgroundImage')?.remove();
+   document.documentElement.classList.remove('has-background-image');
+   const DB='YouYouLUITheme',STORE='assets',KEY='customBackground';
+   const r=indexedDB.open(DB,1);r.onsuccess=()=>{try{const db=r.result;if(db.objectStoreNames.contains(STORE)){const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).delete(KEY);tx.oncomplete=()=>db.close()}else db.close()}catch(e){}};
+ }catch(e){}
+ window.__applyToolbarTransparency=applyTransparency;
+ window.__setMinimizeBottomBar=applyShrink;
+})();</script></body></html>
+
+
+<script id="native-day-night-switch-bridge">
+(()=>{
+ const handler=window.webkit?.messageHandlers?.nativeToggleRects;if(!handler)return;
+ document.body.classList.add('native-day-night-switches');let pending=false,last='';
+ function update(){pending=false;const rows=[...document.querySelectorAll('input[type=checkbox][id]')].map(input=>{const r=input.getBoundingClientRect();return {id:input.id,x:r.left+scrollX,y:r.top+scrollY,width:r.width,height:r.height,on:input.checked,visible:r.width>0&&r.height>0&&r.bottom>0&&r.top<innerHeight,disabled:input.disabled}});const encoded=JSON.stringify(rows);if(encoded!==last){last=encoded;handler.postMessage(rows)}}
+ function schedule(){if(!pending){pending=true;requestAnimationFrame(update)}}
+ addEventListener('scroll',schedule,{passive:true});addEventListener('resize',schedule);document.addEventListener('change',schedule,true);
+ new MutationObserver(schedule).observe(document.body,{subtree:true,attributes:true,childList:true});
+ window.__setBrandSwitch=(id,on)=>{const input=document.getElementById(id);if(!input||input.disabled)return;input.checked=on;input.dispatchEvent(new Event('change',{bubbles:true}));schedule()};schedule();
+})();</script>
+
+<style id="v106-wallpaper-layout-and-appearance-hotfix">
+/* Keep upload cards in normal grid flow when a wallpaper is active. */
+#list.grid{align-items:start;grid-auto-rows:auto}
+#list.grid>.card{box-sizing:border-box;min-width:0;min-height:0;height:auto;align-self:start;overflow:hidden}
+#list.grid>.card>.title{min-width:0;overflow-wrap:anywhere}
+#list.grid>.card>.pick,#list.grid>.card>.preview{grid-column:1;grid-row:1/3}
+#list.grid>.card>.preview{width:54px;height:54px;margin:0}
+#list.grid>.card>.removeIcon{z-index:4}
+html.has-background-image #webBackgroundImage{z-index:0!important}
+html.has-background-image body>.app{position:relative;z-index:1}
+html.has-background-image body>.appBottomNav{position:fixed;z-index:80}
+/* Make the selected appearance win over legacy light-surface declarations. */
+:root[data-appearance="light"]{color-scheme:light;--surface:#FFFFFF;--card-color:#FFFFFF}
+:root[data-appearance="dark"]{color-scheme:dark;--surface:#1C1C1E;--card-color:#1C1C1E;--yy-card:#1C1C1E;--card-bg:#1C1C1E}
+:root[data-appearance="dark"] body,
+:root[data-appearance="dark"] .homeHero h1,
+:root[data-appearance="dark"] .settingsHead h1,
+:root[data-appearance="dark"] .pageHead h1,
+:root[data-appearance="dark"] .title,
+:root[data-appearance="dark"] .ruleName,
+:root[data-appearance="dark"] .settingsFoldText b,
+:root[data-appearance="dark"] .settingsToggleText b,
+:root[data-appearance="dark"] .themeRow b,
+:root[data-appearance="dark"] .settingsFoldBody,
+:root[data-appearance="dark"] .settingsAuthHeading,
+:root[data-appearance="dark"] .themeRow{color:#F5F5F7!important}
+:root[data-appearance="dark"] #homeTools,
+:root[data-appearance="dark"] .homePill,
+:root[data-appearance="dark"] .card,
+:root[data-appearance="dark"] .ruleSearch,
+:root[data-appearance="dark"] .ruleCard,
+:root[data-appearance="dark"] .settingsToggleCard,
+:root[data-appearance="dark"] .settingsFold,
+:root[data-appearance="dark"] .settingsFoldBody,
+:root[data-appearance="dark"] .infobox,
+:root[data-appearance="dark"] .uploadbox,
+:root[data-appearance="dark"] .categorytabs,
+:root[data-appearance="dark"] .categorytabs button:not(.active),
+:root[data-appearance="dark"] .modeTabs,
+:root[data-appearance="dark"] #homeTools .fillpick,
+:root[data-appearance="dark"] #searchInput,
+:root[data-appearance="dark"] #homeTools .colorfold,
+:root[data-appearance="dark"] #homeTools .colorrow,
+:root[data-appearance="dark"] #homeTools .clear,
+:root[data-appearance="dark"] .pick{
+ background:rgba(28,28,30,.94)!important;
+ border-color:rgba(255,255,255,.12)!important;
+ color:#F5F5F7!important
+}
+:root[data-appearance="dark"] .settingsFoldBody p,
+:root[data-appearance="dark"] .settingsFoldText small,
+:root[data-appearance="dark"] .settingsToggleText small,
+:root[data-appearance="dark"] .ruleFile,
+:root[data-appearance="dark"] .ruleDesc,
+:root[data-appearance="dark"] .pageHead p,
+:root[data-appearance="dark"] .homeSub,
+:root[data-appearance="dark"] .sub,
+:root[data-appearance="dark"] .sectiontitle,
+:root[data-appearance="dark"] .status{color:#A9A9B0!important}
+/* The hero/version card keeps its deliberately separate visual treatment. */
+:root[data-appearance="dark"] .inlineVersion{color:inherit}
+</style>
+
+<style id="v107-wallpaper-card-flow-hardening">
+/* Wallpaper is a backdrop only: it must never make upload tiles look duplicated or let old tile content show through. */
+html.has-background-image #list.grid{display:grid!important;position:relative!important;isolation:isolate;align-content:start;align-items:start;grid-auto-flow:row;grid-auto-rows:min-content;gap:10px;}
+html.has-background-image #list.grid>.card{display:grid!important;position:relative!important;inset:auto!important;transform:none!important;float:none!important;clear:none!important;grid-row:auto!important;grid-column:auto!important;align-self:stretch!important;contain:layout paint style;min-height:78px!important;height:auto!important;max-height:none!important;overflow:hidden!important;background:rgba(255,255,255,.94)!important;border:1px solid rgba(120,120,128,.28)!important;box-shadow:0 2px 8px rgba(0,0,0,.08)!important;}
+html.has-background-image #list.grid>.card::before{content:none!important;}
+html.has-background-image #list.grid>.card::after{position:static!important;transform:none!important;grid-column:2!important;grid-row:auto!important;min-width:0;line-height:1.3;}
+html.has-background-image #list.grid>.card>.title{grid-column:2!important;grid-row:1!important;position:relative!important;z-index:1;min-height:32px;height:auto!important;overflow:visible!important;white-space:normal!important;}
+html.has-background-image #list.grid>.card>.pick,html.has-background-image #list.grid>.card>.preview{grid-column:1!important;grid-row:1/3!important;align-self:center!important;}
+html.has-background-image #list.grid>.card>.removeIcon{position:absolute!important;top:8px!important;right:8px!important;z-index:5!important;}
+html.has-background-image #list.grid>.card .preview img{max-width:100%;max-height:100%;}
+html.has-background-image #appBottomNav{z-index:80!important;pointer-events:auto!important;}
+html.has-background-image body{padding-bottom:calc(110px + env(safe-area-inset-bottom))!important;}
+:root[data-appearance="dark"].has-background-image #list.grid>.card{background:rgba(28,28,30,.96)!important;border-color:rgba(255,255,255,.18)!important;color:#F5F5F7!important;}
+
+html.has-background-image body,.has-background-image body{background:transparent!important}
+html.has-background-image #list.grid>.card{background:rgba(255,255,255,.94)!important;isolation:isolate!important}
+html.has-background-image[data-appearance=dark] #list.grid>.card{background:rgba(28,28,30,.94)!important}
+</style>
