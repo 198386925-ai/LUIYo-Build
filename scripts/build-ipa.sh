@@ -9,7 +9,7 @@ if [ -d "$SPLIT_DIR" ]; then
   if ls "$SPLIT_DIR"/index.html.part* >/dev/null 2>&1; then
     cat "$SPLIT_DIR"/index.html.part* > "YouYouLUI_iOS/YouYouLUI/Web/index.html"
   fi
-  restore_img() { [ -f "$SPLIT_DIR/$1" ] && base64 -d "$SPLIT_DIR/$1" > "$2"; }
+  restore_img() { [ -f "$SPLIT_DIR/$1" ] && base64 -D "$SPLIT_DIR/$1" > "$2"; }
   restore_img "Reference.jpeg.b64" "YouYouLUI_iOS/YouYouLUI/Assets.xcassets/BrandReference.imageset/Reference.jpeg"
   restore_img "ToolbarClear-Icon.png.b64" "YouYouLUI_iOS/YouYouLUI/Assets.xcassets/ToolbarClear.imageset/Icon.png"
   restore_img "ToolbarExport-Icon.png.b64" "YouYouLUI_iOS/YouYouLUI/Assets.xcassets/ToolbarExport.imageset/Icon.png"
