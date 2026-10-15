@@ -39,13 +39,14 @@ if (empty($_SESSION['authorized'])) { ?>
 if(($_GET['snapshot']??'')==='1')luiyo_json(200,luiyo_admin_snapshot($db));
 $issued=[];$notice='';
 $requestedPanel=(string)($_POST['return_panel']??$_GET['panel']??'overview');
-if(!in_array($requestedPanel,['overview','codes','devices','licenses'],true))$requestedPanel='overview';
+if(!in_array($requestedPanel,['overview','codes','devices','licenses','versions'],true))$requestedPanel='overview';
 if ($_SERVER['REQUEST_METHOD']==='POST') {
  if (!hash_equals($_SESSION['csrf']??'',(string)($_POST['csrf']??''))) {http_response_code(403);exit('CSRF check failed');}
  $action=(string)($_POST['action']??'');
  if($action==='create')$requestedPanel='codes';
  elseif(in_array($action,['ban','unban','hide_installations','grant_device','revoke_device'],true))$requestedPanel='devices';
  elseif(in_array($action,['delete_license','disable','enable'],true))$requestedPanel='licenses';
+ elseif(in_array($action,['add_version','block_version','unblock_version','delete_version'],true))$requestedPanel='versions';
  $id=filter_var($_POST['id']??null,FILTER_VALIDATE_INT);
  if ($action==='hide_installations') {
   // Only signed-in administrators with a valid CSRF token can hide entries.
@@ -81,6 +82,9 @@ if ($_SERVER['REQUEST_METHOD']==='POST') {
    $code=(string)($_POST['device_code']??'');
    $problem=$action==='grant_device'?luiyo_grant_device($db,$code):luiyo_revoke_grant($db,$code);
    if($problem)$error=$problem;else $notice=$action==='grant_device'?'设备码授权成功；新版 App 联网后自动领取':'设备码授权已撤销';
+   if(($_SERVER['HTTP_X_REQUESTED_WITH']??'')==='fetch'){
+    luiyo_json($problem?400:200,$problem?['error'=>$problem]:['ok'=>true,'message'=>$notice]);
+   }
   }catch(Throwable $e){$error='操作失败，请查看服务器日志';}
  } elseif ($action==='create') {
   $label=mb_substr(trim((string)($_POST['label']??'')),0,80);
@@ -88,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD']==='POST') {
   $days=max(0,min(3650,(int)($_POST['days']??0)));
   $quantity=max(1,min(100,(int)($_POST['quantity']??1)));
   $alphabet='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  $insert=$db->prepare('INSERT INTO licenses(code_hash,label,max_devices,expires_at,created_at) VALUES(?,?,?,?,?)');
+  $insert=$db->prepare('INSERT INTO licenses(code_hash,code_plain,label,max_devices,expires_at,created_at) VALUES(?,?,?,?,?,?)');
   $db->beginTransaction();
   try {
    for($n=0;$n<$quantity;$n++){
@@ -100,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD']==='POST') {
     }
     $code='LUI-'.implode('-',$parts);
     $entryLabel=$label===''?'':($quantity===1?$label:mb_substr($label,0,65).' '.($n+1));
-    $insert->execute([hash('sha256',$code),$entryLabel,$max,$days?time()+86400*$days:null,time()]);
+    $insert->execute([hash('sha256',$code),$code,$entryLabel,$max,$days?time()+86400*$days:null,time()]);
     $issued[]=$code;
    }
    $db->commit();
@@ -135,6 +139,36 @@ if ($_SERVER['REQUEST_METHOD']==='POST') {
  } elseif ($id && in_array($action,['disable','enable'],true)) {
   $db->prepare('UPDATE licenses SET disabled=? WHERE id=?')->execute([$action==='disable'?1:0,$id]);
   $notice=$action==='disable'?'已停用激活码（所有绑定设备将无法使用）':'已启用激活码';
+ } elseif ($action==='add_version') {
+  $ver=ltrim(trim((string)($_POST['version']??'')), 'vV');
+  $msg=mb_substr(trim((string)($_POST['message']??'请下载正版使用')),0,120);
+  $note=mb_substr(trim((string)($_POST['note']??'')),0,120);
+  $blocked=isset($_POST['blocked'])?1:0;
+  if($ver===''||!preg_match('/^[0-9]+(?:\.[0-9]+){0,3}$/',$ver))$error='版本号格式无效，例如 1.0.5';
+  else {
+    $now=time();
+    $db->prepare('INSERT INTO app_versions(version,blocked,message,note,created_at,updated_at) VALUES(?,?,?,?,?,?)
+      ON CONFLICT(version) DO UPDATE SET blocked=excluded.blocked,message=excluded.message,note=excluded.note,updated_at=excluded.updated_at')
+      ->execute([$ver,$blocked,$msg,$note,$now,$now]);
+    $notice=$blocked?'已登记并禁用版本 '.$ver:'已登记版本 '.$ver;
+  }
+ } elseif ($action==='block_version' || $action==='unblock_version') {
+  $ver=ltrim(trim((string)($_POST['version']??'')), 'vV');
+  if($ver==='')$error='版本号无效';
+  else {
+    $blocked=$action==='block_version'?1:0;
+    $st=$db->prepare('UPDATE app_versions SET blocked=?, updated_at=? WHERE version=?');
+    $st->execute([$blocked,time(),$ver]);
+    if($st->rowCount()===0)$error='未找到版本 '.$ver;
+    else $notice=$blocked?'已关闭版本 '.$ver.' 的使用权限':'已恢复版本 '.$ver.' 的使用权限';
+  }
+ } elseif ($action==='delete_version') {
+  $ver=ltrim(trim((string)($_POST['version']??'')), 'vV');
+  if($ver==='')$error='版本号无效';
+  else {
+    $db->prepare('DELETE FROM app_versions WHERE version=?')->execute([$ver]);
+    $notice='已删除版本记录 '.$ver;
+  }
  }
 }
 $stats=[
@@ -144,13 +178,18 @@ $stats=[
  '已封禁设备'=>(int)$db->query('SELECT COUNT(*) FROM devices WHERE banned=1')->fetchColumn(),
  '激活码总数'=>(int)$db->query('SELECT COUNT(*) FROM licenses')->fetchColumn()
 ];
-$devices=$db->query('SELECT d.id,d.created_at,d.last_seen,d.banned,d.ban_reason,i.id AS installation_id,l.label,l.id AS license_id FROM devices d JOIN licenses l ON l.id=d.license_id LEFT JOIN installations i ON i.device_hash=d.device_hash ORDER BY d.last_seen DESC LIMIT 200')->fetchAll(PDO::FETCH_ASSOC);
+$devices=$db->query('SELECT d.id,d.created_at,d.last_seen,d.banned,d.ban_reason,i.id AS installation_id,l.label,l.id AS license_id,(SELECT COUNT(*) FROM device_grants g WHERE g.installation_id=i.id AND g.revoked_at IS NULL) AS grant_count FROM devices d JOIN licenses l ON l.id=d.license_id LEFT JOIN installations i ON i.device_hash=d.device_hash ORDER BY d.last_seen DESC LIMIT 200')->fetchAll(PDO::FETCH_ASSOC);
 $licenses=$db->query('SELECT l.id,l.code_hash,l.label,l.max_devices,l.expires_at,l.disabled,COUNT(d.id) AS device_count FROM licenses l LEFT JOIN devices d ON d.license_id=l.id GROUP BY l.id ORDER BY l.id DESC LIMIT 200')->fetchAll(PDO::FETCH_ASSOC);
+// Auto-import versions seen on devices so new releases appear without manual entry.
+if (function_exists('luiyo_version_sync_from_installations')) {
+  luiyo_version_sync_from_installations($db);
+}
+$appVersions=$db->query('SELECT version,blocked,message,note,created_at,updated_at FROM app_versions ORDER BY version DESC')->fetchAll(PDO::FETCH_ASSOC);
 $recentPlainByHash=[];foreach(($_SESSION['luiyo_recent_batches']??[]) as $recentBatch){foreach(($recentBatch['codes']??[]) as $recentCode){$recentPlainByHash[hash('sha256',$recentCode)]=$recentCode;}}
 
 ?><!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"><title>LUIYo 用户管理</title>
 <style>
-:root{color-scheme:light;--blue:#2674ef;--label:#131720;--secondary:#78859b;--line:#e6ebf2;--group:#f3f6fb}*{box-sizing:border-box}html{min-height:100%;-webkit-text-size-adjust:100%;touch-action:manipulation}body{font:13px/1.45 -apple-system,BlinkMacSystemFont,'SF Pro Text','PingFang SC',system-ui,sans-serif;color:var(--label);background:#f5f7fb;margin:0 auto;padding:15px 13px calc(90px + env(safe-area-inset-bottom));max-width:850px}header,section{background:#fff;border:1px solid #ebeff5;border-radius:16px;padding:14px;margin-bottom:11px;box-shadow:0 2px 13px rgba(26,44,80,.025)}header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;border:0;background:transparent;box-shadow:none;margin-bottom:4px;padding:9px 5px 14px}header h1{font-size:21px;letter-spacing:-.45px;font-weight:750;margin:0 0 6px}header small{display:block;font-size:10.5px;line-height:1.55;color:#8a96a9;max-width:570px}header>a{white-space:nowrap;text-decoration:none;background:#edf4ff;color:var(--blue);border-radius:12px;padding:6px 11px;font-size:12px;font-weight:600}h2{font-size:15px;font-weight:720;margin:1px 0 13px;letter-spacing:-.15px}.between{display:flex;align-items:center;justify-content:space-between;gap:8px}.between h2{margin-bottom:9px}.between small{font-size:10px;color:#929daf}.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.stat{background:var(--group);border-radius:13px;border:1px solid #f2f4f9;padding:12px 13px;min-height:74px;display:flex;flex-direction:column;justify-content:center}.stat small{display:block;font-size:10.5px;color:#677996;margin-bottom:3px}.stat b{font-size:23px;letter-spacing:-.4px;line-height:1.13;color:#1d2634;font-weight:740}a{color:var(--blue)}small{color:#78859b;line-height:1.5}input,select,button,textarea{font:inherit;max-width:100%}input,select,textarea{background:#f6f8fb;border:1px solid #e6ebf2;border-radius:10px;padding:9px 10px;color:#273142;min-height:35px}input:focus,select:focus,textarea:focus{outline:2px solid #bcd7ff;outline-offset:0}button{border:0;border-radius:10px;background:#2878f4;color:white;padding:9px 12px;min-height:34px;font-size:12px;font-weight:600;cursor:pointer;touch-action:manipulation}button.danger,.danger{background:#e95562;color:#fff}form.inline{display:inline-flex;align-items:center;gap:3px;vertical-align:middle}form.inline button{padding:5px 8px;min-height:27px;font-size:11px}form.inline label{white-space:nowrap;font-size:10px}form.inline input[type=checkbox]{min-height:unset;vertical-align:middle;accent-color:var(--blue);margin-right:3px}.notice{color:#167d4e;border-color:#d7eee4;background:#f8fffa}.issued-list{display:block;width:100%;min-height:100px;resize:vertical;font:12px ui-monospace,monospace;border-radius:11px}main[data-panel]{display:none}main[data-panel].active{display:block}main[data-panel] section:last-child{margin-bottom:0}section>form:not(.inline){display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin-bottom:10px}section>form:not(.inline)>input[name=label]{flex:2 1 190px}section>form:not(.inline)>input[type=number]{width:70px}section>form:not(.inline) label{display:flex;gap:5px;align-items:center;font-size:11px}section>form:not(.inline) label input{width:63px}section p{margin:8px 0 10px}table{width:100%;border-collapse:collapse;white-space:nowrap;font-size:11px}td,th{text-align:left;padding:10px 8px;border-bottom:1px solid #ebeff4}th{color:#78859b;font-weight:600;background:#f8fafc}td{color:#3b4658}.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:10px;border:1px solid #eef1f6;border-radius:11px}tr:last-child td{border-bottom:0}#device-overview .stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}#device-overview .stat{padding:9px 8px;min-height:62px}#device-overview .stat b{font-size:19px}#device-overview .stat small{font-size:10px}#device-overview p{display:flex;flex-wrap:wrap;align-items:center;gap:6px}#device-overview #presence-query{flex:1 1 155px;min-width:130px}#device-overview select{max-width:125px}#device-overview p label{font-size:11px}.bottom-nav{position:fixed;inset:auto 0 0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;background:#fff;border-top:1px solid #edf0f4;box-shadow:0 -4px 16px rgba(20,46,80,.035);padding:5px 10px calc(6px + env(safe-area-inset-bottom));z-index:50;max-width:850px;margin:0 auto}.bottom-nav button{background:transparent;color:#8792a7;border:0;border-radius:10px;padding:6px 1px;font-size:10px;font-weight:500;min-height:47px}.bottom-nav button.active{background:transparent;color:var(--blue);font-weight:650}.bottom-nav svg{display:block;margin:0 auto 3px;width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linejoin:round;stroke-linecap:round}.bottom-nav button.active svg{stroke-width:2.3}@media(min-width:650px){body{padding:24px 20px 100px}.stats{grid-template-columns:repeat(5,minmax(0,1fr))}#device-overview .stats{grid-template-columns:repeat(3,minmax(0,1fr))}header h1{font-size:24px}}@media(max-width:360px){body{padding-left:10px;padding-right:10px}.stat{padding:10px}.stat b{font-size:21px}}
+:root{color-scheme:light;--blue:#2674ef;--label:#131720;--secondary:#78859b;--line:#e6ebf2;--group:#f3f6fb}*{box-sizing:border-box}html{min-height:100%;-webkit-text-size-adjust:100%;touch-action:manipulation}body{font:13px/1.45 -apple-system,BlinkMacSystemFont,'SF Pro Text','PingFang SC',system-ui,sans-serif;color:var(--label);background:#f5f7fb;margin:0 auto;padding:15px 13px calc(90px + env(safe-area-inset-bottom));max-width:850px}header,section{background:#fff;border:1px solid #ebeff5;border-radius:16px;padding:14px;margin-bottom:11px;box-shadow:0 2px 13px rgba(26,44,80,.025)}header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;border:0;background:transparent;box-shadow:none;margin-bottom:4px;padding:9px 5px 14px}header h1{font-size:21px;letter-spacing:-.45px;font-weight:750;margin:0 0 6px}header small{display:block;font-size:10.5px;line-height:1.55;color:#8a96a9;max-width:570px}header>a{white-space:nowrap;text-decoration:none;background:#edf4ff;color:var(--blue);border-radius:12px;padding:6px 11px;font-size:12px;font-weight:600}h2{font-size:15px;font-weight:720;margin:1px 0 13px;letter-spacing:-.15px}.between{display:flex;align-items:center;justify-content:space-between;gap:8px}.between h2{margin-bottom:9px}.between small{font-size:10px;color:#929daf}.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.stat{background:var(--group);border-radius:13px;border:1px solid #f2f4f9;padding:12px 13px;min-height:74px;display:flex;flex-direction:column;justify-content:center}.stat small{display:block;font-size:10.5px;color:#677996;margin-bottom:3px}.stat b{font-size:23px;letter-spacing:-.4px;line-height:1.13;color:#1d2634;font-weight:740}a{color:var(--blue)}small{color:#78859b;line-height:1.5}input,select,button,textarea{font:inherit;max-width:100%}input,select,textarea{background:#f6f8fb;border:1px solid #e6ebf2;border-radius:10px;padding:9px 10px;color:#273142;min-height:35px}input:focus,select:focus,textarea:focus{outline:2px solid #bcd7ff;outline-offset:0}button{border:0;border-radius:10px;background:#2878f4;color:white;padding:9px 12px;min-height:34px;font-size:12px;font-weight:600;cursor:pointer;touch-action:manipulation}button.danger,.danger{background:#e95562;color:#fff}form.inline{display:inline-flex;align-items:center;gap:3px;vertical-align:middle}form.inline button{padding:5px 8px;min-height:27px;font-size:11px}form.inline label{white-space:nowrap;font-size:10px}form.inline input[type=checkbox]{min-height:unset;vertical-align:middle;accent-color:var(--blue);margin-right:3px}.notice{color:#167d4e;border-color:#d7eee4;background:#f8fffa}.issued-list{display:block;width:100%;min-height:100px;resize:vertical;font:12px ui-monospace,monospace;border-radius:11px}main[data-panel]{display:none}main[data-panel].active{display:block}main[data-panel] section:last-child{margin-bottom:0}section>form:not(.inline){display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin-bottom:10px}section>form:not(.inline)>input[name=label]{flex:2 1 190px}section>form:not(.inline)>input[type=number]{width:70px}section>form:not(.inline) label{display:flex;gap:5px;align-items:center;font-size:11px}section>form:not(.inline) label input{width:63px}section p{margin:8px 0 10px}table{width:100%;border-collapse:collapse;white-space:nowrap;font-size:11px}td,th{text-align:left;padding:10px 8px;border-bottom:1px solid #ebeff4}th{color:#78859b;font-weight:600;background:#f8fafc}td{color:#3b4658}.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:10px;border:1px solid #eef1f6;border-radius:11px}tr:last-child td{border-bottom:0}#device-overview .stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}#device-overview .stat{padding:9px 8px;min-height:62px}#device-overview .stat b{font-size:19px}#device-overview .stat small{font-size:10px}#device-overview p{display:flex;flex-wrap:wrap;align-items:center;gap:6px}#device-overview #presence-query{flex:1 1 155px;min-width:130px}#device-overview select{max-width:125px}#device-overview p label{font-size:11px}.bottom-nav{position:fixed;inset:auto 0 0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;background:#fff;border-top:1px solid #edf0f4;box-shadow:0 -4px 16px rgba(20,46,80,.035);padding:5px 10px calc(6px + env(safe-area-inset-bottom));z-index:50;max-width:850px;margin:0 auto}.bottom-nav button{background:transparent;color:#8792a7;border:0;border-radius:10px;padding:6px 0;font-size:9.5px;font-weight:500;min-height:47px;white-space:nowrap}.bottom-nav button.active{background:transparent;color:var(--blue);font-weight:650}.bottom-nav svg{display:block;margin:0 auto 3px;width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linejoin:round;stroke-linecap:round}.bottom-nav button.active svg{stroke-width:2.3}@media(min-width:650px){body{padding:24px 20px 100px}.stats{grid-template-columns:repeat(5,minmax(0,1fr))}#device-overview .stats{grid-template-columns:repeat(3,minmax(0,1fr))}header h1{font-size:24px}}@media(max-width:360px){body{padding-left:10px;padding-right:10px}.stat{padding:10px}.stat b{font-size:21px}}
 
 
 /* LUIYo iOS native compact UI: visual-only additions, no authorization changes */
@@ -393,19 +432,78 @@ section h2{font-size:15px;margin:0 0 10px}.screen-title{padding:7px 2px 13px}.sc
 </main>
 <main data-panel="devices"><div class="screen-title"><span class="title-icon" aria-hidden="true">▣</span><h1>设备与在线用户</h1></div>
 <section class="device-grant-section"><h2>设备码授权</h2><form method="post" action="admin.php?panel=devices" class="device-grant-form"><input type="hidden" name="csrf" value="<?=e($_SESSION['csrf'])?>"><label for="grant-device-code">设备码</label><input id="grant-device-code" name="device_code" placeholder="D-000001" pattern="D-[0-9]{6,9}" required autocapitalize="characters"><button name="action" value="grant_device">授权 SVIP 3</button><button name="action" value="revoke_device" class="danger">撤销</button></form><small>输入已登记设备的完整编号；新版 App 联网后自动领取，不会覆盖已有卡密授权。</small></section>
-<section id="device-overview"><div class="between"><h2>设备与在线用户</h2><small id="presence-update">正在更新…</small></div><div class="stats"><div class="stat"><small>新版登记设备</small><b id="presence-total">—</b></div><div class="stat"><small>当前在线</small><b id="presence-online">—</b></div><div class="stat"><small>未授权设备</small><b id="presence-unlicensed">—</b></div></div><p><label>筛选 <select id="presence-filter"><option value="all">全部设备</option><option value="online">在线设备</option><option value="licensed">已授权</option><option value="unlicensed">未授权</option></select></label><input id="presence-query" placeholder="搜索设备码或备注" aria-label="搜索设备"><button id="presence-refresh" type="button">刷新</button></p><small>未授权可登记设备，首页功能仍需激活。设备码为安装标识。旧版 App 记录在下方授权设备列表保留。列表显示服务器已登记的全部设备；每 10 秒刷新一次。</small><input type="hidden" id="presence-csrf" value="<?=e($_SESSION['csrf'])?>"><div class="presence-list-count" id="presence-list-count" aria-live="polite">正在获取设备列表…</div><div class="scroll presence-scroll"><table><thead><tr><th>设备码</th><th>在线</th><th>授权</th><th>设备 / 版本</th><th>当前页面</th><th>最近使用</th><th>操作</th></tr></thead><tbody id="presence-rows"><tr><td colspan="7">正在载入设备…</td></tr></tbody></table></div></section><section class="legacy-devices"><h2>原有授权设备管理（最近 200 条）</h2><div class="legacy-search"><input type="search" id="legacy-search" placeholder="搜索设备码、卡密备注或时间" aria-label="搜索原有授权设备"><button type="button" id="legacy-search-clear">清空</button></div><div class="scroll"><table><thead><tr><th>设备码</th><th>激活码备注</th><th>最近活跃（北京）</th><th>状态</th><th>操作</th></tr></thead><tbody>
-<?php foreach($devices as $d):?><tr><td data-label="设备码"><?= !empty($d['installation_id'])?e('D-'.str_pad((string)$d['installation_id'],6,'0',STR_PAD_LEFT)):e('未登记设备（记录 #'.$d['id'].'）') ?></td><td data-label="卡密备注"><?=e($d['label'])?></td><td data-label="最近活跃"><?=e(gmdate('Y-m-d H:i',(int)$d['last_seen']+28800))?></td><td data-label="状态"><?= $d['banned']?'已封禁':'正常' ?></td><td data-label="操作"><form method="post" action="admin.php?panel=devices" class="inline"><input type="hidden" name="csrf" value="<?=e($_SESSION['csrf'])?>"><input type="hidden" name="id" value="<?=(int)$d['id']?>"><input type="hidden" name="action" value="<?=$d['banned']?'unban':'ban'?>"><?php if(!$d['banned']):?><input name="reason" maxlength="120" placeholder="封禁原因"><?php endif;?><button class="<?=$d['banned']?'':'danger'?>"><?=$d['banned']?'解除封禁':'封禁'?></button></form></td></tr><?php endforeach;?></tbody></table></div></section></main>
+<section id="device-overview"><div class="between"><h2>设备与在线用户</h2><small id="presence-update">正在更新…</small></div><div class="stats"><div class="stat"><small>新版登记设备</small><b id="presence-total">—</b></div><div class="stat"><small>当前在线</small><b id="presence-online">—</b></div><div class="stat"><small>未授权设备</small><b id="presence-unlicensed">—</b></div></div><p><label>筛选 <select id="presence-filter"><option value="all">全部设备</option><option value="online">在线设备</option><option value="licensed">已授权</option><option value="unlicensed">未授权</option></select></label><input id="presence-query" placeholder="搜索设备码或备注" aria-label="搜索设备"><button id="presence-refresh" type="button">刷新</button></p><small>未授权可登记设备，首页功能仍需激活。设备码为安装标识。旧版 App 记录在下方授权设备列表保留。列表显示服务器已登记的全部设备；每 10 秒刷新一次。</small><input type="hidden" id="presence-csrf" value="<?=e($_SESSION['csrf'])?>"><div class="presence-list-count" id="presence-list-count" aria-live="polite">正在获取设备列表…</div><div class="scroll presence-scroll"><table><thead><tr><th>设备码</th><th>在线</th><th>授权</th><th>设备 / 版本</th><th>当前页面</th><th>最近使用</th><th>操作</th></tr></thead><tbody id="presence-rows"><tr><td colspan="7">正在载入设备…</td></tr></tbody></table></div></section><section class="legacy-devices"><h2>原有授权设备管理（最近 200 条）</h2><div class="legacy-search"><input type="search" id="legacy-search" placeholder="搜索设备码、授权模式或时间" aria-label="搜索原有授权设备"><button type="button" id="legacy-search-clear">清空</button></div><div class="scroll"><table><thead><tr><th>设备码</th><th>授权模式</th><th>最近活跃（北京）</th><th>状态</th><th>操作</th></tr></thead><tbody>
+<?php foreach($devices as $d):?><tr><td data-label="设备码"><?= !empty($d['installation_id'])?e('D-'.str_pad((string)$d['installation_id'],6,'0',STR_PAD_LEFT)):e('未登记设备（记录 #'.$d['id'].'）') ?></td><td data-label="授权模式"><?php $authDevCode=!empty($d['installation_id'])?'D-'.str_pad((string)$d['installation_id'],6,'0',STR_PAD_LEFT):''; if($authDevCode!==''&&(int)($d['grant_count']??0)>0){echo '设备码 '.e($authDevCode);}else{echo '卡密'.($d['label']!==''?' · '.e($d['label']):' #'.(int)$d['license_id']);} ?></td><td data-label="最近活跃"><?=e(gmdate('Y-m-d H:i',(int)$d['last_seen']+28800))?></td><td data-label="状态"><?= $d['banned']?'已封禁':'正常' ?></td><td data-label="操作"><form method="post" action="admin.php?panel=devices" class="inline"><input type="hidden" name="csrf" value="<?=e($_SESSION['csrf'])?>"><input type="hidden" name="id" value="<?=(int)$d['id']?>"><input type="hidden" name="action" value="<?=$d['banned']?'unban':'ban'?>"><?php if(!$d['banned']):?><input name="reason" maxlength="120" placeholder="封禁原因"><?php endif;?><button class="<?=$d['banned']?'':'danger'?>"><?=$d['banned']?'解除封禁':'封禁'?></button></form></td></tr><?php endforeach;?></tbody></table></div></section></main>
 <main data-panel="licenses"><div class="screen-title"><span class="title-icon" aria-hidden="true">⚿</span><h1>卡密管理</h1><small>最近 200 条</small></div>
 <section class="license-section"><div class="between"><h2>激活码列表</h2><small>点击编号查看授权信息</small></div><input type="search" id="license-search" placeholder="搜索卡密编号或备注" aria-label="搜索卡密记录">
 <p class="license-disclaimer">旧卡密仅存哈希，无法显示明文。新生成的卡密请在「生成卡密 → 近期生成记录」中复制。</p>
 <div class="license-list"><?php foreach($licenses as $l):?><article class="license-item" data-filter="<?=e(mb_strtolower('#'.$l['id'].' '.$l['label']))?>"><div class="license-line"><strong>卡密 #<?=(int)$l['id']?></strong><div class="license-top-right"><span class="state-pill <?= $l['disabled']?'off':'on' ?>"><?=$l['disabled']?'已停用':'正常'?></span><div class="license-actions"><form method="post" action="admin.php?panel=licenses" class="inline"><input type="hidden" name="csrf" value="<?=e($_SESSION['csrf'])?>"><input type="hidden" name="id" value="<?=(int)$l['id']?>"><input type="hidden" name="action" value="<?=$l['disabled']?'enable':'disable'?>"><button class="outline-alert"><?=$l['disabled']?'启用':'停用'?></button></form>
-<form method="post" action="admin.php?panel=licenses" class="inline delete-license-form"><input type="hidden" name="csrf" value="<?=e($_SESSION['csrf'])?>"><input type="hidden" name="id" value="<?=(int)$l['id']?>"><input type="hidden" name="action" value="delete_license"><button type="submit" class="outline-alert">删除</button></form></div></div></div><?php $plainCode=$recentPlainByHash[$l['code_hash']]??null; if($plainCode):?><div class="license-code"> <span><?=e($plainCode)?></span><button type="button" class="copy-code" data-copy="<?=e($plainCode)?>">复制</button></div><?php else: ?><div class="license-code unavailable">历史卡密明文不可恢复</div><?php endif; ?><div class="license-line subtitle">备注：<?=e($l['label']?:'未填写')?></div><div class="license-details"><span>设备 <?=(int)$l['device_count']?> / <?=(int)$l['max_devices']?></span><span>到期 <?= $l['expires_at']?e(gmdate('Y-m-d',(int)$l['expires_at'])):'永久' ?></span></div>
+<form method="post" action="admin.php?panel=licenses" class="inline delete-license-form"><input type="hidden" name="csrf" value="<?=e($_SESSION['csrf'])?>"><input type="hidden" name="id" value="<?=(int)$l['id']?>"><input type="hidden" name="action" value="delete_license"><button type="submit" class="outline-alert">删除</button></form></div></div></div><?php $plainCode=($l['code_plain']??'')!==''?$l['code_plain']:($recentPlainByHash[$l['code_hash']]??null); if($plainCode):?><div class="license-code"> <span><?=e($plainCode)?></span><button type="button" class="copy-code" data-copy="<?=e($plainCode)?>">复制</button></div><?php else: ?><div class="license-code unavailable">历史卡密明文不可恢复</div><?php endif; ?><div class="license-line subtitle">备注：<?=e($l['label']?:'未填写')?></div><div class="license-details"><span>设备 <?=(int)$l['device_count']?> / <?=(int)$l['max_devices']?></span><span>到期 <?= $l['expires_at']?e(gmdate('Y-m-d',(int)$l['expires_at'])):'永久' ?></span></div>
 </article><?php endforeach;?></div></section></main>
+
+<main data-panel="versions">
+<div class="screen-title"><span class="title-icon" aria-hidden="true">⇧</span><h1>版本控制</h1><small>禁用旧版 App</small></div>
+<section>
+<h2>登记 / 禁用版本</h2>
+<p><small>客户端联网后会自动同步版本号到本页。新版本（如 1.0.7）出现后可直接禁用或恢复；禁用后所有该版本 App 无法使用并提示下载正版。也可手动补登记。</small></p>
+<form method="post" action="admin.php?panel=versions">
+<input type="hidden" name="csrf" value="<?=e($_SESSION['csrf'])?>">
+<input type="hidden" name="action" value="add_version">
+<input type="hidden" name="return_panel" value="versions">
+<p><label>版本号 <input name="version" placeholder="例如 1.0.5" required pattern="[0-9]+(\.[0-9]+){0,3}"></label></p>
+<p><label>提示文案 <input name="message" value="请下载正版使用" maxlength="120" style="min-width:240px"></label></p>
+<p><label>原因 <input name="note" placeholder="可选" maxlength="120"></label></p>
+<p><label><input type="checkbox" name="blocked" value="1" checked> 立即禁用此版本</label></p>
+<p><button type="submit">保存版本</button></p>
+</form>
+</section>
+<section>
+<h2>已登记版本</h2>
+<?php if(!$appVersions): ?>
+<p><small>暂无记录。请先添加需要管控的旧版本号。</small></p>
+<?php else: ?>
+<div class="scroll"><table>
+<thead><tr><th>版本</th><th>状态</th><th>提示</th><th>原因</th><th>操作</th></tr></thead>
+<tbody>
+<?php foreach($appVersions as $av): ?>
+<tr>
+<td><strong><?=e($av['version'])?></strong></td>
+<td><?= ((int)$av['blocked']===1) ? '<span class="state-pill off">已禁用</span>' : '<span class="state-pill on">允许</span>' ?></td>
+<td><small><?=e($av['message']?:'请下载正版使用')?></small></td>
+<td><small><?=e($av['note']?:'—')?></small></td>
+<td>
+<form method="post" action="admin.php?panel=versions" class="inline">
+<input type="hidden" name="csrf" value="<?=e($_SESSION['csrf'])?>">
+<input type="hidden" name="version" value="<?=e($av['version'])?>">
+<input type="hidden" name="return_panel" value="versions">
+<?php if((int)$av['blocked']===1): ?>
+<input type="hidden" name="action" value="unblock_version">
+<button type="submit">恢复使用</button>
+<?php else: ?>
+<input type="hidden" name="action" value="block_version">
+<button type="submit" class="danger">关闭使用</button>
+<?php endif; ?>
+</form>
+<form method="post" action="admin.php?panel=versions" class="inline">
+<input type="hidden" name="csrf" value="<?=e($_SESSION['csrf'])?>">
+<input type="hidden" name="version" value="<?=e($av['version'])?>">
+<input type="hidden" name="action" value="delete_version">
+<input type="hidden" name="return_panel" value="versions">
+<button type="submit" class="outline-alert">删除</button>
+</form>
+</td>
+</tr>
+<?php endforeach; ?>
+</tbody></table></div>
+<?php endif; ?>
+</section>
+</main>
 <nav class="bottom-nav" aria-label="后台页面导航">
 <button type="button" class="active" data-nav="overview" aria-current="page"><svg viewBox="0 0 24 24"><path d="M3 11 12 3l9 8v10H3z"/><path d="M9 21v-7h6v7"/></svg>首页</button>
 <button type="button" data-nav="codes"><svg viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="M11 12 21 2m-5 5 3 3m-6 0 3 3"/></svg>生成卡密</button>
 <button type="button" data-nav="devices"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 9h8M8 13h8M8 17h4"/></svg>设备管理</button>
 <button type="button" data-nav="licenses"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>卡密管理</button>
+<button type="button" data-nav="versions"><svg viewBox="0 0 24 24"><path d="M12 3v18M5 8l7-5 7 5M5 16l7 5 7-5"/></svg>版本控制</button>
 </nav>
 <script src="admin-devices.js?v=1.0.5-layout2" defer></script><script src="admin-ui.js?v=1.0.5-layout2" defer></script>
 </body></html>
