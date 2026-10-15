@@ -118,6 +118,8 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     private var settingsHero: UIView?
     private var nativeThemeSwitches: [String: UIControl] = [:]
     private var switchingNativePage = false
+    private var suppressWebViewReveal = false
+    private var pageSwitchGeneration = 0
     private var nativeLicenseButtons: [String: UIButton] = [:]
     private var retainedTabs: [String: AnyObject] = [:]
     private var nativeSymbols: [String: UIImageView] = [:]
@@ -650,7 +652,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
                     webView.trailingAnchor.constraint(equalTo: host.trailingAnchor)]
                 NSLayoutConstraint.activate(webHostConstraints)
                 host.layoutIfNeeded()
-                webView.isHidden = false
+                if !suppressWebViewReveal { webView.isHidden = false }
             }
         }
         attachNativeHome(to: parent, host: host)
@@ -692,16 +694,29 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     private func prepareNativePageSelection(_ tag: Int) -> Bool {
         guard nativeHomeReady, tag != activePageTag else { return true }
         let page = tag == 1 ? "rules" : tag == 2 ? "settings" : "home"
-        // Respond to the tab immediately. The homepage stays mounted in its own
-        // controller; no snapshot, two-frame barrier, or expensive tree rebuild.
+        // Root cause of the tab-switch flash: the old code moved the shared
+        // WKWebView into the new tab and revealed it BEFORE the async
+        // appNavTo() JS swapped the page, so the old page's DOM showed through
+        // the new tab for a few frames. Neither performWithoutAnimation nor
+        // hide-during-move could fix that ordering. Fix: keep the webView
+        // hidden until the new page's DOM is live, then seat it and reveal.
+        // (Same principle as navigateFromNativeTab: JS content first, move after.)
+        pageSwitchGeneration += 1
+        let generation = pageSwitchGeneration
         switchingNativePage = true
+        suppressWebViewReveal = true
+        webView.isHidden = true
         UIView.performWithoutAnimation {
             selectNativePage(tag)
             updatePageScroll(page)
         }
+        suppressWebViewReveal = false
         webView.evaluateJavaScript("appNavTo('" + page + "');window.__syncNativeCardGlass?.();") { [weak self] _, _ in
             guard let self else { return }
+            guard self.pageSwitchGeneration == generation else { return }
             self.switchingNativePage = false
+            // The Web UI already shows the new page: seat the webView and reveal it.
+            self.keepContentBelowNativeBar()
             self.updateLayoutMetrics(force: true)
         }
         return false
@@ -1304,7 +1319,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         let visible = nativePageName == "home" && (activeSearchPageController == nil || activeSearchPage == "home")
         // Keep WebKit attached and rendering so its processing/input state stays live.
         // An opaque native home covers it; other tabs have no SwiftUI overlay.
-        webView.isHidden = false
+        if !suppressWebViewReveal { webView.isHidden = false }
         webView.isUserInteractionEnabled = !visible
         webView.accessibilityElementsHidden = visible
         // The homepage stays attached to its own tab, including while hidden.
