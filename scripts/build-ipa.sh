@@ -56,7 +56,7 @@ true
 STAGE=$(mktemp -d "$ROOT/build/package.XXXXXX")
 mkdir -p "$STAGE/Payload"
 cp -R "$APP" "$STAGE/Payload/"
-NAME="LUIYo-v${VERSION}-build${BUILD}-ios26-${GITHUB_RUN_NUMBER:-local}-unsigned.ipa"
+NAME="LUIYo-${VERSION}-Build(${BUILD}).ipa"
 (cd "$STAGE" && /usr/bin/zip -qry "$ROOT/output/$NAME" Payload)
 unzip -t "output/$NAME"
 echo "IPA: output/$NAME (unsigned; sign before installation)"
