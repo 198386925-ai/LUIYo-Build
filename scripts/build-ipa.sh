@@ -5,6 +5,12 @@ cd "$ROOT"
 # Reassemble index.html from split chunks (for API upload limits)
 if [ -d "scripts/split-assets" ]; then
   cat scripts/split-assets/index.html.part* > YouYouLUI_iOS/YouYouLUI/Web/index.html
+  # Decode button icons
+  for name in feedback batch fill clear zip; do
+    if [ -f "scripts/split-assets/icon-$name.png.b64" ]; then
+      python3 -c "import base64,sys; open('YouYouLUI_iOS/YouYouLUI/Web/icon-$name.png','wb').write(base64.b64decode(open('scripts/split-assets/icon-$name.png.b64').read()))"
+    fi
+  done
 fi
 python3 scripts/render-release-notes.py
 node scripts/sync-native-preview-catalog.js --check || echo "catalog check skipped"
