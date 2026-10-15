@@ -1,16 +1,15 @@
-ostMessage({name:safeZipBaseName(document.getElementById('zipNameInput').value)});return}
-  const m=document.getElementById('shareModal');
-  const input=document.getElementById('zipNameInput');
-  if(!input.value.trim())input.value='优优LUI图标包';
-  m.classList.add('show');
-  setTimeout(()=>{try{input.focus();input.select()}catch(e){}},80);
+(score,common*100-Math.abs(a.length-b.length));
+      }
+    }
+    if(score)ranked.push({file:it.file,score,key:syncTitleKey(it.title),category:it.category});
+  });
+  ranked.sort((a,b)=>b.score-a.score);
+  if(!ranked.length)return null;
+  const best=ranked.filter(row=>row.score===ranked[0].score);
+  if(best.length>1&&!best.every(row=>row.key===best[0].key))return null;
+  return (best.find(row=>row.category==='wechat')||best[0]).file;
 }
-function closeShareModal(){document.getElementById('shareModal').classList.remove('show')}
-document.getElementById('shareModal').addEventListener('click',e=>{if(e.target.id==='shareModal')closeShareModal()});
-
-// 主题盒子兼容名的目标文件已在数据里写死（targetFile=null 表示只在“双分类补全”时使用补全图）。
-const fileToEntry=new Map();
-items.forEach((it,i)=>[...(it.files||[]),...(it.selectedFiles||[])].forEach(f=>fileToEntry.set(f,i)));
+for(const rule of extraNamingRules)rule.targetFile=resolveExistingRuleSource(rule);
 function findChosenForExtraRule(rule){
   if(!rule.targetFile) return null;
   for(const [i,f] of chosen){
@@ -18,11 +17,6 @@ function findChosenForExtraRule(rule){
     const names=[...(it.files||[it.file]),...(it.selectedFiles||[])];
     if(names.includes(rule.targetFile) && !excluded.has(i)) return {i,f};
   }
-  return null;
-}
-function darkNameFor(name){
-  if(/@3x\.png$/i.test(name))return name.replace(/@3x\.png$/i,'_Dark@3x.png');
-  if(/\.png$/i.test(name))return name.replace(/\.png$/i,'_Dark.png');
   return null;
 }
 function addDarkVariantForExtra(zip,name,blob){
@@ -34,7 +28,7 @@ function addDarkVariantForExtra(zip,name,blob){
 
 async function makeZip(btn){
   if(!chosen.size){alert('请先上传至少一张图片');return}
-  if(!window.JSZip){alert('ZIP 组件加载失败，请重启 App 后再试');return}
+  if(!window.JSZip){alert('ZIP组件没有加载成功，请检查网络后刷新页面');return}
   const oldText=btn?btn.textContent:'导出 ZIP';
   if(btn){btn.disabled=true;btn.textContent='正在生成…'}
   document.getElementById('status').textContent='正在生成 ZIP，请稍候…';
@@ -43,32 +37,35 @@ async function makeZip(btn){
     // A fill image is reused by hundreds of filenames. Convert each image/mode
     // once per export instead of decoding and drawing it for every filename.
     const convertedImages=new WeakMap();
-    function converted(file,mode,canvas){
+    function converted(file,mode){
       let modes=convertedImages.get(file);if(!modes){modes=new Map();convertedImages.set(file,modes)}
-      const key=canvas?mode+'@'+canvas[0]+'x'+canvas[1]:mode;
-      if(!modes.has(key)){
-        const image=mode==='normal'?toPng(file,canvas):mode==='dark'?toDarkPng(file,false,canvas):mode==='selected'?toSelectedPng(file,canvas):toDarkPng(file,true,canvas);
-        modes.set(key,Promise.resolve(image).then(async blob=>new Uint8Array(await blob.arrayBuffer())));
+      if(!modes.has(mode)){
+        const image=mode==='normal'?toPng(file):mode==='dark'?toDarkPng(file,false):mode==='selected'?toSelectedPng(file):toDarkPng(file,true);
+        modes.set(mode,Promise.resolve(image).then(async blob=>new Uint8Array(await blob.arrayBuffer())));
       }
-      return modes.get(key);
+      return modes.get(mode);
     }
-    const noInvert=new Set(iconExportRules.noInvertFiles),canvasOf=name=>iconExportRules.canvasFiles[name]||null;
     for(const [i,f] of chosen){
       const it=items[i];
-      for(const [names,mode,darkMode] of [[it.files||[it.file],'normal','dark'],[it.selectedFiles||[],'selected','selectedDark']]){
-        for(const name of names){
-          const canvas=canvasOf(name);
-          zip.file(name,await converted(f,mode,canvas));
-          const darkName=noInvert.has(name)?null:darkNameFor(name);
-          if(darkName)zip.file(darkName,await converted(f,darkMode,canvas));
+      const b=await converted(f,'normal'),db=await converted(f,'dark');
+      const names=it.files||[it.file];
+      for(const name of names){
+        zip.file(name,b);
+        const darkName=name.replace(/@3x\.png$/i,'_Dark@3x.png');
+        if(darkName!==name)zip.file(darkName,db)
+      }
+      if(it.selectedFiles&&it.selectedFiles.length){
+        const sb=await converted(f,'selected'),sdb=await converted(f,'selectedDark');
+        for(const name of it.selectedFiles){
+          zip.file(name,sb);
+          const darkName=name.replace(/@3x\.png$/i,'_Dark@3x.png');
+          if(darkName!==name)zip.file(darkName,sdb)
         }
       }
     }
     // 命名规则扩展：不新增上传卡片。能对应现有网页标题的规则复用该卡片图片；其余仅在“双分类补全”后用补全图片生成。
     for(const rule of extraNamingRules){
       let src=null;
-      const entry=rule.targetFile?fileToEntry.get(rule.targetFile):undefined;
-      if(entry!==undefined&&excluded.has(entry))continue;
       const hit=findChosenForExtraRule(rule);
       if(hit) src=hit.f;
       else if(extraFillApplied && fillFile) src=fillFile;
@@ -77,8 +74,11 @@ async function makeZip(btn){
       const normalBlob=await converted(src,selected?'selected':'normal');
       const darkBlob=await converted(src,selected?'selectedDark':'dark');
       zip.file(rule.file,normalBlob);
-      if(!noInvert.has(rule.targetFile))addDarkVariantForExtra(zip,rule.file,darkBlob);
+      addDarkVariantForExtra(zip,rule.file,darkBlob);
     }
+    const required=['location_filled@3x.png','location_filled_Dark@3x.png','transfer_filled@3x.png','transfer_filled_Dark@3x.png'];
+    const missing=required.filter(n=>!zip.file(n));
+    if(missing.length)console.warn('未生成（对应项目未上传/补全）：',missing);
     preparedZipBlob=await zip.generateAsync({type:'blob'});
     document.getElementById('status').textContent='ZIP 已生成，可以改名并分享';
     openShareModal();
@@ -156,12 +156,7 @@ function ruleDescription(it){
 }
 // Only group the reference display; import and export keep the original rules.
 function ruleReferenceRows(rows){
-  // 三种配对：「X选中」↔「X」（排除「未选中」）、「X · 选中」↔「X · 未选中」、「X（选中）」↔「X」。
-  const selectedBase=title=>{
-    if(title.endsWith('（选中）'))return title.slice(0,-4);
-    if(title.endsWith(' · 选中'))return title.slice(0,-' · 选中'.length)+' · 未选中';
-    return title.endsWith('选中')&&!title.endsWith('未选中')?title.slice(0,-2):null;
-  };
+  const selectedBase=title=>title.endsWith('选中')&&!title.endsWith('未选中')?title.slice(0,-2):null;
   const normalTitles=new Set(rows.filter(row=>selectedBase(row.title)===null).map(row=>row.title));
   const selectedByTitle=new Map();
   for(const row of rows){
@@ -175,8 +170,7 @@ function ruleReferenceRows(rows){
     const base=selectedBase(row.title);
     if(base!==null&&selectedByTitle.has(base))return [];
     const selected=selectedByTitle.get(row.title)||[];
-    const name=selected.length?row.title.replace(/ · 未选中$/,''):row.title;
-    return [{title:name+(selected.length?' + 选中':''),rules:[row,...selected]}];
+    return [{title:row.title+(selected.length?' + 选中':''),rules:[row,...selected]}];
   });
 }
 function renderRuleReference(){
@@ -226,8 +220,8 @@ renderRuleReference();
     <article class="guideCard"><span class="guideIcon">◇</span><div><h3>双分类补全</h3><p>用一张补全图片同时填充 LiquidUI 与原版微信中还没有图片的项目。</p></div></article>
     <article class="guideCard"><span class="guideIcon">↗</span><div><h3>自动联动</h3><p>同一图标对应多个内部命名时，上传一次即可在导出时自动生成相关文件。</p></div></article>
     <article class="guideCard"><span class="guideIcon">◉</span><div><h3>颜色修改</h3><p>可分别设置浅色选中、深色选中和全部图标颜色；不开启时保留默认处理。</p></div></article>
-    <article class="guideCard"><span class="guideIcon">×</span><div><h3>排除图标</h3><p>补全后不想更换的项目可以点卡片上的删除按钮，该项目不会进入本次 ZIP。</p></div></article>
-    <article class="guideCard"><span class="guideIcon">⇧</span><div><h3>导出</h3><p>生成 ZIP 后可改名，再通过 iPhone 系统分享菜单保存或分享。导出的 ZIP 解压后，把全部图片放进「文件」App → 微信 → LiquidUI/Icons 根目录（不带 @3x 的那组图也放这里），再到 LiquidUI 设置 → 全局换图标点「重新扫描图片文件夹」或重启微信。</p></div></article>
+    <article class="guideCard"><span class="guideIcon">×</span><div><h3>排除图标</h3><p>补全后不想更换的项目可以点卡片右上角 ×，该项目不会进入本次 ZIP。</p></div></article>
+    <article class="guideCard"><span class="guideIcon">⇧</span><div><h3>导出</h3><p>生成 ZIP 后可改名，再通过 iPhone 系统分享菜单保存或分享。</p></div></article>
   </div>
 </div>
 <div class="nativeInfoPage" id="logInfoPage" aria-hidden="true">
