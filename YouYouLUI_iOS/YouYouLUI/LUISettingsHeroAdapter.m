@@ -116,7 +116,7 @@ void LUIYoRefreshSettingsHero(UIView *view) {
     if (!_LUIYoHeroCustomFont) {
         _LUIYoHeroCustomFont = LUIYoLoadThemeFontFromDisk();
     }
-    NSString *name = [NSUserDefaults.standardUserDefaults stringForKey:@"youyou.hero.name"] ?: @"Liquid UI";
+    NSString *name = [NSUserDefaults.standardUserDefaults stringForKey:@"youyou.hero.name"] ?: @"LUIYo";
     NSString *shortVer = [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleShortVersionString"] ?: @"1.0.6";
     NSString *buildNum = [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleVersion"] ?: @"";
     NSString *version = [NSString stringWithFormat:@"Version%@ Build%@", shortVer, buildNum];
