@@ -1,380 +1,4 @@
-ormal","titles":["礼物气泡"]},{"file":"ChatRoom_Bubble_Gift_Sender@3x.png","targetFile":"gift_filled_icon@3x.png","mode":"normal","titles":["礼物气泡"]},{"file":"ChatRoom_Bubble_Gift_Receiver_Handled@3x.png","targetFile":"gift_filled_icon@3x.png","mode":"normal","titles":["礼物气泡"]},{"file":"ChatRoom_Bubble_Gift_Receiver@3x.png","targetFile":"gift_filled_icon@3x.png","mode":"normal","titles":["礼物气泡"]},{"file":"icons_multitalk_scroll@3x.png","targetFile":null,"mode":"normal","titles":["复用","换行同复用"]},{"file":"expression@3x.png","targetFile":null,"mode":"normal","titles":["净化小丑","净化转发同小丑"]},{"file":"wcpay_records.svg","targetFile":"icons_filled_filter@3x.png","mode":"normal","titles":["misaka备忘录"]},{"file":"icons_filled_channels_recommend_group@3x.png","targetFile":"icons_filled_setting@3x.png","mode":"normal","titles":["黄白助手还原"]},{"file":"icons_outlined_table@3x.png","targetFile":null,"mode":"normal","titles":["编辑文字"]},{"file":"icons_filled_AddSticker@3x.png","targetFile":"smile_regular@3x.png","mode":"normal","titles":["长按图片添加至表情长按表情添加"]},{"file":"icons_red_story_volume_off@3x.png","targetFile":"volume_off_filled@3x.png","mode":"normal","titles":["视频静音播放"]},{"file":"ad_finder_link_icon@3x.png","targetFile":null,"mode":"normal","titles":["PKC密图密视转发","pkc解图"]},{"file":"icons_filled_retransmission@3x.png","targetFile":null,"mode":"normal","titles":["pkc解密","随机小姐姐"]},{"file":"icons_regualr_note_2@3x.png","targetFile":null,"mode":"normal","titles":["pkc语音转MP3"]},{"file":"icons_filled_effects@3x.png","targetFile":"icons_filled_filter@3x.png","mode":"normal","titles":["misaka"]},{"file":"icons_outlined_emoji_ani@3x.png","targetFile":"icons_filled_chats@3x.png","mode":"normal","titles":["Ai回复"]},{"file":"icons_outlined_like_1@3x.png","targetFile":"heart_regular@3x.png","mode":"normal","titles":["朋友圈点赞后爱心按钮"]},{"file":"AlbumReflashIcon@3x.png","targetFile":"refresh_regular@3x.png","mode":"normal","titles":["朋友圈下拉刷新图标"]},{"file":"icons_finder_minimize@3x.png","targetFile":null,"mode":"normal","titles":["语音视频电话时左上角缩小"]},{"file":"icons_outlined_channels_bulletscreen_open@3x.png","targetFile":"icons_outlined_channels_comment@3x.png","mode":"normal","titles":["视频号视频下面评论"]},{"file":"icon_color_momentcover@3x.png","targetFile":"lui_moments_qz_cover@3x.png","mode":"normal","titles":["视频号设为朋友圈封面"]},{"file":"icons_outlined_channels_bulletscreen_off@3x.png","targetFile":null,"mode":"normal","titles":["不看弹幕"]},{"file":"icons_outlined_channels_bulletscreen_on@3x.png","targetFile":null,"mode":"normal","titles":["显示弹幕"]},{"file":"finder_colorring@3x.png","targetFile":null,"mode":"normal","titles":["设为来电铃声"]},{"file":"icon_finder_pat_music@3x.png","targetFile":"icon_music_filled@3x.png","mode":"normal","titles":["视频号背景声音"]},{"file":"icons_filled_channel@3x","targetFile":"icons_outlined_finder@3x.png","mode":"normal","titles":["视频号封面up主前面符号"]},{"file":"icons_outline_author_copyid@3x.pmg","targetFile":"icons_outlined_finder@3x.png","mode":"normal","titles":["个人视频号复制视频id"]},{"file":"fileicon_zip_icon@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件zip图标命名"]},{"file":"fileicon_pdf_icon@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件PDF图标命名"]},{"file":"fileicon_excel_icon@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件Excel图标命名"]},{"file":"fileicon_word_icon@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件word图标命名"]},{"file":"fileicon_txt_icon@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件txt图标命名"]},{"file":"fileicon_music_icon@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件音乐图标命名"]},{"file":"fileicon_photo_icon_light@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件图像图标命名"]},{"file":"fileicon_ofd_icon@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件ofd图标命名"]},{"file":"fileicon_voice_icon_light@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件MP3图标命名"]},{"file":"fileicon_video_icon_light@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件视频图标命名"]},{"file":"fileicon_unknown_icon_light@3x.png","targetFile":"folder_filled@3x.png","mode":"normal","titles":["微信文件视未知命名"]}];
-let extraFillApplied=false;
-const chosen=new Map();
-const excluded=new Set(); // 用户点 × 后，本次导出不包含这些图标；再次手动上传可恢复
-const list=document.getElementById('list');
-let activeCategory='wechat';
-// LiquidUI 与原版微信通用同名联动：两个分类里只要显示标题相同，任意一边上传，另一边自动同步同一张图片。
-// 例如“底栏微信”“底栏通讯录”，以及以后新增的其它同名图标，都无需再单独写同步规则。
-function syncTitleKey(title){
-  return String(title||'')
-    .replace(/^LiquidUI\s*/i,'')
-    .replace(/\s+/g,'')
-    .trim()
-    .toLowerCase();
-}
-// Reuse one upload for the same action across stock and LiquidUI file names.
-// Distinct states (flash on/off, call on/off, etc.) retain separate entries.
-function uploadRole(it){
-  const f=it.file,t=String(it.title||'').replace(/^LiquidUI\s*/i,'').trim();
-  if(/^底栏(?:微信|通讯录|发现|我的)$/.test(t))return 'dock:'+t;
-  const families=[
-    [/^(?:magnifying_glass_|icons_filled_(?:new_)?search@|tabbar_search\.|search_sms\.)/,'搜索'],
-    [/^person_plus_/,'添加朋友'],
-    [/^(?:scan_(?:regular|filled)@|icons_filled_scan@)/,'扫一扫'],
-    [/^(?:pay_(?:regular|filled)@|icons_filled_qr_code@)/,'收付款'],
-    [/^qr_code_(?:regular|filled)@/,'我的二维码'],
-    [/^(?:favorites_(?:regular|filled)@|icons_outlined_colorful_favorites@)/,'收藏'],
-    [/^(?:camera_(?:regular|filled)@|icons_filled_camera@)/,'拍摄'],
-    [/^picture_filled@/,'相册'],[/^transfer_filled@/,'转账'],[/^location_filled@/,'位置'],
-    [/^icons_filled_red_envelope@/,'红包'],[/^folder_filled@/,'文件'],
-    [/^(?:icons_filled_video(?:call|_phone)@|video_(?:regular|filled)@)/,'视频通话'],
-    [/^call_on_filled@/,'语音通话'],[/^smile_regular@/,'表情'],
-    [/^voice_circle_(?:regular|filled)@/,'语音按钮'],
-    [/^(?:arrow_left_regular@|back_(?:flame|duo)\.)/,'返回'],
-    [/^(?:dot_3_(?:regular|filled)@|more_(?:flame|duo|qz)\.)/,'更多'],
-    [/^(?:xmark_(?:regular|filled)@|close_duo\.|duo_ring_close\.)/,'关闭'],
-    [/^gear_regular@/,'设置'],[/^(?:copy_filled@|doc_filled@)/,'复制'],
-    [/^(?:download_(?:regular|filled)@)/,'保存图片'],
-  ];
-  for(const [pattern,key] of families)if(pattern.test(f))return 'shared:'+key;
-  const quoted=t.match(/「([^」]+)」$/);
-  const tail=(quoted?quoted[1]:t.split('·').pop()).trim().replace(/^「|」$/g,'');
-  const aliases={'加为好友':'添加朋友','右上返回':'返回','右上更多':'更多','更改标题':'更改备注','语音键':'语音按钮','表情键':'表情','相机':'拍摄','视频通话':'视频通话','语音通话':'语音通话'};
-  const common=new Set(['扫一扫','收付款','我的二维码','收藏','拍摄','相册','转账','位置','红包','文件','搜索','设置','复制','发消息','添加朋友','返回','更多','关闭','表情','语音按钮','视频通话','语音通话','保存图片']);
-  const key=aliases[tail]||tail;
-  if(common.has(key)||aliases[tail])return 'shared:'+key;
-  if(f==='input_tg_voice.png')return 'shared:语音按钮';
-  if(f==='input_tg_emoji.png')return 'shared:表情';
-  return 'title:'+syncTitleKey(t).replace(/(?:按钮)?图标$/,'');
-}
-const titleGroups=new Map();
-items.forEach((it,i)=>{
-  const key=uploadRole(it);
-  if(!titleGroups.has(key))titleGroups.set(key,[]);
-  titleGroups.get(key).push(i);
-});
-const sameNameSyncMap=new Map();
-for(const idxs of titleGroups.values()){
-  const representative=idxs.find(i=>items[i].category==='wechat')??idxs[0];
-  const stock=idxs.some(i=>items[i].category==='wechat')||uploadRole(items[representative]).startsWith('shared:');
-  items[representative].category=stock?'wechat':'liquidui';
-  items[representative].aliases=[...new Set(idxs.flatMap(i=>[items[i].title,...(items[i].aliases||[])]))];
-  items[representative].sections=[...new Set(idxs.flatMap(i=>[items[i].section,...(items[i].sections||[])]).filter(Boolean))];
-  for(const i of idxs){
-    items[i].hiddenFromUI=i!==representative;
-    items[i].uploadRepresentative=representative;
-    sameNameSyncMap.set(i,idxs.filter(j=>j!==i));
-  }
-}
-function setChosenWithSync(i,f){
-  chosen.set(i,f);
-  excluded.delete(i);
-  const peers=sameNameSyncMap.get(i)||[];
-  peers.forEach(j=>{chosen.set(j,f);excluded.delete(j)});
-  return peers.length;
-}
-function removeChosenWithSync(i){
-  const targets=[i,...(sameNameSyncMap.get(i)||[])];
-  targets.forEach(j=>{chosen.delete(j);excluded.add(j)});
-  renderList();
-  updateStatus();
-}
-document.getElementById('count').textContent='共 '+items.filter(x=>!x.hiddenFromUI).length+' 个上传项';
-function normalizeSearchText(v){
-  return String(v??'').toLowerCase()
-    .normalize('NFKC')
-    .replace(/[^\p{L}\p{N}]+/gu,' ')
-    .replace(/\s+/g,' ')
-    .trim();
-}
-function itemSearchText(it){
-  return normalizeSearchText([
-    it.title,it.file,it.section,
-    ...(it.aliases||[]),...(it.sections||[]),
-    ...(it.files||[]),...(it.selectedFiles||[])
-  ].filter(Boolean).join(' '));
-}
-function itemMatchesQuery(it,q){
-  const tokens=normalizeSearchText(q).split(' ').filter(Boolean);
-  if(!tokens.length)return true;
-  const hay=itemSearchText(it);
-  return tokens.every(t=>hay.includes(t));
-}
-function escapeRuleHtml(v){
-  return String(v??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
-}
-function renderList(){
-  list.querySelectorAll('.preview img[data-url]').forEach(img=>URL.revokeObjectURL(img.dataset.url));
-  list.innerHTML='';
-  const q=document.getElementById('searchInput')?.value||'';
-  items.forEach((it,i)=>{
-    if(it.category!==activeCategory || it.hiddenFromUI || !itemMatchesQuery(it,q)) return;
-    const c=document.createElement('div');c.className='card'+(excluded.has(i)?' excluded':'');c.dataset.i=i;
-    const removeBtn=chosen.has(i)?`<button type="button" class="removeIcon" data-remove="${i}" aria-label="移除这个图标">×</button>`:'';
-    c.innerHTML=`<label class="uploadThumb" aria-label="上传${escapeRuleHtml(it.title)}图标"><span class="uploadPlus" aria-hidden="true">+</span><div class="preview" id="p${i}"><img alt="${escapeRuleHtml(it.title)}"></div><input type="file" accept="image/*" data-i="${i}"></label><div class="uploadText"><div class="title">${escapeRuleHtml(it.title.replace(/^LiquidUI\s*/,''))}</div><div class="uploadHint">${chosen.has(i)?'已上传 · 点击左图替换':'点击左图上传'}</div></div>${removeBtn}`;
-    list.appendChild(c);
-    if(chosen.has(i)) showPreviewOnly(i,chosen.get(i));
-  });
-}
-const previewThumbnails=new WeakMap();
-function previewBounds(pixels,width,height){
-  let left=width,top=height,right=-1,bottom=-1;
-  for(let y=0;y<height;y++)for(let x=0;x<width;x++)if(pixels[(y*width+x)*4+3]>0){left=Math.min(left,x);right=Math.max(right,x);top=Math.min(top,y);bottom=Math.max(bottom,y)}
-  return right<left?null:{left,top,width:right-left+1,height:bottom-top+1};
-}
-async function thumbnailFor(file){
-  if(previewThumbnails.has(file))return previewThumbnails.get(file);
-  const work=(async()=>{
-    const image=await createImageBitmap(file),scale=Math.min(1,1024/Math.max(image.width,image.height));
-    const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(image.width*scale));canvas.height=Math.max(1,Math.round(image.height*scale));
-    const context=canvas.getContext('2d',{willReadFrequently:true});context.drawImage(image,0,0,canvas.width,canvas.height);image.close();
-    const bounds=previewBounds(context.getImageData(0,0,canvas.width,canvas.height).data,canvas.width,canvas.height);
-    if(!bounds)return canvas.toDataURL('image/png');
-    const inset=Math.max(1,Math.ceil(Math.max(bounds.width,bounds.height)*.04)),crop=document.createElement('canvas');crop.width=bounds.width+inset*2;crop.height=bounds.height+inset*2;
-    crop.getContext('2d').drawImage(canvas,bounds.left,bounds.top,bounds.width,bounds.height,inset,inset,bounds.width,bounds.height);
-    return crop.toDataURL('image/png');
-  })();previewThumbnails.set(file,work);return work;
-}
-function showPreviewOnly(i,f){
-  const p=document.getElementById('p'+i);if(!p)return;const img=p.querySelector('img');if(img.dataset.url)URL.revokeObjectURL(img.dataset.url);
-  const u=URL.createObjectURL(f);img.src=u;img.dataset.url=u;p.style.display='flex';
-  thumbnailFor(f).then(thumbnail=>{if(img.isConnected&&chosen.get(i)===f)img.src=thumbnail}).catch(()=>{});
-}
-function showFile(i,f){
-  setChosenWithSync(i,f);
-  showPreviewOnly(i,f);
-  const peers=sameNameSyncMap.get(i)||[];
-  peers.forEach(j=>showPreviewOnly(j,f));
-  updateStatus()
-}
-function updateStatus(){const total=items.filter(x=>x.category===activeCategory&&!x.hiddenFromUI).length, done=[...chosen.keys()].filter(i=>items[i].category===activeCategory&&!items[i].hiddenFromUI).length;document.getElementById('status').textContent='已上传 '+done+' / '+total+' 项';const live=document.getElementById('liveImported');if(live)live.textContent='当前上传项目：'+items.filter((it,i)=>!it.hiddenFromUI&&chosen.has(i)).length+' 项'}
-function switchCategory(cat){activeCategory=cat;document.getElementById('tabLui').classList.toggle('active',cat==='liquidui');document.getElementById('tabWechat').classList.toggle('active',cat==='wechat');document.getElementById('sectionTitle').textContent=cat==='liquidui'?'LiquidUI 图标':'原版微信图标';renderList();updateStatus()}
-document.getElementById('tabLui').onclick=()=>switchCategory('liquidui');
-document.getElementById('tabWechat').onclick=()=>switchCategory('wechat');
-list.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.removeIcon');if(!b)return;e.preventDefault();e.stopPropagation();removeChosenWithSync(+b.dataset.remove)});
-list.addEventListener('change',e=>{if(!e.target.matches('input[type=file]'))return;const f=e.target.files&&e.target.files[0];if(!f)return;showFile(+e.target.dataset.i,f);renderList()});
-// 批量导入：按照网页上显示的中文标题 / 关键词自动匹配，而不是要求图片使用内部资源文件名。
-function importKeywordNormalize(v){
-  return String(v||'')
-    .replace(/\.[a-z0-9]{1,8}$/i,'')
-    .replace(/liquid\s*ui/ig,'')
-    .replace(/\blui\b/ig,'')
-    .replace(/@\d+x/ig,'')
-    .replace(/[「」『』【】\[\]（）()<>《》·•—–_\-+.,，。:：;；'\"“”‘’/\\|\s]/g,'')
-    .toLowerCase();
-}
-function itemImportKeywords(it){
-  // 批量导入关键词严格来自网页卡片当前显示的标题。
-  // LiquidUI 前缀在网页卡片里不会显示，因此匹配时也去掉。
-  const visibleTitle=String(it.title||'').replace(/^LiquidUI\s*/,'').trim();
-  const k=importKeywordNormalize(visibleTitle);
-  return k?[k]:[];
-}
-function longestCommonSubstringLen(a,b){
-  if(!a||!b)return 0;
-  const dp=new Array(b.length+1).fill(0);
-  let best=0;
-  for(let i=1;i<=a.length;i++){
-    let prev=0;
-    for(let j=1;j<=b.length;j++){
-      const old=dp[j];
-      if(a[i-1]===b[j-1]){
-        dp[j]=prev+1;
-        if(dp[j]>best)best=dp[j];
-      }else dp[j]=0;
-      prev=old;
-    }
-  }
-  return best;
-}
-function findItemByWebKeyword(filename){
-  const stem=importKeywordNormalize(filename);
-  // 完整标题可精确匹配两个字；模糊匹配需连续三个字以上，避免误导入。
-  if(!stem || stem.length<2) return {index:-1,ambiguous:false,tooShort:true};
-  const scored=[];
-  items.forEach((it,i)=>{
-    for(const k of itemImportKeywords(it)){
-      if(!k || k.length<2) continue;
-      let score=0;
-      let fuzzy=0;
-      if(stem===k) score=20000+k.length;
-      else if(k.length>=3 && stem.includes(k)) score=15000+k.length;
-      else if(stem.length>=3 && k.includes(stem)) score=12000+stem.length;
-      else {
-        fuzzy=longestCommonSubstringLen(stem,k);
-        if(fuzzy>=3) score=5000+fuzzy*100-Math.abs(stem.length-k.length);
-      }
-      if(score) scored.push({i,score,k,fuzzy});
-    }
-  });
-  if(!scored.length) return {index:-1,ambiguous:false,tooShort:false};
-  scored.sort((a,b)=>b.score-a.score || b.k.length-a.k.length || a.i-b.i);
-  const best=scored[0];
-  const tied=[...new Set(scored.filter(x=>x.score===best.score).map(x=>x.i))];
-  if(tied.length>1){
-    // 同名跨分类优先当前分类，随后由同名联动同步到另一分类。
-    const same=tied.every(i=>syncTitleKey(items[i].title)===syncTitleKey(items[best.i].title));
-    if(same){const current=tied.find(i=>items[i].category===activeCategory);return {index:current??tied[0],ambiguous:false,tooShort:false}}
-    return {index:-1,ambiguous:true,tooShort:false};
-  }
-  return {index:best.i,ambiguous:false,tooShort:false};
-}
-document.getElementById('batchInput').addEventListener('change',e=>{
-  let n=0,synced=0;
-  const unmatched=[];
-  const tooShort=[];
-  for(const f of e.target.files){
-    const result=findItemByWebKeyword(f.name);
-    const i=result.index;
-    if(i>=0){
-      const before=chosen.size;
-      setChosenWithSync(i,f);
-      n++;
-      synced+=Math.max(0,chosen.size-before-1);
-    }else{
-      if(result.tooShort) tooShort.push(f.name); else unmatched.push(f.name);
-    }
-  }
-  renderList();updateStatus();
-  e.target.value='';
-  if(n){
-    let msg='已按网页标题模糊关键词自动匹配 '+n+' 张图片';
-    if(synced) msg+='，并同步 '+synced+' 个同名对应项';
-    if(unmatched.length){
-      msg+='\n\n未匹配 '+unmatched.length+' 张：\n'+unmatched.slice(0,8).join('\n');
-      if(unmatched.length>8) msg+='\n…还有 '+(unmatched.length-8)+' 张';
-      msg+='\n\n可使用网页标题中的模糊关键词，例如：微信.png、通讯录.png、转账.png；模糊关键词至少 3 个字，两个字请使用完整标题。';
-    }
-    if(tooShort.length){
-      msg+='\n\n关键词少于 2 个字，已跳过 '+tooShort.length+' 张：\n'+tooShort.slice(0,8).join('\n');
-    }
-    alert(msg);
-  }else{
-    let msg='没有匹配到网页标题关键词。\n\n模糊关键词至少 3 个字，例如：\n底栏微信.png\n通讯录.png\n搜索按钮.png\n两个字请使用完整标题，如：转账.png';
-    if(tooShort.length) msg+='\n\n其中 '+tooShort.length+' 张图片的关键词少于 2 个字，已跳过。';
-    alert(msg);
-  }
-});
-let fillFile=null;
-document.getElementById('fillInput').addEventListener('change',e=>{fillFile=e.target.files&&e.target.files[0]||null;document.getElementById('status').textContent=fillFile?'补全图片已选择：'+fillFile.name:'已上传 '+chosen.size+' 项'});
-document.getElementById('fillBtn').addEventListener('click',()=>{if(!fillFile){alert('请先选择一张“一键补全图片”');return}extraFillApplied=true;let n=0;items.forEach((it,i)=>{if(!chosen.has(i)&&!excluded.has(i)){chosen.set(i,fillFile);n++}});renderList();updateStatus();alert('已同时补全 LiquidUI + 原版微信，共 '+n+' 个空缺图标；没有网页关键词对应的命名规则也会使用这张补全图片'+(excluded.size?'；已排除的图标保持不补全':'') )});
-function applySearch(){renderList()}
-document.getElementById('searchInput')?.addEventListener('input',applySearch);
-const colorFoldBtn=document.getElementById('colorFoldBtn');
-const colorPanel=document.getElementById('colorPanel');
-if(colorFoldBtn&&colorPanel){
-  colorFoldBtn.addEventListener('click',()=>{
-    const open=colorPanel.classList.toggle('open');
-    colorFoldBtn.classList.toggle('open',open);
-    colorFoldBtn.setAttribute('aria-expanded',open?'true':'false');
-  });
-}
-const selectedLightEnabled=document.getElementById('selectedLightEnabled');
-const selectedLightRow=document.getElementById('selectedLightRow');
-function updateSelectedLightState(){selectedLightRow.classList.toggle('disabled',!selectedLightEnabled.checked)}
-selectedLightEnabled.addEventListener('change',updateSelectedLightState);
-updateSelectedLightState();
-const selectedDarkEnabled=document.getElementById('selectedDarkEnabled');
-const selectedDarkRow=document.getElementById('selectedDarkRow');
-function updateSelectedDarkState(){selectedDarkRow.classList.toggle('disabled',!selectedDarkEnabled.checked)}
-selectedDarkEnabled.addEventListener('change',updateSelectedDarkState);
-updateSelectedDarkState();
-const allColorEnabled=document.getElementById('allColorEnabled');
-const allColorRow=document.getElementById('allColorRow');
-function updateAllColorState(){allColorRow.classList.toggle('disabled',!allColorEnabled.checked)}
-allColorEnabled.addEventListener('change',updateAllColorState);
-updateAllColorState();
-renderList();updateStatus();
-function clearAll(){chosen.clear();excluded.clear();fillFile=null;extraFillApplied=false;document.querySelectorAll('input[type=file]').forEach(x=>x.value='');renderList();updateStatus()}
-async function drawToCanvas(file){
-  const url=URL.createObjectURL(file);
-  try{
-    const im=new Image();
-    await new Promise((ok,no)=>{im.onload=ok;im.onerror=no;im.src=url});
-    const size=128,c=document.createElement('canvas');c.width=c.height=size;
-    const x=c.getContext('2d');
-    const sc=Math.min(size/im.width,size/im.height),w=im.width*sc,h=im.height*sc;
-    x.drawImage(im,(size-w)/2,(size-h)/2,w,h);
-    return c;
-  }finally{URL.revokeObjectURL(url)}
-}
-function recolorCanvas(c,hex){
-  const x=c.getContext('2d'),data=x.getImageData(0,0,c.width,c.height);
-  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
-  for(let i=0;i<data.data.length;i+=4){
-    if(data.data[i+3]>0){data.data[i]=r;data.data[i+1]=g;data.data[i+2]=b}
-  }
-  x.putImageData(data,0,0);
-  return c;
-}
-function darkenCanvas(c,factor=0.68){
-  const x=c.getContext('2d'),d=x.getImageData(0,0,c.width,c.height);
-  for(let i=0;i<d.data.length;i+=4){
-    if(d.data[i+3]>0){
-      d.data[i]=Math.round(d.data[i]*factor);
-      d.data[i+1]=Math.round(d.data[i+1]*factor);
-      d.data[i+2]=Math.round(d.data[i+2]*factor);
-    }
-  }
-  x.putImageData(d,0,0);
-  return c;
-}
-function invertCanvas(c){
-  const x=c.getContext('2d'),d=x.getImageData(0,0,c.width,c.height);
-  for(let i=0;i<d.data.length;i+=4){
-    if(d.data[i+3]>0){d.data[i]=255-d.data[i];d.data[i+1]=255-d.data[i+1];d.data[i+2]=255-d.data[i+2]}
-  }
-  x.putImageData(d,0,0);
-  return c;
-}
-function canvasBlob(c){return new Promise(ok=>c.toBlob(ok,'image/png'))}
-async function toPng(file){
-  const c=await drawToCanvas(file);
-  if(document.getElementById('allColorEnabled').checked){
-    recolorCanvas(c,document.getElementById('allColor').value||'#222222');
-  }
-  return await canvasBlob(c);
-}
-async function toSelectedPng(file){
-  const c=await drawToCanvas(file);
-  if(document.getElementById('selectedLightEnabled').checked){
-    recolorCanvas(c,document.getElementById('selectedColor').value||'#1677ff');
-  }else{
-    // 未启用自定义浅色时，按之前的规则自动把选中图标加深。
-    darkenCanvas(c,0.68);
-  }
-  return await canvasBlob(c);
-}
-async function toDarkPng(file, selected=false){
-  const c=await drawToCanvas(file);
-  if(selected){
-    if(document.getElementById('selectedDarkEnabled').checked){
-      recolorCanvas(c,document.getElementById('selectedDarkColor').value||'#ffffff');
-      return await canvasBlob(c);
-    }
-    // 深色选中未自定义时：先生成浅色选中效果，再自动反转。
-    if(document.getElementById('selectedLightEnabled').checked){
-      recolorCanvas(c,document.getElementById('selectedColor').value||'#1677ff');
-    }else{
-      darkenCanvas(c,0.68);
-    }
-  }else if(document.getElementById('allColorEnabled').checked){
-    recolorCanvas(c,document.getElementById('allColor').value||'#222222');
-  }
-  invertCanvas(c);
-  return await canvasBlob(c);
-}
-
-async function invertPng(file){const c=await drawToCanvas(file);invertCanvas(c);return await canvasBlob(c)}
-let preparedZipBlob=null;
-function safeZipBaseName(v){
-  let base=(v||'').trim()||'优优LUI图标包';
-  base=base.replace(/[\/:*?"<>|]/g,'_').replace(/\.zip$/i,'');
-  return base||'优优LUI图标包';
-}
-function openShareModal(){
-  if(window.webkit?.messageHandlers?.zipName){window.webkit.messageHandlers.zipName.postMessage({name:safeZipBaseName(document.getElementById('zipNameInput').value)});return}
+ostMessage({name:safeZipBaseName(document.getElementById('zipNameInput').value)});return}
   const m=document.getElementById('shareModal');
   const input=document.getElementById('zipNameInput');
   if(!input.value.trim())input.value='优优LUI图标包';
@@ -384,28 +8,9 @@ function openShareModal(){
 function closeShareModal(){document.getElementById('shareModal').classList.remove('show')}
 document.getElementById('shareModal').addEventListener('click',e=>{if(e.target.id==='shareModal')closeShareModal()});
 
-function resolveExistingRuleSource(rule){
-  if(rule.targetFile)return rule.targetFile;
-  const ranked=[];
-  items.forEach(it=>{
-    let score=0;
-    for(const title of rule.titles||[]){
-      const a=importKeywordNormalize(title);
-      for(const name of [it.title,...(it.aliases||[])]){
-        const b=importKeywordNormalize(name),common=longestCommonSubstringLen(a,b);
-        if(a&&a===b)score=Math.max(score,10000+a.length);
-        else if(common>=3)score=Math.max(score,common*100-Math.abs(a.length-b.length));
-      }
-    }
-    if(score)ranked.push({file:it.file,score,key:syncTitleKey(it.title),category:it.category});
-  });
-  ranked.sort((a,b)=>b.score-a.score);
-  if(!ranked.length)return null;
-  const best=ranked.filter(row=>row.score===ranked[0].score);
-  if(best.length>1&&!best.every(row=>row.key===best[0].key))return null;
-  return (best.find(row=>row.category==='wechat')||best[0]).file;
-}
-for(const rule of extraNamingRules)rule.targetFile=resolveExistingRuleSource(rule);
+// 主题盒子兼容名的目标文件已在数据里写死（targetFile=null 表示只在“双分类补全”时使用补全图）。
+const fileToEntry=new Map();
+items.forEach((it,i)=>[...(it.files||[]),...(it.selectedFiles||[])].forEach(f=>fileToEntry.set(f,i)));
 function findChosenForExtraRule(rule){
   if(!rule.targetFile) return null;
   for(const [i,f] of chosen){
@@ -413,6 +18,11 @@ function findChosenForExtraRule(rule){
     const names=[...(it.files||[it.file]),...(it.selectedFiles||[])];
     if(names.includes(rule.targetFile) && !excluded.has(i)) return {i,f};
   }
+  return null;
+}
+function darkNameFor(name){
+  if(/@3x\.png$/i.test(name))return name.replace(/@3x\.png$/i,'_Dark@3x.png');
+  if(/\.png$/i.test(name))return name.replace(/\.png$/i,'_Dark.png');
   return null;
 }
 function addDarkVariantForExtra(zip,name,blob){
@@ -424,7 +34,7 @@ function addDarkVariantForExtra(zip,name,blob){
 
 async function makeZip(btn){
   if(!chosen.size){alert('请先上传至少一张图片');return}
-  if(!window.JSZip){alert('ZIP组件没有加载成功，请检查网络后刷新页面');return}
+  if(!window.JSZip){alert('ZIP 组件加载失败，请重启 App 后再试');return}
   const oldText=btn?btn.textContent:'导出 ZIP';
   if(btn){btn.disabled=true;btn.textContent='正在生成…'}
   document.getElementById('status').textContent='正在生成 ZIP，请稍候…';
@@ -433,35 +43,32 @@ async function makeZip(btn){
     // A fill image is reused by hundreds of filenames. Convert each image/mode
     // once per export instead of decoding and drawing it for every filename.
     const convertedImages=new WeakMap();
-    function converted(file,mode){
+    function converted(file,mode,canvas){
       let modes=convertedImages.get(file);if(!modes){modes=new Map();convertedImages.set(file,modes)}
-      if(!modes.has(mode)){
-        const image=mode==='normal'?toPng(file):mode==='dark'?toDarkPng(file,false):mode==='selected'?toSelectedPng(file):toDarkPng(file,true);
-        modes.set(mode,Promise.resolve(image).then(async blob=>new Uint8Array(await blob.arrayBuffer())));
+      const key=canvas?mode+'@'+canvas[0]+'x'+canvas[1]:mode;
+      if(!modes.has(key)){
+        const image=mode==='normal'?toPng(file,canvas):mode==='dark'?toDarkPng(file,false,canvas):mode==='selected'?toSelectedPng(file,canvas):toDarkPng(file,true,canvas);
+        modes.set(key,Promise.resolve(image).then(async blob=>new Uint8Array(await blob.arrayBuffer())));
       }
-      return modes.get(mode);
+      return modes.get(key);
     }
+    const noInvert=new Set(iconExportRules.noInvertFiles),canvasOf=name=>iconExportRules.canvasFiles[name]||null;
     for(const [i,f] of chosen){
       const it=items[i];
-      const b=await converted(f,'normal'),db=await converted(f,'dark');
-      const names=it.files||[it.file];
-      for(const name of names){
-        zip.file(name,b);
-        const darkName=name.replace(/@3x\.png$/i,'_Dark@3x.png');
-        if(darkName!==name)zip.file(darkName,db)
-      }
-      if(it.selectedFiles&&it.selectedFiles.length){
-        const sb=await converted(f,'selected'),sdb=await converted(f,'selectedDark');
-        for(const name of it.selectedFiles){
-          zip.file(name,sb);
-          const darkName=name.replace(/@3x\.png$/i,'_Dark@3x.png');
-          if(darkName!==name)zip.file(darkName,sdb)
+      for(const [names,mode,darkMode] of [[it.files||[it.file],'normal','dark'],[it.selectedFiles||[],'selected','selectedDark']]){
+        for(const name of names){
+          const canvas=canvasOf(name);
+          zip.file(name,await converted(f,mode,canvas));
+          const darkName=noInvert.has(name)?null:darkNameFor(name);
+          if(darkName)zip.file(darkName,await converted(f,darkMode,canvas));
         }
       }
     }
     // 命名规则扩展：不新增上传卡片。能对应现有网页标题的规则复用该卡片图片；其余仅在“双分类补全”后用补全图片生成。
     for(const rule of extraNamingRules){
       let src=null;
+      const entry=rule.targetFile?fileToEntry.get(rule.targetFile):undefined;
+      if(entry!==undefined&&excluded.has(entry))continue;
       const hit=findChosenForExtraRule(rule);
       if(hit) src=hit.f;
       else if(extraFillApplied && fillFile) src=fillFile;
@@ -470,11 +77,8 @@ async function makeZip(btn){
       const normalBlob=await converted(src,selected?'selected':'normal');
       const darkBlob=await converted(src,selected?'selectedDark':'dark');
       zip.file(rule.file,normalBlob);
-      addDarkVariantForExtra(zip,rule.file,darkBlob);
+      if(!noInvert.has(rule.targetFile))addDarkVariantForExtra(zip,rule.file,darkBlob);
     }
-    const required=['location_filled@3x.png','location_filled_Dark@3x.png','transfer_filled@3x.png','transfer_filled_Dark@3x.png'];
-    const missing=required.filter(n=>!zip.file(n));
-    if(missing.length)console.warn('未生成（对应项目未上传/补全）：',missing);
     preparedZipBlob=await zip.generateAsync({type:'blob'});
     document.getElementById('status').textContent='ZIP 已生成，可以改名并分享';
     openShareModal();
@@ -552,7 +156,12 @@ function ruleDescription(it){
 }
 // Only group the reference display; import and export keep the original rules.
 function ruleReferenceRows(rows){
-  const selectedBase=title=>title.endsWith('选中')&&!title.endsWith('未选中')?title.slice(0,-2):null;
+  // 三种配对：「X选中」↔「X」（排除「未选中」）、「X · 选中」↔「X · 未选中」、「X（选中）」↔「X」。
+  const selectedBase=title=>{
+    if(title.endsWith('（选中）'))return title.slice(0,-4);
+    if(title.endsWith(' · 选中'))return title.slice(0,-' · 选中'.length)+' · 未选中';
+    return title.endsWith('选中')&&!title.endsWith('未选中')?title.slice(0,-2):null;
+  };
   const normalTitles=new Set(rows.filter(row=>selectedBase(row.title)===null).map(row=>row.title));
   const selectedByTitle=new Map();
   for(const row of rows){
@@ -566,7 +175,8 @@ function ruleReferenceRows(rows){
     const base=selectedBase(row.title);
     if(base!==null&&selectedByTitle.has(base))return [];
     const selected=selectedByTitle.get(row.title)||[];
-    return [{title:row.title+(selected.length?' + 选中':''),rules:[row,...selected]}];
+    const name=selected.length?row.title.replace(/ · 未选中$/,''):row.title;
+    return [{title:name+(selected.length?' + 选中':''),rules:[row,...selected]}];
   });
 }
 function renderRuleReference(){
@@ -616,8 +226,8 @@ renderRuleReference();
     <article class="guideCard"><span class="guideIcon">◇</span><div><h3>双分类补全</h3><p>用一张补全图片同时填充 LiquidUI 与原版微信中还没有图片的项目。</p></div></article>
     <article class="guideCard"><span class="guideIcon">↗</span><div><h3>自动联动</h3><p>同一图标对应多个内部命名时，上传一次即可在导出时自动生成相关文件。</p></div></article>
     <article class="guideCard"><span class="guideIcon">◉</span><div><h3>颜色修改</h3><p>可分别设置浅色选中、深色选中和全部图标颜色；不开启时保留默认处理。</p></div></article>
-    <article class="guideCard"><span class="guideIcon">×</span><div><h3>排除图标</h3><p>补全后不想更换的项目可以点卡片右上角 ×，该项目不会进入本次 ZIP。</p></div></article>
-    <article class="guideCard"><span class="guideIcon">⇧</span><div><h3>导出</h3><p>生成 ZIP 后可改名，再通过 iPhone 系统分享菜单保存或分享。</p></div></article>
+    <article class="guideCard"><span class="guideIcon">×</span><div><h3>排除图标</h3><p>补全后不想更换的项目可以点卡片上的删除按钮，该项目不会进入本次 ZIP。</p></div></article>
+    <article class="guideCard"><span class="guideIcon">⇧</span><div><h3>导出</h3><p>生成 ZIP 后可改名，再通过 iPhone 系统分享菜单保存或分享。导出的 ZIP 解压后，把全部图片放进「文件」App → 微信 → LiquidUI/Icons 根目录（不带 @3x 的那组图也放这里），再到 LiquidUI 设置 → 全局换图标点「重新扫描图片文件夹」或重启微信。</p></div></article>
   </div>
 </div>
 <div class="nativeInfoPage" id="logInfoPage" aria-hidden="true">
