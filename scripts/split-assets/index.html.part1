@@ -611,23 +611,3 @@ body.solid-card-mode .settingsToggleCard{
 #homeTools .colorrow{border-radius:22px!important}
 #homeTools{border-radius:28px!important}
 .card{border-radius:24px!important}
-
-/* Native material mode: HTML never paints fake glass. Keep selected segmented pill white. */
-body.native-card-glass .categorytabs{
-  background:#F1EFEC!important;
-}
-body.native-card-glass .categorytabs button:not(.active){
-  background:transparent!important;
-}
-body.native-card-glass .categorytabs button.active{
-  background:#FFFFFF!important;
-}
-body.native-card-glass .materialModePicker{
-  background:#F1EFEC!important;
-}
-</style><style id="home-controls-unified-material-v104">
-/* Home action controls follow one material system.
-   Solid: one visible neutral fill. Liquid/blur: UIKit draws the material. */
-body.solid-card-mode #homeTools .batch,
-body.solid-card-mode #homeTools .fillpick,
-body.solid-card-mod
