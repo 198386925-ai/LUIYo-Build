@@ -1,4 +1,6 @@
-(score,common*100-Math.abs(a.length-b.length));
+b=importKeywordNormalize(name),common=longestCommonSubstringLen(a,b);
+        if(a&&a===b)score=Math.max(score,10000+a.length);
+        else if(common>=3)score=Math.max(score,common*100-Math.abs(a.length-b.length));
       }
     }
     if(score)ranked.push({file:it.file,score,key:syncTitleKey(it.title),category:it.category});
