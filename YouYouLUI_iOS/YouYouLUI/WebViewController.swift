@@ -651,7 +651,8 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
                     webView.leadingAnchor.constraint(equalTo: host.leadingAnchor),
                     webView.trailingAnchor.constraint(equalTo: host.trailingAnchor)]
                 NSLayoutConstraint.activate(webHostConstraints)
-                host.layoutIfNeeded()
+                // Don't force layout here - it can interfere with tab bar layout during switch.
+                // The constraints will apply on the next natural layout pass.
                 if !suppressWebViewReveal { webView.isHidden = false }
             }
         }
