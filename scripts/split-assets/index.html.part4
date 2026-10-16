@@ -1,5 +1,4 @@
-ion openShareModal(){
-  if(window.webkit?.messageHandlers?.zipName){window.webkit.messageHandlers.zipName.postMessage({name:safeZipBaseName(document.getElementById('zipNameInput').value)});return}
+ostMessage({name:safeZipBaseName(document.getElementById('zipNameInput').value)});return}
   const m=document.getElementById('shareModal');
   const input=document.getElementById('zipNameInput');
   if(!input.value.trim())input.value='优优LUI图标包';
@@ -448,7 +447,7 @@ function closeInfoPage(kind){
      const r=el.getBoundingClientRect();if(r.width<2||r.height<2)return;
      const clip=visibleClip(el,r);if(!clip)return;
      const homeControl=el.matches("#homeTools .batch,#homeTools .fillpick,#homeTools .fill,#homeTools .colorfold,#homeTools .clear,#homeTools .zip");
-     if(homeControl)return; // These six actions are opaque CSS surfaces.
+     if(homeControl&&!el.querySelector('.settingsToggleIcon[data-system-icon^="icon-"]'))return; // These six actions are opaque CSS surfaces.
      const segment=el.classList.contains("categorytabs")?"category":el.id==="materialModePicker"?"material":el.id==="appearanceModePicker"?"appearance":el.id==="bottomSearchModePicker"?"search":null;
      const buttons=segment?[...el.querySelectorAll("button")]:[];
      const icon=el.querySelector('.settingsFoldIcon,.settingsToggleIcon');
