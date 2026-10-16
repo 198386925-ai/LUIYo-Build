@@ -11,6 +11,12 @@ if [ -d "scripts/split-assets" ]; then
       python3 -c "import base64,sys; open('YouYouLUI_iOS/YouYouLUI/Web/icon-$name.png','wb').write(base64.b64decode(open('scripts/split-assets/icon-$name.png.b64').read()))"
     fi
   done
+  # Decode toolbar icons to asset catalog
+  for name in ToolbarSupport ToolbarImport ToolbarFill ToolbarClear ToolbarExport; do
+    if [ -f "scripts/split-assets/$name.png.b64" ]; then
+      python3 -c "import base64; open('YouYouLUI_iOS/YouYouLUI/Assets.xcassets/$name.imageset/Icon.png','wb').write(base64.b64decode(open('scripts/split-assets/$name.png.b64').read()))"
+    fi
+  done
 fi
 python3 scripts/render-release-notes.py
 node scripts/sync-native-preview-catalog.js --check || echo "catalog check skipped"
