@@ -717,9 +717,13 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             // The Web UI already shows the new page: seat the webView and reveal it.
             self.keepContentBelowNativeBar()
             self.updateLayoutMetrics(force: true)
-            // Reveal only after appNavTo completes - prevents flash of old page
-            self.webView?.isHidden = false
-            self.suppressWebViewReveal = false
+            // Wait one runloop cycle for WebView to render the new page before revealing
+            // (prevents flash of old page content)
+            DispatchQueue.main.async {
+                guard self.pageSwitchGeneration == generation else { return }
+                self.webView?.isHidden = false
+                self.suppressWebViewReveal = false
+            }
         }
         return false
     }
