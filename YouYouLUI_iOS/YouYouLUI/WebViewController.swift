@@ -9,6 +9,7 @@ import UniformTypeIdentifiers
 /// iOS 26+ uses UIKit Liquid Glass; older systems use UIKit systemMaterial blur.
 /// HTML is content-only and never draws blur/glass itself.
 final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler, UITabBarControllerDelegate, UIDocumentPickerDelegate, PHPickerViewControllerDelegate {
+    private static var diagAlertShown = false // TEMP-DIAGNOSTIC
     private var webView: WKWebView!
     private let nativeHomeModel = NativeHomeModel()
     private var nativeHomeHost: UIHostingController<LUIYoNativeHome>?
@@ -376,6 +377,16 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         navigateFromNativeTab(activePageTag)
         keepContentBelowNativeBar()
         updateLayoutMetrics(force: true)
+        // TEMP-DIAGNOSTIC: 图标排查用，确认后删除
+        if !Self.diagAlertShown {
+            Self.diagAlertShown = true
+            webView.evaluateJavaScript("JSON.stringify({url:location.href,hasIconTags:document.documentElement.innerHTML.includes('icon-feedback.png'),imgs:Array.from(document.querySelectorAll('#homeTools img, .homeFeedback img')).map(function(i){return {src:i.getAttribute('src'),w:i.naturalWidth,ok:i.complete&&i.naturalWidth>0}})})") { [weak self] result, _ in
+                let msg = (result as? String) ?? "JS 无返回"
+                let alert = UIAlertController(title: "ICON-DIAG", message: msg, preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "OK", style: .default))
+                self?.present(alert, animated: true)
+            }
+        }
         // CI exercises the same taps, native traits and saved appearance as users.
         guard let rawScenario = ProcessInfo.processInfo.environment["LUI_SNAPSHOT"] else { return }
         if rawScenario.hasPrefix("preview-") {
