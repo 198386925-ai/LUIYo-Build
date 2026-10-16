@@ -60,7 +60,10 @@ private final class LUIYoActivationGate: UIViewController {
     private var currentPage = "home"
     private var deviceIdentifier: String {
         if let saved = SecretStore.get("device-id") { return saved }
-        let value = UUID().uuidString.lowercased()
+        // Use identifierForVendor for stable device ID across reinstalls
+        // (UUID().uuidString would generate a new ID on each reinstall,
+        // causing the backend to see it as a new device every time)
+        let value = UIDevice.current.identifierForVendor?.uuidString.lowercased() ?? UUID().uuidString.lowercased()
         SecretStore.put(value, key: "device-id")
         return value
     }
