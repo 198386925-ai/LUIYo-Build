@@ -705,27 +705,22 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         let generation = pageSwitchGeneration
         switchingNativePage = true
         suppressWebViewReveal = true
-        // Pre-navigate the WebView WHILE the native homepage is still visible.
-        // User sees homepage (no flash, no blank), then we instant-switch.
-        webView.evaluateJavaScript("appNavTo('" + page + "');window.__syncNativeCardGlass?.();") { [weak self] _, _ in
+        webView.isHidden = true
+        // Switch tab UI immediately for instant feedback (user sees tab change)
+        UIView.performWithoutAnimation {
+            self.selectNativePage(tag)
+            self.updatePageScroll(page)
+        }
+        self.keepContentBelowNativeBar()
+        self.updateLayoutMetrics(force: true)
+        // Navigate and wait for render (2 frames) before revealing - no flash
+        let js = "appNavTo('" + page + "');window.__syncNativeCardGlass?.();new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))"
+        webView.evaluateJavaScript(js) { [weak self] _, _ in
             guard let self else { return }
             guard self.pageSwitchGeneration == generation else { return }
-            // Wait one frame for WebView to render (user still sees homepage, no flash)
-            DispatchQueue.main.async {
-                guard self.pageSwitchGeneration == generation else { return }
-                // WebView now shows the target page (still hidden under native UI).
-                // Instant switch: move webView, remove native UI, reveal - all at once.
-                self.webView.isHidden = true
-                UIView.performWithoutAnimation {
-                    self.selectNativePage(tag)
-                    self.updatePageScroll(page)
-                }
-                self.keepContentBelowNativeBar()
-                self.updateLayoutMetrics(force: true)
-                self.webView?.isHidden = false
-                self.switchingNativePage = false
-                self.suppressWebViewReveal = false
-            }
+            self.webView?.isHidden = false
+            self.switchingNativePage = false
+            self.suppressWebViewReveal = false
         }
         return false
     }
