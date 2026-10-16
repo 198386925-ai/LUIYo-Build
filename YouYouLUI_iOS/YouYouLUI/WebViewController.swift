@@ -705,23 +705,25 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         let generation = pageSwitchGeneration
         switchingNativePage = true
         suppressWebViewReveal = true
-        webView.isHidden = true
-        UIView.performWithoutAnimation {
-            selectNativePage(tag)
-            updatePageScroll(page)
-        }
+        // Pre-navigate the WebView WHILE the native homepage is still visible.
+        // User sees homepage (no flash, no blank), then we instant-switch.
         webView.evaluateJavaScript("appNavTo('" + page + "');window.__syncNativeCardGlass?.();") { [weak self] _, _ in
             guard let self else { return }
             guard self.pageSwitchGeneration == generation else { return }
-            self.switchingNativePage = false
-            // The Web UI already shows the new page: seat the webView and reveal it.
-            self.keepContentBelowNativeBar()
-            self.updateLayoutMetrics(force: true)
-            // Wait for WebView to render the new page before revealing
-            // (prevents flash of old page content; one runloop wasn't enough)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            // Wait one frame for WebView to render (user still sees homepage, no flash)
+            DispatchQueue.main.async {
                 guard self.pageSwitchGeneration == generation else { return }
+                // WebView now shows the target page (still hidden under native UI).
+                // Instant switch: move webView, remove native UI, reveal - all at once.
+                self.webView.isHidden = true
+                UIView.performWithoutAnimation {
+                    self.selectNativePage(tag)
+                    self.updatePageScroll(page)
+                }
+                self.keepContentBelowNativeBar()
+                self.updateLayoutMetrics(force: true)
                 self.webView?.isHidden = false
+                self.switchingNativePage = false
                 self.suppressWebViewReveal = false
             }
         }
