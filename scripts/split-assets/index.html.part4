@@ -1,4 +1,4 @@
-pNameInput').value)});return}
+pName.postMessage({name:safeZipBaseName(document.getElementById('zipNameInput').value)});return}
   const m=document.getElementById('shareModal');
   const input=document.getElementById('zipNameInput');
   if(!input.value.trim())input.value='优优LUI图标包';
