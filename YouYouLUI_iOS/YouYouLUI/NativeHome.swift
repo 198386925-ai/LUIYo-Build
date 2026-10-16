@@ -124,8 +124,8 @@ struct LUIYoNativeHome: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("LUIYo").font(model.font(size: 28, weight: .bold))
-                    Text("微信图标管理").font(model.font(size: 14)).foregroundStyle(.secondary)
+                    Text("LUIYo").font(model.font(size: 25, weight: .bold))
+                    Text("微信图标管理").font(model.font(size: 13)).foregroundStyle(.secondary)
                     HStack(spacing: 8) {
                         Label(model.authorized ? "已授权" : "未授权", systemImage: model.authorized ? "checkmark.seal.fill" : "lock.fill")
                             .font(model.font(size: 12, weight: .medium)).foregroundStyle(model.authorized ? Color.green : Color.secondary)
