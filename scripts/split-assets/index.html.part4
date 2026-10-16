@@ -692,4 +692,8 @@ html.has-background-image body{padding-bottom:calc(110px + env(safe-area-inset-b
 html.has-background-image body,.has-background-image body{background:transparent!important}
 html.has-background-image #list.grid>.card{background:rgba(255,255,255,.94)!important;isolation:isolate!important}
 html.has-background-image[data-appearance=dark] #list.grid>.card{background:rgba(28,28,30,.94)!important}
+
+/* Unify page titles: Settings to match Rules (28px bold, subtitle 14px) */
+body.nav-settings h1 { font-size: 28px !important; font-weight: 800 !important; letter-spacing: -.5px !important; line-height: 1.2 !important; margin: 0 0 5px !important; }
+body.nav-settings h1 + p, body.nav-settings h1 + small, body.nav-settings .subtitle { font-size: 14px !important; color: #8a8a8e !important; }
 </style>
