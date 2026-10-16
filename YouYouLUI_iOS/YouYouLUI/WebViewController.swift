@@ -376,7 +376,6 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         navigateFromNativeTab(activePageTag)
         keepContentBelowNativeBar()
         updateLayoutMetrics(force: true)
-        }
         // CI exercises the same taps, native traits and saved appearance as users.
         guard let rawScenario = ProcessInfo.processInfo.environment["LUI_SNAPSHOT"] else { return }
         if rawScenario.hasPrefix("preview-") {
