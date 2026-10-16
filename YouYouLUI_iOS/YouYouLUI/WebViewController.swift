@@ -715,17 +715,21 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         self.keepContentBelowNativeBar()
         self.updateLayoutMetrics(force: true)
         // Navigate and wait for render (2 frames) before revealing - no flash
-        let js = "appNavTo('" + page + "');window.__syncNativeCardGlass?.();new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))"
+        let js = "appNavTo('" + page + "');window.__syncNativeCardGlass?.();"
         webView.evaluateJavaScript(js) { [weak self] _, _ in
             guard let self else { return }
             guard self.pageSwitchGeneration == generation else { return }
-            // On homepage (native UI), keep WebView hidden - native covers it fully.
-            // On rules/settings, reveal after render.
-            if page != "home" {
-                self.webView?.isHidden = false
+            // Wait a tick for render (don't use requestAnimationFrame - it stalls when hidden)
+            DispatchQueue.main.async {
+                guard self.pageSwitchGeneration == generation else { return }
+                // On homepage (native UI), keep WebView hidden - native covers it fully.
+                // On rules/settings, reveal after render.
+                if page != "home" {
+                    self.webView?.isHidden = false
+                }
+                self.switchingNativePage = false
+                self.suppressWebViewReveal = false
             }
-            self.switchingNativePage = false
-            self.suppressWebViewReveal = false
         }
         return false
     }
