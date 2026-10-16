@@ -181,7 +181,21 @@ static UILabel *LUISettingsHeroMakeChipLabel(UIFont *font) {
     [self.contentView addSubview:_logButton];
 
     [self lui_refreshDecorColors];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(lui_deviceCodeUpdated:) name:@"LUIYoDeviceCodeUpdated" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(lui_tierUpdated:) name:@"LUIYoTierUpdated" object:nil];
     return self;
+}
+
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+- (void)lui_deviceCodeUpdated:(NSNotification *)note {
+    [self lui_refreshTierChip];
+}
+
+- (void)lui_tierUpdated:(NSNotification *)note {
+    [self lui_refreshTierChip];
 }
 
 - (void)lui_refreshDecorColors {
@@ -203,6 +217,31 @@ static UILabel *LUISettingsHeroMakeChipLabel(UIFont *font) {
                                            : [UIColor colorWithRed:0.12 green:0.13 blue:0.15 alpha:1.0];
 }
 
+- (void)lui_refreshTierChip {
+    NSString *_tier = [NSUserDefaults.standardUserDefaults stringForKey:@"youyou.auth.tier"] ?: @"free";
+    NSString *_tname = @"免费用户";
+    if ([_tier isEqualToString:@"vip"]) _tname = @"普通会员";
+    else if ([_tier isEqualToString:@"svip"]) _tname = @"SVIP会员";
+    NSString *_dcode = [NSUserDefaults.standardUserDefaults stringForKey:@"youyou.device.code"];
+    if (!_dcode || _dcode.length == 0) {
+        NSString *_uuid = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
+        NSString *_sid = [[_uuid stringByReplacingOccurrencesOfString:@"-" withString:@""] substringToIndex:6];
+        _dcode = [NSString stringWithFormat:@"D-%@", [_sid uppercaseString]];
+    }
+    dispatch_async(dispatch_get_main_queue(), ^{
+        self.versionChip.text = [NSString stringWithFormat:@"%@ · %@", _tname, _dcode];
+        self.versionChip.hidden = NO;
+        if ([_tier isEqualToString:@"free"]) {
+            self.versionChip.backgroundColor = [UIColor colorWithRed:0.92 green:0.92 blue:0.94 alpha:1.0];
+            self.versionChip.textColor = [UIColor colorWithRed:0.45 green:0.45 blue:0.48 alpha:1.0];
+        } else {
+            self.versionChip.backgroundColor = [UIColor colorWithRed:0.78 green:0.60 blue:0.23 alpha:1.0];
+            self.versionChip.textColor = [UIColor whiteColor];
+        }
+        [self setNeedsLayout];
+    });
+}
+
 - (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
     [super traitCollectionDidChange:previousTraitCollection];
     if (@available(iOS 13.0, *)) {
@@ -218,25 +257,7 @@ static UILabel *LUISettingsHeroMakeChipLabel(UIFont *font) {
     self.contentView.backgroundColor = UIColor.clearColor;
     self.key = key;
     self.nameLabel.text = @"LUIYo";
-    NSString *_tier = [NSUserDefaults.standardUserDefaults stringForKey:@"youyou.auth.tier"] ?: @"free";
-    NSString *_tname = @"免费用户";
-    if ([_tier isEqualToString:@"vip"]) _tname = @"普通会员";
-    else if ([_tier isEqualToString:@"svip"]) _tname = @"SVIP会员";
-    NSString *_dcode = [NSUserDefaults.standardUserDefaults stringForKey:@"youyou.device.code"];
-    if (!_dcode || _dcode.length == 0) {
-        NSString *_uuid = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
-        NSString *_sid = [[_uuid stringByReplacingOccurrencesOfString:@"-" withString:@""] substringToIndex:6];
-        _dcode = [NSString stringWithFormat:@"D-%@", [_sid uppercaseString]];
-    }
-    self.versionChip.text = [NSString stringWithFormat:@"%@ · %@", _tname, _dcode];
-    self.versionChip.hidden = NO;
-    if ([_tier isEqualToString:@"free"]) {
-        self.versionChip.backgroundColor = [UIColor colorWithRed:0.92 green:0.92 blue:0.94 alpha:1.0];
-        self.versionChip.textColor = [UIColor colorWithRed:0.45 green:0.45 blue:0.48 alpha:1.0];
-    } else {
-        self.versionChip.backgroundColor = [UIColor colorWithRed:0.78 green:0.60 blue:0.23 alpha:1.0];
-        self.versionChip.textColor = [UIColor whiteColor];
-    }
+    [self lui_refreshTierChip];
     [self lui_refreshAvatar];
     [self lui_refreshStatus];
     [self setNeedsLayout];
