@@ -718,7 +718,11 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         webView.evaluateJavaScript(js) { [weak self] _, _ in
             guard let self else { return }
             guard self.pageSwitchGeneration == generation else { return }
-            self.webView?.isHidden = false
+            // On homepage (native UI), keep WebView hidden - native covers it fully.
+            // On rules/settings, reveal after render.
+            if page != "home" {
+                self.webView?.isHidden = false
+            }
             self.switchingNativePage = false
             self.suppressWebViewReveal = false
         }
