@@ -632,4 +632,5 @@ body.solid-card-mode #homeTools .batch,
 body.solid-card-mode #homeTools .fillpick,
 body.solid-card-mode #homeTools .fill,
 body.solid-card-mode #homeTools .colorfold,
-body.s
+body.solid-card-mode #homeTools .clear,
+body.solid
