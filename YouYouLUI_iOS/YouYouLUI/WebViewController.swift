@@ -380,7 +380,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         // TEMP-DIAGNOSTIC: 图标排查用，确认后删除
         if !Self.diagAlertShown {
             Self.diagAlertShown = true
-            webView.evaluateJavaScript("JSON.stringify({url:location.href,hasIconTags:document.documentElement.innerHTML.includes('icon-feedback.png'),imgs:Array.from(document.querySelectorAll('#homeTools img, .homeFeedback img')).map(function(i){return {src:i.getAttribute('src'),w:i.naturalWidth,ok:i.complete&&i.naturalWidth>0}})})") { [weak self] result, _ in
+            webView.evaluateJavaScript("JSON.stringify((function(){var out={url:location.href,hasIconTags:document.documentElement.innerHTML.includes('icon-feedback.png'),imgs:[]};Array.from(document.querySelectorAll('#homeTools img, .homeFeedback img')).forEach(function(i){var cs=getComputedStyle(i);var r=i.getBoundingClientRect();out.imgs.push({src:i.getAttribute('src'),w:i.naturalWidth,d:cs.display,v:cs.visibility,o:cs.opacity,rw:Math.round(r.width),rh:Math.round(r.height)});i.style.setProperty('display','inline-block','important');i.style.setProperty('visibility','visible','important');i.style.setProperty('opacity','1','important');i.style.setProperty('width','18px','important');i.style.setProperty('height','18px','important')});return out})())") { [weak self] result, _ in
                 let msg = (result as? String) ?? "JS 无返回"
                 let alert = UIAlertController(title: "ICON-DIAG", message: msg, preferredStyle: .alert)
                 alert.addAction(UIAlertAction(title: "OK", style: .default))
