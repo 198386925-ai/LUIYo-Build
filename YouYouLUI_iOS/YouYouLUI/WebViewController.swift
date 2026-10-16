@@ -710,7 +710,6 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             selectNativePage(tag)
             updatePageScroll(page)
         }
-        suppressWebViewReveal = false
         webView.evaluateJavaScript("appNavTo('" + page + "');window.__syncNativeCardGlass?.();") { [weak self] _, _ in
             guard let self else { return }
             guard self.pageSwitchGeneration == generation else { return }
@@ -718,6 +717,9 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             // The Web UI already shows the new page: seat the webView and reveal it.
             self.keepContentBelowNativeBar()
             self.updateLayoutMetrics(force: true)
+            // Reveal only after appNavTo completes - prevents flash of old page
+            self.webView?.isHidden = false
+            self.suppressWebViewReveal = false
         }
         return false
     }
