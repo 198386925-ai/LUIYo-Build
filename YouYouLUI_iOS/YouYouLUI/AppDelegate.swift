@@ -199,6 +199,21 @@ private final class LUIYoActivationGate: UIViewController {
             guard let self else { return }
             self.checkInFlight = false
             if code == 200, body?["status"] == "active" {
+                // Sync backend device code and tier (for SVIP display)
+                if let body {
+                    for key in ["device_code", "deviceCode", "device_no", "deviceNo", "code"] {
+                        if let val = body[key], !val.isEmpty, val.hasPrefix("D-") {
+                            SecretStore.put(val, key: "backend-device-code")
+                            break
+                        }
+                    }
+                    for key in ["tier", "plan", "level", "vip_level", "user_type", "membership", "svip"] {
+                        if let val = body[key], !val.isEmpty {
+                            SecretStore.put(val, key: "user-tier")
+                            break
+                        }
+                    }
+                }
                 self.allowAccess()
             } else {
                 if code == 401 { SecretStore.delete("token") }
