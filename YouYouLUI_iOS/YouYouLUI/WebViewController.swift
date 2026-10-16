@@ -717,9 +717,9 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             // The Web UI already shows the new page: seat the webView and reveal it.
             self.keepContentBelowNativeBar()
             self.updateLayoutMetrics(force: true)
-            // Wait one runloop cycle for WebView to render the new page before revealing
-            // (prevents flash of old page content)
-            DispatchQueue.main.async {
+            // Wait for WebView to render the new page before revealing
+            // (prevents flash of old page content; one runloop wasn't enough)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 guard self.pageSwitchGeneration == generation else { return }
                 self.webView?.isHidden = false
                 self.suppressWebViewReveal = false
