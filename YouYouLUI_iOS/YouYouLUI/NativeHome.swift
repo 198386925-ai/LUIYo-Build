@@ -123,7 +123,7 @@ struct LUIYoNativeHome: View {
         ScrollViewReader { proxy in
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: 5) {
                     Text("LUIYo").font(model.font(size: 25, weight: .bold))
                     Text("微信图标管理").font(model.font(size: 13)).foregroundStyle(.secondary)
                     HStack(spacing: 8) {
