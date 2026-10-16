@@ -381,9 +381,14 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         if !didPreRenderRules {
             didPreRenderRules = true
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-                self?.webView?.evaluateJavaScript("appNavTo('rules')") { _, _ in
+                guard let self, let wv = self.webView else { return }
+                let wasHidden = wv.isHidden
+                wv.isHidden = true
+                wv.evaluateJavaScript("appNavTo('rules')") { _, _ in
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        self?.webView?.evaluateJavaScript("appNavTo('home')", completionHandler: nil)
+                        wv.evaluateJavaScript("appNavTo('home')") { _, _ in
+                            wv.isHidden = wasHidden
+                        }
                     }
                 }
             }
