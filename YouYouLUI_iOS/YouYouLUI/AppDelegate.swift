@@ -202,27 +202,28 @@ private final class LUIYoActivationGate: UIViewController {
             guard let self else { return }
             self.checkInFlight = false
             if code == 200, body?["status"] == "active" {
-                // Sync backend device code and tier (for SVIP display)
-                // Check ALL response fields for device code (D-XXXXXX format)
+                // Sync backend device code and tier to NSUserDefaults
+                // (LUISettingsHeroCell reads youyou.device.code / youyou.auth.tier)
                 if let body {
-                    for (key, val) in body {
+                    let defaults = UserDefaults.standard
+                    for (_, val) in body {
                         if !val.isEmpty, val.hasPrefix("D-"), val.count >= 8 {
-                            // Found a device code - update if different
-                            if SecretStore.get("backend-device-code") != val {
-                                SecretStore.put(val, key: "backend-device-code")
-                                // Notify UI to refresh (post notification)
+                            if defaults.string(forKey: "youyou.device.code") != val {
+                                defaults.set(val, forKey: "youyou.device.code")
                                 NotificationCenter.default.post(name: Notification.Name("LUIYoDeviceCodeUpdated"), object: val)
                             }
                             break
                         }
                     }
-                    // Check for tier/SVIP in all fields
                     let tierKeys = ["tier", "plan", "level", "vip_level", "user_type", "membership", "svip", "userType", "vipLevel"]
                     for key in tierKeys {
                         if let val = body[key], !val.isEmpty {
-                            if SecretStore.get("user-tier") != val {
-                                SecretStore.put(val, key: "user-tier")
-                                NotificationCenter.default.post(name: Notification.Name("LUIYoTierUpdated"), object: val)
+                            // Cell expects lowercase: free/vip/svip
+                            let tier = val.lowercased()
+                            let mapped = tier.contains("svip") ? "svip" : (tier.contains("vip") ? "vip" : "free")
+                            if defaults.string(forKey: "youyou.auth.tier") != mapped {
+                                defaults.set(mapped, forKey: "youyou.auth.tier")
+                                NotificationCenter.default.post(name: Notification.Name("LUIYoTierUpdated"), object: mapped)
                             }
                             break
                         }
