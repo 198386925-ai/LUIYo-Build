@@ -9,7 +9,6 @@ import UniformTypeIdentifiers
 /// iOS 26+ uses UIKit Liquid Glass; older systems use UIKit systemMaterial blur.
 /// HTML is content-only and never draws blur/glass itself.
 final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler, UITabBarControllerDelegate, UIDocumentPickerDelegate, PHPickerViewControllerDelegate {
-    private static var diagAlertShown = false // TEMP-DIAGNOSTIC
     private var webView: WKWebView!
     private let nativeHomeModel = NativeHomeModel()
     private var nativeHomeHost: UIHostingController<LUIYoNativeHome>?
@@ -377,15 +376,6 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         navigateFromNativeTab(activePageTag)
         keepContentBelowNativeBar()
         updateLayoutMetrics(force: true)
-        // TEMP-DIAGNOSTIC: 图标排查用，确认后删除
-        if !Self.diagAlertShown {
-            Self.diagAlertShown = true
-            webView.evaluateJavaScript("JSON.stringify((function(){var out={url:location.href,hasIconTags:document.documentElement.innerHTML.includes('icon-feedback.png'),imgs:[]};Array.from(document.querySelectorAll('#homeTools img, .homeFeedback img')).forEach(function(i){var cs=getComputedStyle(i);var r=i.getBoundingClientRect();out.imgs.push({src:i.getAttribute('src'),w:i.naturalWidth,d:cs.display,v:cs.visibility,o:cs.opacity,rw:Math.round(r.width),rh:Math.round(r.height)});i.style.setProperty('display','inline-block','important');i.style.setProperty('visibility','visible','important');i.style.setProperty('opacity','1','important');i.style.setProperty('width','18px','important');i.style.setProperty('height','18px','important')});return out})())") { [weak self] result, _ in
-                let msg = (result as? String) ?? "JS 无返回"
-                let alert = UIAlertController(title: "ICON-DIAG", message: msg, preferredStyle: .alert)
-                alert.addAction(UIAlertAction(title: "OK", style: .default))
-                self?.present(alert, animated: true)
-            }
         }
         // CI exercises the same taps, native traits and saved appearance as users.
         guard let rawScenario = ProcessInfo.processInfo.environment["LUI_SNAPSHOT"] else { return }
@@ -1122,8 +1112,15 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             surface.contentView.addSubview(icon)
             nativeSymbols[key] = icon
         }
-        icon.image = UIImage(systemName: name, withConfiguration: UIImage.SymbolConfiguration(pointSize: 20, weight: .regular))
-        icon.tintColor = .label
+        if name.hasPrefix("icon-"),
+           let url = Bundle.main.url(forResource: name, withExtension: "png", subdirectory: "Web"),
+           let custom = UIImage(contentsOfFile: url.path) {
+            icon.image = custom.withRenderingMode(.alwaysOriginal)
+            icon.tintColor = nil
+        } else {
+            icon.image = UIImage(systemName: name, withConfiguration: UIImage.SymbolConfiguration(pointSize: 20, weight: .regular))
+            icon.tintColor = .label
+        }
         let x = CGFloat((spec["iconX"] as? NSNumber)?.doubleValue ?? 0)
         let y = CGFloat((spec["iconY"] as? NSNumber)?.doubleValue ?? 0)
         let width = CGFloat((spec["iconWidth"] as? NSNumber)?.doubleValue ?? 28)
