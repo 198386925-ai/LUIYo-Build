@@ -701,4 +701,9 @@ body.nav-settings h1 + p, body.nav-settings h1 + small, body.nav-settings .subti
 .settingsHead { margin: 8px 2px 16px !important; padding: 0 !important; }
 .settingsHead h1 { font-size: 25px !important; line-height: 1.2 !important; margin: 0 0 5px !important; font-weight: 800 !important; color: #18202a !important; letter-spacing: normal !important; }
 .settingsHead p { margin: 0 !important; color: #8a94a1 !important; font-size: 13px !important; }
+
+/* HIGHEST PRIORITY: settingsHead must match pageHead exactly */
+body.nav-settings .settingsHead { margin: 8px 2px 16px !important; padding: 0 !important; }
+body.nav-settings .settingsHead h1 { font-size: 25px !important; line-height: 1.2 !important; margin: 0 0 5px !important; font-weight: 800 !important; color: #18202a !important; letter-spacing: normal !important; }
+body.nav-settings .settingsHead p { margin: 0 !important; color: #8a94a1 !important; font-size: 13px !important; }
 </style>
