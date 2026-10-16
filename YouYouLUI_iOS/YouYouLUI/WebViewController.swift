@@ -378,21 +378,8 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         keepContentBelowNativeBar()
         updateLayoutMetrics(force: true)
         // Pre-render rules page at launch so first tab switch doesn't flash
-        if !didPreRenderRules {
-            didPreRenderRules = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-                guard let self, let wv = self.webView else { return }
-                let wasHidden = wv.isHidden
-                wv.isHidden = true
-                wv.evaluateJavaScript("appNavTo('rules')") { _, _ in
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        wv.evaluateJavaScript("appNavTo('home')") { _, _ in
-                            wv.isHidden = wasHidden
-                        }
-                    }
-                }
-            }
-        }
+        // Pre-render removed entirely: caused race conditions where WebView
+        // got stuck showing wrong page when user tapped tab during pre-render.
         // CI exercises the same taps, native traits and saved appearance as users.
         guard let rawScenario = ProcessInfo.processInfo.environment["LUI_SNAPSHOT"] else { return }
         if rawScenario.hasPrefix("preview-") {
