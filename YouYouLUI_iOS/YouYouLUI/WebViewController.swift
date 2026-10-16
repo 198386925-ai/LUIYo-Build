@@ -120,6 +120,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     private var switchingNativePage = false
     private var suppressWebViewReveal = false
     private var pageSwitchGeneration = 0
+    private var didPreRenderRules = false
     private var nativeLicenseButtons: [String: UIButton] = [:]
     private var retainedTabs: [String: AnyObject] = [:]
     private var nativeSymbols: [String: UIImageView] = [:]
@@ -376,6 +377,17 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         navigateFromNativeTab(activePageTag)
         keepContentBelowNativeBar()
         updateLayoutMetrics(force: true)
+        // Pre-render rules page at launch so first tab switch doesn't flash
+        if !didPreRenderRules {
+            didPreRenderRules = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+                self?.webView?.evaluateJavaScript("appNavTo('rules')") { _, _ in
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        self?.webView?.evaluateJavaScript("appNavTo('home')", completionHandler: nil)
+                    }
+                }
+            }
+        }
         // CI exercises the same taps, native traits and saved appearance as users.
         guard let rawScenario = ProcessInfo.processInfo.environment["LUI_SNAPSHOT"] else { return }
         if rawScenario.hasPrefix("preview-") {
