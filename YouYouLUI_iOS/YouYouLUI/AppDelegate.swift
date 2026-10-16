@@ -203,16 +203,27 @@ private final class LUIYoActivationGate: UIViewController {
             self.checkInFlight = false
             if code == 200, body?["status"] == "active" {
                 // Sync backend device code and tier (for SVIP display)
+                // Check ALL response fields for device code (D-XXXXXX format)
                 if let body {
-                    for key in ["device_code", "deviceCode", "device_no", "deviceNo", "code"] {
-                        if let val = body[key], !val.isEmpty, val.hasPrefix("D-") {
-                            SecretStore.put(val, key: "backend-device-code")
+                    for (key, val) in body {
+                        if !val.isEmpty, val.hasPrefix("D-"), val.count >= 8 {
+                            // Found a device code - update if different
+                            if SecretStore.get("backend-device-code") != val {
+                                SecretStore.put(val, key: "backend-device-code")
+                                // Notify UI to refresh (post notification)
+                                NotificationCenter.default.post(name: Notification.Name("LUIYoDeviceCodeUpdated"), object: val)
+                            }
                             break
                         }
                     }
-                    for key in ["tier", "plan", "level", "vip_level", "user_type", "membership", "svip"] {
+                    // Check for tier/SVIP in all fields
+                    let tierKeys = ["tier", "plan", "level", "vip_level", "user_type", "membership", "svip", "userType", "vipLevel"]
+                    for key in tierKeys {
                         if let val = body[key], !val.isEmpty {
-                            SecretStore.put(val, key: "user-tier")
+                            if SecretStore.get("user-tier") != val {
+                                SecretStore.put(val, key: "user-tier")
+                                NotificationCenter.default.post(name: Notification.Name("LUIYoTierUpdated"), object: val)
+                            }
                             break
                         }
                     }
