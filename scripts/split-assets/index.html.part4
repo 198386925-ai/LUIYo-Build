@@ -581,12 +581,13 @@ function closeInfoPage(kind){
 })();</script><script id="advanced-theme-build18">(function(){
  const slider=document.getElementById('toolbarTransparency'),value=document.getElementById('toolbarTransparencyValue');
  const shrink=document.getElementById('minimizeBottomBar');
+function shrinkSet(on){shrink.setAttribute('aria-checked',on?'true':'false');shrink.style.background=on?'#34c759':'#e9e9ea';shrink.firstChild.style.left=on?'22px':'2px';}
  function get(key,fallback){try{return localStorage.getItem(key)??fallback}catch(e){return fallback}}
  function send(name,payload){window.webkit?.messageHandlers?.[name]?.postMessage(payload)}
  function applyTransparency(raw){const n=Math.max(0,Math.min(100,Number(raw)||0));slider.value=n;value.textContent=n+'%';document.documentElement.style.setProperty('--tool-opacity',String((100-n)/100));try{localStorage.setItem('youyou.theme.toolbarTransparency',String(n))}catch(e){}}
- function applyShrink(enabled){shrink.checked=enabled;try{localStorage.setItem('youyou.theme.minimizeBottomBar',enabled?'1':'0')}catch(e){}send('minimizeBottomBar',{enabled});}
+ function applyShrink(enabled){shrinkSet(enabled);try{localStorage.setItem('youyou.theme.minimizeBottomBar',enabled?'1':'0')}catch(e){}send('minimizeBottomBar',{enabled});}
  if(slider&&value){slider.addEventListener('input',()=>applyTransparency(slider.value));applyTransparency(get('youyou.theme.toolbarTransparency','0'))}
- if(shrink){shrink.addEventListener('change',()=>applyShrink(shrink.checked));applyShrink(get('youyou.theme.minimizeBottomBar','0')==='1')}
+ if(shrink){shrink.addEventListener('click',()=>applyShrink(shrink.getAttribute('aria-checked')!=='true'));applyShrink(get('youyou.theme.minimizeBottomBar','0')==='1')}
  // Clear any previously stored custom background (feature removed)
  try{
    const native=Boolean(window.webkit?.messageHandlers?.backgroundImage);
