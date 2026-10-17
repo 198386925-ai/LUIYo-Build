@@ -152,7 +152,7 @@ struct LUIYoNativeHome: View {
                                 Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)
                             }.buttonStyle(.plain).accessibilityLabel("清除搜索")
                         }
-                    }.padding(.horizontal, 14).frame(height: 48).modifier(NativeCardSurface())
+                    }.padding(.horizontal, 14).frame(height: 44).modifier(NativeCardSurface())
                 }
                 tools
                 NativeHomeCategoryPicker(selection: $category, theme: model.theme, font: model.importedFont, useBlur: model.useBlur).frame(height: 34)
