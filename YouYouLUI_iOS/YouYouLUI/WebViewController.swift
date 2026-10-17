@@ -10,7 +10,6 @@ import UniformTypeIdentifiers
 /// HTML is content-only and never draws blur/glass itself.
 final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler, UITabBarControllerDelegate, UIDocumentPickerDelegate, PHPickerViewControllerDelegate {
     private var webView: WKWebView!
-    private var inlineThemeHost: UIHostingController<NativeThemeInline>?
     private let nativeHomeModel = NativeHomeModel()
     private var nativeHomeHost: UIHostingController<LUIYoNativeHome>?
     private var nativeHomeConstraints: [NSLayoutConstraint] = []
@@ -247,8 +246,6 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         configuration.userContentController.add(self, name: "zipName")
         configuration.userContentController.add(self, name: "backgroundImage")
         configuration.userContentController.add(self, name: "minimizeBottomBar")
-        configuration.userContentController.add(self, name: "showNativeTheme")
-        configuration.userContentController.add(self, name: "hideNativeTheme")
         configuration.userContentController.add(self, name: "pageState")
         configuration.userContentController.add(self, name: "settingsHeroFrame")
         configuration.userContentController.add(self, name: "bottomSearch")
@@ -367,8 +364,6 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "zipName")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "backgroundImage")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "minimizeBottomBar")
-        webView?.configuration.userContentController.removeScriptMessageHandler(forName: "showNativeTheme")
-        webView?.configuration.userContentController.removeScriptMessageHandler(forName: "hideNativeTheme")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "pageState")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "settingsHeroFrame")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "bottomSearch")
@@ -1625,14 +1620,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             if let payload = message.body as? [String: Any] { setScrollMinimize(payload["enabled"] as? Bool ?? false) }
             return
         }
-        if message.name == "showNativeTheme" {
-            showInlineTheme()
-            return
-        }
-        if message.name == "hideNativeTheme" {
-            hideInlineTheme()
-            return
-        }
+
         if message.name == "zipName" {
             if let payload = message.body as? [String: Any] { presentZipName(payload["name"] as? String ?? "优优LUI图标包") }
             return
@@ -1956,35 +1944,5 @@ private final class LUIYoSearchViewController: UIViewController, UITextFieldDele
         return true
     }
 
-    private func showInlineTheme() {
-        hideInlineTheme()
-        // Get theme section position from web
-        webView?.evaluateJavaScript("document.querySelector('.themeFold')?.getBoundingClientRect().top + window.scrollY") { [weak self] result, _ in
-            guard let self = self, let y = result as? CGFloat else { return }
-            let themeView = NativeThemeInline(
-                onShrinkToggle: { [weak self] enabled in
-                    self?.setScrollMinimize(enabled)
-                    self?.webView?.evaluateJavaScript("if(typeof applyShrink==='function')applyShrink(\(enabled))", completionHandler: nil)
-                },
-                onResetBackground: { [weak self] in self?.webView?.evaluateJavaScript("document.getElementById('resetBackgroundColor')?.click()", completionHandler: nil) },
-                onResetCard: { [weak self] in self?.webView?.evaluateJavaScript("document.getElementById('resetCardColor')?.click()", completionHandler: nil) },
-                onResetButton: { [weak self] in self?.webView?.evaluateJavaScript("document.getElementById('resetButtonColor')?.click()", completionHandler: nil) },
-                onImportFont: { [weak self] in self?.webView?.evaluateJavaScript("document.getElementById('chooseCustomFont')?.click()", completionHandler: nil) },
-                onResetFont: { [weak self] in self?.webView?.evaluateJavaScript("document.getElementById('resetCustomFont')?.click()", completionHandler: nil) }
-            )
-            let host = UIHostingController(rootView: themeView)
-            host.view.backgroundColor = .clear
-            // Position in scrollView so it scrolls with content
-            let width = self.webView.scrollView.bounds.width - 32
-            host.view.frame = CGRect(x: 16, y: y, width: width, height: 600)
-            self.webView.scrollView.addSubview(host.view)
-            self.inlineThemeHost = host
-        }
-    }
-    
-    private func hideInlineTheme() {
-        inlineThemeHost?.view.removeFromSuperview()
-        inlineThemeHost = nil
-    }
 
 }
