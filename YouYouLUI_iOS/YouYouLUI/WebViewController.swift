@@ -248,6 +248,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         configuration.userContentController.add(self, name: "zipName")
         configuration.userContentController.add(self, name: "backgroundImage")
         configuration.userContentController.add(self, name: "minimizeBottomBar")
+        configuration.userContentController.add(self, name: "openNativeTheme")
         configuration.userContentController.add(self, name: "pageState")
         configuration.userContentController.add(self, name: "settingsHeroFrame")
         configuration.userContentController.add(self, name: "bottomSearch")
@@ -365,6 +366,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "zipName")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "backgroundImage")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "minimizeBottomBar")
+        webView?.configuration.userContentController.removeScriptMessageHandler(forName: "openNativeTheme")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "pageState")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "settingsHeroFrame")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "bottomSearch")
@@ -1676,6 +1678,16 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         }
         if message.name == "minimizeBottomBar" {
             if let payload = message.body as? [String: Any] { setScrollMinimize(payload["enabled"] as? Bool ?? false) }
+            return
+        }
+        if message.name == "openNativeTheme" {
+            let themeView = NativeThemeMinimal { [weak self] enabled in
+                self?.setScrollMinimize(enabled)
+                self?.webView?.evaluateJavaScript("if(typeof applyShrink==='function')applyShrink(\(enabled))", completionHandler: nil)
+            }
+            let host = UIHostingController(rootView: themeView)
+            host.modalPresentationStyle = .pageSheet
+            self.present(host, animated: true)
             return
         }
         if message.name == "zipName" {
