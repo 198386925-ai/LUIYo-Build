@@ -710,7 +710,12 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         let generation = pageSwitchGeneration
         switchingNativePage = true
         suppressWebViewReveal = true
-        webView.isHidden = true
+        // Fade transition: fade out old content, swap, fade in new.
+        // Masks the JS bridge delay with a smooth effect instead of a flash.
+        let fadeDuration = 0.12
+        UIView.animate(withDuration: fadeDuration, animations: {
+            webView.alpha = 0.0
+        })
         // Switch tab UI immediately for instant feedback (user sees tab change)
         UIView.performWithoutAnimation {
             self.selectNativePage(tag)
@@ -723,16 +728,15 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         webView.evaluateJavaScript(js) { [weak self] _, _ in
             guard let self else { return }
             guard self.pageSwitchGeneration == generation else { return }
-            // Wait a tick for render
+            // Wait a tick for render, then fade in
             DispatchQueue.main.async {
                 guard self.pageSwitchGeneration == generation else { return }
-                // Finish updating the native overlay while WebKit is still hidden.
-                // This prevents the previous page/home overlay from flashing in the
-                // newly selected tab during the hand-off.
-                self.switchingNativePage = false
-                self.keepContentBelowNativeBar()
-                self.suppressWebViewReveal = false
                 self.webView?.isHidden = false
+                UIView.animate(withDuration: 0.12, animations: {
+                    self.webView?.alpha = 1.0
+                })
+                self.switchingNativePage = false
+                self.suppressWebViewReveal = false
             }
         }
         return false
@@ -1339,10 +1343,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     }
 
     private func attachNativeHome(to parent: UIViewController, host: UIView) {
-        // Keep the native home overlay out of the hierarchy's visible state while
-        // a tab hand-off is in progress; it is restored after the target page is ready.
-        let visible = !switchingNativePage && nativePageName == "home" &&
-            (activeSearchPageController == nil || activeSearchPage == "home")
+        let visible = nativePageName == "home" && (activeSearchPageController == nil || activeSearchPage == "home")
         // Keep WebKit attached and rendering so its processing/input state stays live.
         // An opaque native home covers it; other tabs have no SwiftUI overlay.
         if !suppressWebViewReveal { webView.isHidden = false }
