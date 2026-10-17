@@ -10,6 +10,7 @@ import UniformTypeIdentifiers
 /// HTML is content-only and never draws blur/glass itself.
 final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler, UITabBarControllerDelegate, UIDocumentPickerDelegate, PHPickerViewControllerDelegate {
     private var webView: WKWebView!
+    private var nativeShrinkSwitch: UISwitch?
     private let nativeHomeModel = NativeHomeModel()
     private var nativeHomeHost: UIHostingController<LUIYoNativeHome>?
     private var nativeHomeConstraints: [NSLayoutConstraint] = []
@@ -246,6 +247,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         configuration.userContentController.add(self, name: "zipName")
         configuration.userContentController.add(self, name: "backgroundImage")
         configuration.userContentController.add(self, name: "minimizeBottomBar")
+        configuration.userContentController.add(self, name: "shrinkSwitchPosition")
         configuration.userContentController.add(self, name: "pageState")
         configuration.userContentController.add(self, name: "settingsHeroFrame")
         configuration.userContentController.add(self, name: "bottomSearch")
@@ -362,6 +364,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "zipName")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "backgroundImage")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "minimizeBottomBar")
+        webView?.configuration.userContentController.removeScriptMessageHandler(forName: "shrinkSwitchPosition")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "pageState")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "settingsHeroFrame")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "bottomSearch")
@@ -1007,6 +1010,47 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         scrollMinimizeEnabled = enabled
         UserDefaults.standard.set(enabled, forKey: "youyou.minimizeBottomBar")
         if #available(iOS 26.0, *) { tabBarMinimizeBehavior = enabled ? .onScrollDown : .never }
+    }
+
+    private func updateNativeShrinkSwitch(_ payload: [String: Any]) {
+        let x = payload["x"] as? CGFloat ?? 0
+        let y = payload["y"] as? CGFloat ?? 0
+        let visible = payload["visible"] as? Bool ?? false
+        let enabled = payload["enabled"] as? Bool ?? false
+        DispatchQueue.main.async { [weak self] in
+            guard let self, let webView = self.webView else { return }
+            if self.nativeShrinkSwitch == nil {
+                let sw = UISwitch()
+                sw.addTarget(self, action: #selector(self.shrinkSwitchChanged(_:)), for: .valueChanged)
+                // Add to webView's superview so coordinates match
+                if let host = webView.superview {
+                    host.addSubview(sw)
+                } else {
+                    self.view.addSubview(sw)
+                }
+                self.nativeShrinkSwitch = sw
+            }
+            guard let sw = self.nativeShrinkSwitch else { return }
+            // Ensure switch is in the correct superview (webView may move between tabs)
+            if sw.superview !== webView.superview, let host = webView.superview {
+                sw.removeFromSuperview()
+                host.addSubview(sw)
+            }
+            let isSettings = self.activePageTag == 2
+            sw.isHidden = !(visible && isSettings)
+            if visible && isSettings {
+                // x,y are relative to webView, which matches superview coordinates
+                sw.frame = CGRect(x: x, y: y, width: 51, height: 31)
+                sw.isOn = enabled
+                sw.superview?.bringSubviewToFront(sw)
+            }
+        }
+    }
+
+    @objc private func shrinkSwitchChanged(_ sender: UISwitch) {
+        let enabled = sender.isOn
+        setScrollMinimize(enabled)
+        webView?.evaluateJavaScript("if(typeof applyShrink==='function')applyShrink(\(enabled))", completionHandler: nil)
     }
 
     private func updatePageScroll(_ page: String) {
