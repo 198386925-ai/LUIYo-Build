@@ -10,6 +10,7 @@ import UniformTypeIdentifiers
 /// HTML is content-only and never draws blur/glass itself.
 final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler, UITabBarControllerDelegate, UIDocumentPickerDelegate, PHPickerViewControllerDelegate {
     private var webView: WKWebView!
+    private var nativeShrinkSwitch: UISwitch?
     private let nativeHomeModel = NativeHomeModel()
     private var nativeHomeHost: UIHostingController<LUIYoNativeHome>?
     private var nativeHomeConstraints: [NSLayoutConstraint] = []
@@ -291,6 +292,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         webView.scrollView.insertSubview(glassContainer, at: 0)
         scrollOffsetObservation = webView.scrollView.observe(\.contentOffset, options: [.new]) { [weak self] _, _ in
             self?.renderVisibleNativeMaterials()
+            self?.updateShrinkSwitchPosition()
         }
 
         // Standard UIKit UITabBar: when built with the iOS 26 SDK and run on
@@ -828,6 +830,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
 
     private func navigateFromNativeTab(_ tag: Int) {
         activePageTag = tag
+        updateShrinkSwitchPosition()
         let page: String
         switch tag {
         case 1: page = "rules"
@@ -1007,6 +1010,52 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         scrollMinimizeEnabled = enabled
         UserDefaults.standard.set(enabled, forKey: "youyou.minimizeBottomBar")
         if #available(iOS 26.0, *) { tabBarMinimizeBehavior = enabled ? .onScrollDown : .never }
+    }
+
+    private func updateShrinkSwitchPosition() {
+        guard activePageTag == 2, let webView = webView else {
+            nativeShrinkSwitch?.isHidden = true
+            return
+        }
+        webView.evaluateJavaScript("(function(){var el=document.getElementById('minimizeBottomBar');if(!el)return null;var r=el.getBoundingClientRect();return{x:r.left,y:r.top,visible:r.bottom>0&&r.top<window.innerHeight,on:el.getAttribute('aria-checked')==='true'};})()") { [weak self] result, _ in
+            guard let self, let dict = result as? [String: Any] else {
+                self?.nativeShrinkSwitch?.isHidden = true
+                return
+            }
+            DispatchQueue.main.async {
+                let x = dict["x"] as? CGFloat ?? 0
+                let y = dict["y"] as? CGFloat ?? 0
+                let visible = dict["visible"] as? Bool ?? false
+                let isOn = dict["on"] as? Bool ?? false
+                if self.nativeShrinkSwitch == nil {
+                    let sw = UISwitch()
+                    sw.addTarget(self, action: #selector(self.shrinkSwitchChanged(_:)), for: .valueChanged)
+                    self.nativeShrinkSwitch = sw
+                }
+                guard let sw = self.nativeShrinkSwitch else { return }
+                if sw.superview !== webView.superview, let host = webView.superview {
+                    sw.removeFromSuperview()
+                    host.addSubview(sw)
+                } else if sw.superview == nil, let host = webView.superview {
+                    host.addSubview(sw)
+                }
+                if visible && self.activePageTag == 2 {
+                    sw.frame = CGRect(x: x, y: y, width: 51, height: 31)
+                    if sw.isOn != isOn { sw.setOn(isOn, animated: false) }
+                    sw.isHidden = false
+                    sw.superview?.bringSubviewToFront(sw)
+                    webView.evaluateJavaScript("document.getElementById('minimizeBottomBar').style.opacity='0'", completionHandler: nil)
+                } else {
+                    sw.isHidden = true
+                }
+            }
+        }
+    }
+
+    @objc private func shrinkSwitchChanged(_ sender: UISwitch) {
+        let enabled = sender.isOn
+        setScrollMinimize(enabled)
+        webView?.evaluateJavaScript("if(typeof applyShrink==='function')applyShrink(\(enabled))", completionHandler: nil)
     }
 
 
