@@ -586,12 +586,13 @@ html.has-background-image body>.appBottomNav{position:fixed!important;z-index:80
       <div class="themeRow materialThemeRow"><div><b>卡片材质</b><small id="cardMaterialHint">iOS 26+ 原生液态玻璃 / UIKit 原生磨砂</small></div><div class="materialModePicker" id="materialModePicker" role="radiogroup" aria-label="卡片材质"><button type="button" data-material="liquid">液态玻璃</button><button type="button" data-material="blur">原生磨砂</button></div></div>
       <div class="themeRow"><div><b>背景颜色</b><small id="backgroundHint">浅色背景</small></div><div class="themeColor"><input id="appBackgroundColor" type="color" value="#F4F2EE">
 <style>
-/* Liquid glass for theme action buttons */
+/* Liquid glass for theme action buttons - enhanced */
 #resetBackgroundColor,#resetCardColor,#resetButtonColor,#chooseCustomFont,#resetCustomFont{
-backdrop-filter:blur(20px) saturate(180%) !important;
--webkit-backdrop-filter:blur(20px) saturate(180%) !important;
-background:rgba(255,255,255,0.5) !important;
-border:0.5px solid rgba(255,255,255,0.7) !important;
+backdrop-filter:blur(20px) saturate(180%) brightness(1.1) !important;
+-webkit-backdrop-filter:blur(20px) saturate(180%) brightness(1.1) !important;
+background:linear-gradient(135deg,rgba(255,255,255,0.7),rgba(255,255,255,0.3)) !important;
+border:1px solid rgba(255,255,255,0.8) !important;
+box-shadow:0 2px 12px rgba(0,0,0,0.08),inset 0 1px 0 rgba(255,255,255,0.9) !important;
 }
 </style>
 <button type="button" id="resetBackgroundColor">恢复</button></div></div>
