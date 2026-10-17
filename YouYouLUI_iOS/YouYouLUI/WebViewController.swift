@@ -377,6 +377,16 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         navigateFromNativeTab(activePageTag)
         keepContentBelowNativeBar()
         updateLayoutMetrics(force: true)
+        // Pre-warm: while WebView is hidden under native homepage, run appNavTo
+        // for rules and settings so the first user tab switch doesn't flash.
+        // The WebView stays hidden; user only sees the native homepage.
+        if activePageTag == 0 {
+            webView.evaluateJavaScript("appNavTo('rules')") { [weak self] _, _ in
+                self?.webView.evaluateJavaScript("appNavTo('settings')") { [weak self] _, _ in
+                    self?.webView.evaluateJavaScript("appNavTo('rules')", completionHandler: nil)
+                }
+            }
+        }
         // Pre-render rules page at launch so first tab switch doesn't flash
         // Pre-render removed entirely: caused race conditions where WebView
         // got stuck showing wrong page when user tapped tab during pre-render.
