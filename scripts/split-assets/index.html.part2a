@@ -402,7 +402,10 @@ body.nav-settings ::-webkit-scrollbar{display:none;width:0;height:0}
 .themeSliderLine{display:flex;align-items:center;gap:12px}
 .themeSliderLine input{flex:1;min-width:0;height:32px;accent-color:#007AFE}
 .themeSliderLine output{min-width:42px;text-align:right;font-size:12px;color:inherit}
-.themeSwitch{flex:0 0 auto;accent-color:#34c759}.luiyoGlassBtn{background:rgba(255,255,255,.45)!important;-webkit-backdrop-filter:blur(20px) saturate(180%)!important;backdrop-filter:blur(20px) saturate(180%)!important;border:1px solid rgba(255,255,255,.6)!important;box-shadow:0 4px 16px rgba(0,0,0,.08)!important}
+.themeSwitch{flex:0 0 auto;-webkit-appearance:none;appearance:none;width:51px;height:31px;border-radius:16px;background:#e9e9ea;position:relative;outline:none;cursor:pointer;transition:background .2s;margin:0}
+.themeSwitch:checked{background:#34c759}
+.themeSwitch::after{content:'';position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:left .2s}
+.themeSwitch:checked::after{left:22px}.luiyoGlassBtn{background:rgba(255,255,255,.45)!important;-webkit-backdrop-filter:blur(20px) saturate(180%)!important;backdrop-filter:blur(20px) saturate(180%)!important;border:1px solid rgba(255,255,255,.6)!important;box-shadow:0 4px 16px rgba(0,0,0,.08)!important}
 .settingsFoldBody{overflow:hidden}
 .settingsFold:not([open]) .settingsFoldBody{display:none!important}
 html.has-background-image,html.has-background-image body{background:transparent!important}
@@ -586,7 +589,7 @@ html.has-background-image body>.appBottomNav{position:fixed!important;z-index:80
       <div class="themeRow" hidden><div><b>按钮颜色</b><small>首页工具按钮与上传图标；选中保持白色，清空、导出 ZIP 颜色固定</small></div><div class="themeColor"><input id="appButtonColor" type="color" value="#FFFFFF"><button type="button" id="resetButtonColor">恢复</button></div></div>
       <div class="themeRow appearanceThemeRow bottomSearchThemeRow"><div><b>底栏搜索按钮</b><small id="bottomSearchModeHint">关闭后使用顶部搜索框</small></div><div id="bottomSearchModePicker" role="radiogroup" aria-label="底栏搜索按钮"><button type="button" data-bottom-search-mode="off">关闭</button><button type="button" data-bottom-search-mode="merged">合并</button><button type="button" data-bottom-search-mode="separate">分开</button></div></div>
       <div class="themeRow themeSliderRow" hidden><div><b>工具栏卡片透明度</b><small>仅调整首页工具栏卡片，不影响文字和按钮</small></div><div class="themeSliderLine"><input id="toolbarTransparency" aria-label="工具栏卡片透明度" type="range" min="0" max="100" step="1" value="0"><output id="toolbarTransparencyValue">0%</output></div></div>
-      <div class="themeRow"><div><b>滚动时缩小底栏</b><small>向下滚动缩小，向上滚动恢复</small></div><input id="minimizeBottomBar" aria-label="滚动时缩小底栏" class="themeSwitch" type="checkbox" switch role="switch"></div>
+      <div class="themeRow"><div><b>滚动时缩小底栏</b><small>向下滚动缩小，向上滚动恢复</small></div><input id="minimizeBottomBar" aria-label="滚动时缩小底栏" class="themeSwitch" type="checkbox" role="switch"></div>
       <div class="themeRow themeFontRow"><div><b>自定义字体</b><small id="customFontName">使用默认字体</small></div><div class="themeFontControls"><button type="button" id="chooseCustomFont" class="luiyoGlassBtn">导入字体</button><button type="button" id="resetCustomFont">恢复</button><input id="customFontFile" type="file" accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2" hidden></div></div>
     </div>
   </details>
