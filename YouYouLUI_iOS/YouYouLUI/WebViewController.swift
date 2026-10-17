@@ -332,6 +332,8 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     }
 
     override func viewDidLoad() {
+        // Clear cache to force fresh HTML
+        WKWebsiteDataStore.default().removeData(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(), modifiedSince: Date(timeIntervalSince1970: 0)) { }
         super.viewDidLoad()
         UserDefaults.standard.register(defaults: ["youyou.bottomSearchEnabled": true, "youyou.bottomSearchLayout": "separate"])
         setScrollMinimize(UserDefaults.standard.bool(forKey: "youyou.minimizeBottomBar"))
