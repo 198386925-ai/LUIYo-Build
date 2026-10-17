@@ -152,7 +152,7 @@ struct LUIYoNativeHome: View {
                                 Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)
                             }.buttonStyle(.plain).accessibilityLabel("清除搜索")
                         }
-                    }.padding(.horizontal, 14).frame(height: 44).modifier(NativeCardSurface()).clipShape(Capsule())
+                    }.padding(.horizontal, 14).frame(height: 44).modifier(NativeSearchGlass())
                 }
                 tools
                 NativeHomeCategoryPicker(selection: $category, theme: model.theme, font: model.importedFont, useBlur: model.useBlur).frame(height: 34)
@@ -436,6 +436,17 @@ private struct NativeCardSurface: ViewModifier {
     @Environment(\.nativeHomeTheme) private var theme
     func body(content: Content) -> some View {
         content.background(NativeMaterialSurface(useBlur: useBlur, tint: UIColor(nativeHex: theme.card), opacity: 1, radius: 20))
+    }
+}
+
+// Native iOS 26+ Liquid Glass for search bar - NO custom drawing
+private struct NativeSearchGlass: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content.glassEffect(.regular, in: Capsule())
+        } else {
+            content.modifier(NativeCardSurface()).clipShape(Capsule())
+        }
     }
 }
 
