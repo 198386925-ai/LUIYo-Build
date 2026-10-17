@@ -775,56 +775,31 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     }
 
     private func keepContentBelowNativeBar() {
-        guard let webView, isViewLoaded, let parent = selectedViewController,
+        guard let webView = webView, isViewLoaded, let parent = selectedViewController,
               let host = parent.view else { return }
-        // Main webView is engine-only (build 39+): it stays on rootView, hidden.
-        // Never move it into tab views. Rules/Settings have their own WebViews
-        // permanently attached; Homepage uses native UI.
         attachNativeHome(to: parent, host: host)
-        // Ensure main webView stays hidden (engine-only)
         webView.isHidden = true
-        // Use the correct scrollView for the tab bar layout
-        let tag = pageControllers.firstIndex(of: parent) ?? 0
-        let scroll: UIScrollView?
-        if tag == 1 {
-            scroll = webViewRules?.scrollView
-        } else if tag == 2 {
-            scroll = webViewSettings?.scrollView
-        } else {
-            scroll = nativeHomeScrollView ?? webView.scrollView
-        }
-        if let scroll = scroll {
-            if boundScrollViews[ObjectIdentifier(parent)] !== scroll {
-                parent.setContentScrollView(scroll, for: .bottom)
-                boundScrollViews[ObjectIdentifier(parent)] = scroll
+        var targetScroll: UIScrollView? = nil
+        if let idx = pageControllers.firstIndex(of: parent) {
+            if idx == 1 {
+                targetScroll = webViewRules?.scrollView
+            } else if idx == 2 {
+                targetScroll = webViewSettings?.scrollView
             }
         }
-        return
-        // Content belongs to the selected tab. UIKit keeps its native floating
-        // bar above this page and propagates the page's safe-area insets.
-        if webView.superview !== host {
-            UIView.performWithoutAnimation {
-                webView.isHidden = true
-                NSLayoutConstraint.deactivate(webHostConstraints)
-                webView.removeFromSuperview()
-                host.insertSubview(webView, at: 0)
-            webView.translatesAutoresizingMaskIntoConstraints = false
-                webHostConstraints = [webView.topAnchor.constraint(equalTo: host.topAnchor),
-                    webView.bottomAnchor.constraint(equalTo: host.bottomAnchor),
-                    webView.leadingAnchor.constraint(equalTo: host.leadingAnchor),
-                    webView.trailingAnchor.constraint(equalTo: host.trailingAnchor)]
-                NSLayoutConstraint.activate(webHostConstraints)
-                // Main webView is engine-only (build 39+); native UI covers it on
-                // Homepage, independent WebViews handle Rules/Settings display.
-                // Keep it hidden so web homepage never flashes over native UI.
-                webView.isHidden = true
+        if targetScroll == nil {
+            if nativePageName == "home" {
+                targetScroll = nativeHomeScrollView ?? webView.scrollView
+            } else {
+                targetScroll = webView.scrollView
             }
         }
-        attachNativeHome(to: parent, host: host)
-        let scroll = nativePageName == "home" ? (nativeHomeScrollView ?? webView.scrollView) : webView.scrollView
-        if boundScrollViews[ObjectIdentifier(parent)] !== scroll {
-            parent.setContentScrollView(scroll, for: .bottom)
-            boundScrollViews[ObjectIdentifier(parent)] = scroll
+        if let ts = targetScroll {
+            let key = ObjectIdentifier(parent)
+            if boundScrollViews[key] !== ts {
+                parent.setContentScrollView(ts, for: .bottom)
+                boundScrollViews[key] = ts
+            }
         }
     }
 
