@@ -658,7 +658,17 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         // - Homepage (tag 0): hidden (native UI shows)
         // - Rules/Settings (tag 1,2): visible (WebView shows)
         if let idx = pageControllers.firstIndex(of: parent) {
-            webView?.isHidden = (idx == 0)
+            let showWeb = (idx != 0)
+            webView?.isHidden = !showWeb
+            if showWeb, let wv = webView {
+                // WebView must be above the tab's empty view to receive touches.
+                // The tab VC's view is transparent but would block touches if on top.
+                wv.superview?.bringSubviewToFront(wv)
+                // Also disable touch interception on the empty tab view.
+                parent.view.isUserInteractionEnabled = false
+            } else {
+                parent.view.isUserInteractionEnabled = true
+            }
         }
         // Set the correct scroll view for the tab bar
         let scroll = nativePageName == "home" ? (nativeHomeScrollView ?? webView?.scrollView) : webView?.scrollView
