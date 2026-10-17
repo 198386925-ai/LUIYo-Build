@@ -712,25 +712,3 @@ body.nav-settings .settingsHead p { margin: 0 !important; color: #8a94a1 !import
 .ruleCard { content-visibility: auto; contain-intrinsic-size: auto 140px; }
 </style>
 
-<script>
-// Native switch overlay: show/hide UISwitch at toggle position
-(function(){
-  function sendToggle(show){
-    var el = document.getElementById('minimizeBottomBar');
-    var y = 0;
-    if (el) { y = el.getBoundingClientRect().top + window.scrollY; }
-    if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.toggleShrinkUI) {
-      window.webkit.messageHandlers.toggleShrinkUI.postMessage({show: show, y: y});
-    }
-  }
-  // Observe theme section expand/collapse
-  var themeFold = document.querySelector('.themeFold');
-  if (themeFold) {
-    new MutationObserver(function(){
-      var open = themeFold.hasAttribute('open');
-      sendToggle(open);
-    }).observe(themeFold, {attributes: true, attributeFilter: ['open']});
-  }
-})();
-</script>
-
