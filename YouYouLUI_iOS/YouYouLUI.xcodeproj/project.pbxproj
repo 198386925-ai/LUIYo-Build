@@ -24,7 +24,6 @@
         A35000000000000000000001 = {isa = PBXBuildFile; fileRef = B35000000000000000000001; };
         A20000000000000000000001 = {isa = PBXBuildFile; fileRef = B20000000000000000000001; };
         A20000000000000000000003 = {isa = PBXBuildFile; fileRef = B20000000000000000000003; };
-        A20000000000000000000004 = {isa = PBXBuildFile; fileRef = B20000000000000000000004; };
 		A10000000000000000000001 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000001 /* AppDelegate.swift */; };
 		A10000000000000000000002 /* WebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000002 /* WebViewController.swift */; };
 		A10000000000000000000003 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000003 /* Assets.xcassets */; };
@@ -37,7 +36,6 @@
         B35000000000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LUISettingsHeroCell.m; sourceTree = "<group>"; };
         B20000000000000000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeHome.swift; sourceTree = "<group>"; };
         B20000000000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeThemeMinimal.swift; sourceTree = "<group>"; };
-        B20000000000000000000004 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeThemeInline.swift; sourceTree = "<group>"; };
 		B10000000000000000000001 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		B10000000000000000000002 /* WebViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebViewController.swift; sourceTree = "<group>"; };
 		B10000000000000000000003 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -71,7 +69,6 @@
 				B10000000000000000000001 /* AppDelegate.swift */,
                 B20000000000000000000001,
                 B20000000000000000000003,
-                B20000000000000000000004,
                 B35000000000000000000001,B35000000000000000000002,B35000000000000000000003,
 				B10000000000000000000002 /* WebViewController.swift */,
 				B10000000000000000000003 /* Assets.xcassets */,
@@ -149,7 +146,6 @@
 				A10000000000000000000001 /* AppDelegate.swift in Sources */,
                 A20000000000000000000001,
                 A20000000000000000000003,
-                A20000000000000000000004,
                 A35000000000000000000001,
 				A10000000000000000000002 /* WebViewController.swift in Sources */,
 			);
