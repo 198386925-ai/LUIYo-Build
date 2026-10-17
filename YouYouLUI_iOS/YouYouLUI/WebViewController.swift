@@ -711,7 +711,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         switchingNativePage = true
         suppressWebViewReveal = true
         // Fade out for smooth transition (masks the JS delay)
-        UIView.animate(withDuration: 0.12, animations: {
+        UIView.animate(withDuration: 0.25, animations: {
             self.webView.alpha = 0.0
         })
         webView.isHidden = true
@@ -731,9 +731,12 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             DispatchQueue.main.async {
                 guard self.pageSwitchGeneration == generation else { return }
                 self.webView?.isHidden = false
-                UIView.animate(withDuration: 0.12, animations: {
-                    self.webView?.alpha = 1.0
-                })
+                // Slight delay to ensure content is rendered before fade in
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                    UIView.animate(withDuration: 0.25, animations: {
+                        self.webView?.alpha = 1.0
+                    })
+                }
                 self.switchingNativePage = false
                 self.suppressWebViewReveal = false
             }
