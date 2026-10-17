@@ -402,7 +402,7 @@ body.nav-settings ::-webkit-scrollbar{display:none;width:0;height:0}
 .themeSliderLine{display:flex;align-items:center;gap:12px}
 .themeSliderLine input{flex:1;min-width:0;height:32px;accent-color:#007AFE}
 .themeSliderLine output{min-width:42px;text-align:right;font-size:12px;color:inherit}
-.themeSwitch{flex:0 0 auto;-webkit-appearance:none;appearance:none;width:51px;height:31px;border-radius:16px;background:#e9e9ea;position:relative;outline:none;cursor:pointer;transition:background .2s;margin:0}
+.themeSwitch{flex:0 0 auto !important;-webkit-appearance:none !important;appearance:none !important;width:51px !important;height:31px !important;border-radius:16px !important;background:#e9e9ea !important;position:relative !important;outline:none !important;cursor:pointer !important;transition:background .2s !important;margin:0 !important}
 .themeSwitch:checked{background:#34c759}
 .themeSwitch::after{content:'';position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:left .2s}
 .themeSwitch:checked::after{left:22px}.luiyoGlassBtn{background:rgba(255,255,255,.45)!important;-webkit-backdrop-filter:blur(20px) saturate(180%)!important;backdrop-filter:blur(20px) saturate(180%)!important;border:1px solid rgba(255,255,255,.6)!important;box-shadow:0 4px 16px rgba(0,0,0,.08)!important}
