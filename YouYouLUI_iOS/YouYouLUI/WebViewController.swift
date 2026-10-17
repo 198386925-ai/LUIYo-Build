@@ -14,6 +14,9 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     // Each stays on its own page; tab switch only shows/hides, no appNavTo.
     private var webViewRules: WKWebView?
     private var webViewSettings: WKWebView?
+    // Deferred load chain for independent WebViews (avoid launch stall)
+    private var pendingWebRoot: URL?
+    private var pendingIndexURL: URL?
     private let nativeHomeModel = NativeHomeModel()
     private var nativeHomeHost: UIHostingController<LUIYoNativeHome>?
     private var nativeHomeConstraints: [NSLayoutConstraint] = []
@@ -444,10 +447,11 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             return
         }
         webView.loadFileURL(indexURL, allowingReadAccessTo: webRoot)
-        // Load the same page in the independent WebViews; didFinish will
-        // navigate each to its own page (rules/settings).
-        webViewRules?.loadFileURL(indexURL, allowingReadAccessTo: webRoot)
-        webViewSettings?.loadFileURL(indexURL, allowingReadAccessTo: webRoot)
+        // Defer loading the independent WebViews until after the main one
+        // finishes, so the homepage doesn't stall at launch. didFinish chains
+        // the loads sequentially. Store URLs for the chain.
+        pendingWebRoot = webRoot
+        pendingIndexURL = indexURL
     }
 
     deinit {
@@ -478,11 +482,26 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         // After this, tab switches just show/hide - no appNavTo needed.
         if webView === webViewRules {
             webView.evaluateJavaScript("appNavTo('rules')", completionHandler: nil)
+            // Chain: rules finished -> load settings WebView
+            if let settingsWV = webViewSettings, let root = pendingWebRoot,
+               let idx = Bundle.main.url(forResource: "index", withExtension: "html", subdirectory: "Web") {
+                pendingWebRoot = nil
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak settingsWV] in
+                    settingsWV?.loadFileURL(idx, allowingReadAccessTo: root)
+                }
+            }
             return
         }
         if webView === webViewSettings {
             webView.evaluateJavaScript("appNavTo('settings')", completionHandler: nil)
             return
+        }
+        // Chain: main webView finished -> load rules WebView (deferred to avoid launch stall)
+        if webView === self.webView, let rulesWV = webViewRules, let idx = pendingIndexURL, let root = pendingWebRoot {
+            pendingIndexURL = nil
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak rulesWV] in
+                rulesWV?.loadFileURL(idx, allowingReadAccessTo: root)
+            }
         }
         nativeHomeReady = true
         syncAuthorization()
