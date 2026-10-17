@@ -262,19 +262,19 @@ struct LUIYoNativeHome: View {
         NavigationView {
             Form {
                 Section {
-                    Toggle("启用自定义颜色", isOn: $selectedEnabled).toggleStyle(BrandSwitchStyle())
+                    Toggle("启用自定义颜色", isOn: $selectedEnabled)
                     ColorPicker("选中颜色", selection: $selectedColor, supportsOpacity: false)
                         .disabled(!selectedEnabled)
                 } header: { Text("选中 · 浅色模式") }
                   footer: { Text("关闭时自动加深上传图片的颜色。") }
                 Section {
-                    Toggle("启用自定义颜色", isOn: $darkSelectedEnabled).toggleStyle(BrandSwitchStyle())
+                    Toggle("启用自定义颜色", isOn: $darkSelectedEnabled)
                     ColorPicker("选中颜色", selection: $darkSelectedColor, supportsOpacity: false)
                         .disabled(!darkSelectedEnabled)
                 } header: { Text("选中 · 深色模式") }
                   footer: { Text("关闭时自动反转上传图片的颜色。") }
                 Section {
-                    Toggle("启用统一颜色", isOn: $allEnabled).toggleStyle(BrandSwitchStyle())
+                    Toggle("启用统一颜色", isOn: $allEnabled)
                     ColorPicker("图标颜色", selection: $allColor, supportsOpacity: false)
                         .disabled(!allEnabled)
                 } header: { Text("全部图标") }
