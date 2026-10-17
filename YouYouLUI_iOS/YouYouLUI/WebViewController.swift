@@ -710,12 +710,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         let generation = pageSwitchGeneration
         switchingNativePage = true
         suppressWebViewReveal = true
-        // Fade transition: fade out old content, swap, fade in new.
-        // Masks the JS bridge delay with a smooth effect instead of a flash.
-        let fadeDuration = 0.12
-        UIView.animate(withDuration: fadeDuration, animations: {
-            webView.alpha = 0.0
-        })
+        webView.isHidden = true
         // Switch tab UI immediately for instant feedback (user sees tab change)
         UIView.performWithoutAnimation {
             self.selectNativePage(tag)
@@ -728,13 +723,10 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         webView.evaluateJavaScript(js) { [weak self] _, _ in
             guard let self else { return }
             guard self.pageSwitchGeneration == generation else { return }
-            // Wait a tick for render, then fade in
+            // Wait a tick for render
             DispatchQueue.main.async {
                 guard self.pageSwitchGeneration == generation else { return }
                 self.webView?.isHidden = false
-                UIView.animate(withDuration: 0.12, animations: {
-                    self.webView?.alpha = 1.0
-                })
                 self.switchingNativePage = false
                 self.suppressWebViewReveal = false
             }
