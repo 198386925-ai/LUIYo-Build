@@ -712,17 +712,3 @@ body.nav-settings .settingsHead p { margin: 0 !important; color: #8a94a1 !import
 .ruleCard { content-visibility: auto; contain-intrinsic-size: auto 140px; }
 </style>
 
-// Native Theme: intercept theme section clicks, open native instead
-(function(){
-  var summary = document.querySelector('.themeFold > summary');
-  if(summary){
-    summary.addEventListener('click', function(e){
-      e.preventDefault();
-      e.stopPropagation();
-      if(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.openNativeTheme){
-        window.webkit.messageHandlers.openNativeTheme.postMessage({});
-      }
-    }, true);
-  }
-})();
-
