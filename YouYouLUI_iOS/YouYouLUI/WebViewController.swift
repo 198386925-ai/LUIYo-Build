@@ -709,22 +709,31 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         pageSwitchGeneration += 1
         let generation = pageSwitchGeneration
         switchingNativePage = true
-        // Freeze-frame: do NOT hide webView. The old page stays visible
-        // (frozen) while appNavTo swaps the DOM synchronously via CSS class.
-        // No blank/black frame, no mask, no added delay. User explicitly
-        // prefers frozen-over-flash ("把网页卡也改成这样").
-        UIView.performWithoutAnimation {
-            self.selectNativePage(tag)
-            self.updatePageScroll(page)
+        // If leaving homepage (native UI covers WebView): update WebView content
+        // while it's still hidden underneath, then reveal. User sees homepage
+        // freeze briefly, then the target page appears with no intermediate flash.
+        // If switching between web tabs: freeze-frame (don't hide), old page
+        // stays visible while appNavTo swaps DOM synchronously.
+        let fromHome = (activePageTag == 0)
+        if fromHome {
+            webView.isHidden = true
         }
-        self.keepContentBelowNativeBar()
-        self.updateLayoutMetrics(force: true)
         let js = "appNavTo('" + page + "');window.__syncNativeCardGlass?.();"
         webView.evaluateJavaScript(js) { [weak self] _, _ in
             guard let self else { return }
             guard self.pageSwitchGeneration == generation else { return }
             DispatchQueue.main.async {
                 guard self.pageSwitchGeneration == generation else { return }
+                UIView.performWithoutAnimation {
+                    self.selectNativePage(tag)
+                    self.updatePageScroll(page)
+                }
+                self.keepContentBelowNativeBar()
+                self.updateLayoutMetrics(force: true)
+                // Reveal WebView now that it shows the target page
+                if self.nativePageName != "home" {
+                    self.webView?.isHidden = false
+                }
                 self.switchingNativePage = false
             }
         }
