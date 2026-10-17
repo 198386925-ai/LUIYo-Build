@@ -777,13 +777,27 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     private func keepContentBelowNativeBar() {
         guard let webView, isViewLoaded, let parent = selectedViewController,
               let host = parent.view else { return }
-        // Independent WebViews (build 39+): Rules (tag 1) and Settings (tag 2)
-        // have their own WebViews permanently attached. Don't move the main
-        // webView into them.
-        if let tag = pageControllers.firstIndex(of: parent), tag == 1 || tag == 2 {
-            attachNativeHome(to: parent, host: host)
-            return
+        // Main webView is engine-only (build 39+): it stays on rootView, hidden.
+        // Never move it into tab views. Rules/Settings have their own WebViews
+        // permanently attached; Homepage uses native UI.
+        attachNativeHome(to: parent, host: host)
+        // Ensure main webView stays hidden (engine-only)
+        webView.isHidden = true
+        // Use the correct scrollView for the tab bar layout
+        let tag = pageControllers.firstIndex(of: parent) ?? 0
+        let scroll: UIScrollView?
+        if tag == 1 {
+            scroll = webViewRules?.scrollView
+        } else if tag == 2 {
+            scroll = webViewSettings?.scrollView
+        } else {
+            scroll = nativeHomeScrollView ?? webView.scrollView
         }
+        if let scroll, boundScrollViews[ObjectIdentifier(parent)] !== scroll {
+            parent.setContentScrollView(scroll, for: .bottom)
+            boundScrollViews[ObjectIdentifier(parent)] = scroll
+        }
+        return
         // Content belongs to the selected tab. UIKit keeps its native floating
         // bar above this page and propagates the page's safe-area insets.
         if webView.superview !== host {
