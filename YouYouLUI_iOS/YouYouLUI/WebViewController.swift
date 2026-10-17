@@ -709,26 +709,23 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         pageSwitchGeneration += 1
         let generation = pageSwitchGeneration
         switchingNativePage = true
-        suppressWebViewReveal = true
-        webView.isHidden = true
-        // Switch tab UI immediately for instant feedback (user sees tab change)
+        // Freeze-frame: do NOT hide webView. The old page stays visible
+        // (frozen) while appNavTo swaps the DOM synchronously via CSS class.
+        // No blank/black frame, no mask, no added delay. User explicitly
+        // prefers frozen-over-flash ("把网页卡也改成这样").
         UIView.performWithoutAnimation {
             self.selectNativePage(tag)
             self.updatePageScroll(page)
         }
         self.keepContentBelowNativeBar()
         self.updateLayoutMetrics(force: true)
-        // Navigate and wait for render (2 frames) before revealing - no flash
         let js = "appNavTo('" + page + "');window.__syncNativeCardGlass?.();"
         webView.evaluateJavaScript(js) { [weak self] _, _ in
             guard let self else { return }
             guard self.pageSwitchGeneration == generation else { return }
-            // Wait a tick for render
             DispatchQueue.main.async {
                 guard self.pageSwitchGeneration == generation else { return }
-                self.webView?.isHidden = false
                 self.switchingNativePage = false
-                self.suppressWebViewReveal = false
             }
         }
         return false
