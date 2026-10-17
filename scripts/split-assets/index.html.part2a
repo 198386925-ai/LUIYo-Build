@@ -584,7 +584,17 @@ html.has-background-image body>.appBottomNav{position:fixed!important;z-index:80
     <div class="settingsFoldBody themeBody">
       <div class="themeRow appearanceThemeRow"><div><b>外观模式</b><small id="appearanceHint">跟随系统</small></div><div id="appearanceModePicker" class="appearanceModePicker" role="radiogroup" aria-label="外观模式"><button type="button" data-appearance-mode="system">跟随系统</button><button type="button" data-appearance-mode="light">浅色</button><button type="button" data-appearance-mode="dark">深色</button></div></div>
       <div class="themeRow materialThemeRow"><div><b>卡片材质</b><small id="cardMaterialHint">iOS 26+ 原生液态玻璃 / UIKit 原生磨砂</small></div><div class="materialModePicker" id="materialModePicker" role="radiogroup" aria-label="卡片材质"><button type="button" data-material="liquid">液态玻璃</button><button type="button" data-material="blur">原生磨砂</button></div></div>
-      <div class="themeRow"><div><b>背景颜色</b><small id="backgroundHint">浅色背景</small></div><div class="themeColor"><input id="appBackgroundColor" type="color" value="#F4F2EE"><button type="button" id="resetBackgroundColor">恢复</button></div></div>
+      <div class="themeRow"><div><b>背景颜色</b><small id="backgroundHint">浅色背景</small></div><div class="themeColor"><input id="appBackgroundColor" type="color" value="#F4F2EE">
+<style>
+/* Liquid glass for theme action buttons */
+#resetBackgroundColor,#resetCardColor,#resetButtonColor,#chooseCustomFont,#resetCustomFont{
+backdrop-filter:blur(20px) saturate(180%) !important;
+-webkit-backdrop-filter:blur(20px) saturate(180%) !important;
+background:rgba(255,255,255,0.5) !important;
+border:0.5px solid rgba(255,255,255,0.7) !important;
+}
+</style>
+<button type="button" id="resetBackgroundColor">恢复</button></div></div>
       <div class="themeRow"><div><b>卡片颜色</b><small>仅修改激活授权上方的品牌卡</small></div><div class="themeColor"><input id="appCardColor" type="color" value="#FFFFFF"><button type="button" id="resetCardColor">恢复</button></div></div>
       <div class="themeRow" hidden><div><b>按钮颜色</b><small>首页工具按钮与上传图标；选中保持白色，清空、导出 ZIP 颜色固定</small></div><div class="themeColor"><input id="appButtonColor" type="color" value="#FFFFFF"><button type="button" id="resetButtonColor">恢复</button></div></div>
       <div class="themeRow appearanceThemeRow bottomSearchThemeRow"><div><b>底栏搜索按钮</b><small id="bottomSearchModeHint">关闭后使用顶部搜索框</small></div><div id="bottomSearchModePicker" role="radiogroup" aria-label="底栏搜索按钮"><button type="button" data-bottom-search-mode="off">关闭</button><button type="button" data-bottom-search-mode="merged">合并</button><button type="button" data-bottom-search-mode="separate">分开</button></div></div>
