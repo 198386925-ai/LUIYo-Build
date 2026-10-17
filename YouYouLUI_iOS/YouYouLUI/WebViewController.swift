@@ -793,9 +793,11 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         } else {
             scroll = nativeHomeScrollView ?? webView.scrollView
         }
-        if let scroll, boundScrollViews[ObjectIdentifier(parent)] !== scroll {
-            parent.setContentScrollView(scroll, for: .bottom)
-            boundScrollViews[ObjectIdentifier(parent)] = scroll
+        if let scroll = scroll {
+            if boundScrollViews[ObjectIdentifier(parent)] !== scroll {
+                parent.setContentScrollView(scroll, for: .bottom)
+                boundScrollViews[ObjectIdentifier(parent)] = scroll
+            }
         }
         return
         // Content belongs to the selected tab. UIKit keeps its native floating
