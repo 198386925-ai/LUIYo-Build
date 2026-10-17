@@ -318,6 +318,9 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             restoredNativeFont = true
         }
 
+        // WebView starts hidden - native homepage shows first.
+        // Only visible on Rules/Settings tabs after appNavTo completes.
+        webView.isHidden = true
         rootView.addSubview(webView)
         // Fixed position: fill safe area above tab bar. Never moved between tabs.
         // Tab switching only toggles isHidden + appNavTo. No hierarchy churn.
@@ -651,6 +654,12 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     private func attachNativeHomeIfNeeded() {
         guard let parent = selectedViewController, let host = parent.view else { return }
         attachNativeHome(to: parent, host: host)
+        // Ensure WebView visibility matches the selected tab:
+        // - Homepage (tag 0): hidden (native UI shows)
+        // - Rules/Settings (tag 1,2): visible (WebView shows)
+        if let idx = pageControllers.firstIndex(of: parent) {
+            webView?.isHidden = (idx == 0)
+        }
         // Set the correct scroll view for the tab bar
         let scroll = nativePageName == "home" ? (nativeHomeScrollView ?? webView?.scrollView) : webView?.scrollView
         if let scroll, boundScrollViews[ObjectIdentifier(parent)] !== scroll {
