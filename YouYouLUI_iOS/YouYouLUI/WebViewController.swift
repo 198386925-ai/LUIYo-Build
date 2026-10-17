@@ -10,6 +10,7 @@ import UniformTypeIdentifiers
 /// HTML is content-only and never draws blur/glass itself.
 final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler, UITabBarControllerDelegate, UIDocumentPickerDelegate, PHPickerViewControllerDelegate {
     private var webView: WKWebView!
+    private var shrinkSwitch: UISwitch?
     private let nativeHomeModel = NativeHomeModel()
     private var nativeHomeHost: UIHostingController<LUIYoNativeHome>?
     private var nativeHomeConstraints: [NSLayoutConstraint] = []
@@ -246,6 +247,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         configuration.userContentController.add(self, name: "zipName")
         configuration.userContentController.add(self, name: "backgroundImage")
         configuration.userContentController.add(self, name: "minimizeBottomBar")
+        configuration.userContentController.add(self, name: "toggleShrinkUI")
         configuration.userContentController.add(self, name: "pageState")
         configuration.userContentController.add(self, name: "settingsHeroFrame")
         configuration.userContentController.add(self, name: "bottomSearch")
@@ -364,6 +366,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "zipName")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "backgroundImage")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "minimizeBottomBar")
+        webView?.configuration.userContentController.removeScriptMessageHandler(forName: "toggleShrinkUI")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "pageState")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "settingsHeroFrame")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "bottomSearch")
@@ -1620,6 +1623,17 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             if let payload = message.body as? [String: Any] { setScrollMinimize(payload["enabled"] as? Bool ?? false) }
             return
         }
+        if message.name == "toggleShrinkUI" {
+            guard let dict = message.body as? [String: Any],
+                  let show = dict["show"] as? Bool,
+                  let y = dict["y"] as? Double else { return }
+            if show {
+                showShrinkSwitch(atY: CGFloat(y))
+            } else {
+                hideShrinkSwitch()
+            }
+            return
+        }
         if message.name == "zipName" {
             if let payload = message.body as? [String: Any] { presentZipName(payload["name"] as? String ?? "优优LUI图标包") }
             return
@@ -1942,4 +1956,30 @@ private final class LUIYoSearchViewController: UIViewController, UITextFieldDele
         textField.resignFirstResponder()
         return true
     }
+
+    private func showShrinkSwitch(atY y: CGFloat) {
+        hideShrinkSwitch()
+        let sw = UISwitch()
+        sw.isOn = UserDefaults.standard.bool(forKey: "youyou.minimizeBottomBar")
+        sw.addTarget(self, action: #selector(shrinkSwitchTapped(_:)), for: .valueChanged)
+        let x = webView.scrollView.bounds.width - 16 - 51
+        sw.frame = CGRect(x: x, y: y, width: 51, height: 31)
+        webView.scrollView.addSubview(sw)
+        shrinkSwitch = sw
+        webView.evaluateJavaScript("document.getElementById('minimizeBottomBar').style.visibility='hidden'") { _, _ in }
+    }
+
+    private func hideShrinkSwitch() {
+        shrinkSwitch?.removeFromSuperview()
+        shrinkSwitch = nil
+        guard webView != nil else { return }
+        webView.evaluateJavaScript("document.getElementById('minimizeBottomBar').style.visibility='visible'") { _, _ in }
+    }
+
+    @objc private func shrinkSwitchTapped(_ sender: UISwitch) {
+        let enabled = sender.isOn
+        setScrollMinimize(enabled)
+        webView.evaluateJavaScript("if(typeof applyShrink==='function')applyShrink(\(enabled))") { _, _ in }
+    }
+
 }
