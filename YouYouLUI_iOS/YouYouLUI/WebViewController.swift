@@ -1620,7 +1620,6 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             if let payload = message.body as? [String: Any] { setScrollMinimize(payload["enabled"] as? Bool ?? false) }
             return
         }
-
         if message.name == "zipName" {
             if let payload = message.body as? [String: Any] { presentZipName(payload["name"] as? String ?? "优优LUI图标包") }
             return
@@ -1943,6 +1942,4 @@ private final class LUIYoSearchViewController: UIViewController, UITextFieldDele
         textField.resignFirstResponder()
         return true
     }
-
-
 }
