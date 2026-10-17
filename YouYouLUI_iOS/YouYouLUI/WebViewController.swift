@@ -319,11 +319,13 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         }
 
         rootView.addSubview(webView)
+        // Fixed position: fill safe area above tab bar. Never moved between tabs.
+        // Tab switching only toggles isHidden + appNavTo. No hierarchy churn.
         NSLayoutConstraint.activate([
-            webView.topAnchor.constraint(equalTo: rootView.topAnchor),
+            webView.topAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.topAnchor),
             webView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor),
             webView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor),
-            webView.bottomAnchor.constraint(equalTo: rootView.bottomAnchor)
+            webView.bottomAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.bottomAnchor)
         ])
 
         // Avoid mutating UITabBarController.tabs during loadView: on iOS 26,
@@ -639,30 +641,19 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     }
 
     private func keepContentBelowNativeBar() {
-        guard let webView, isViewLoaded, let parent = selectedViewController,
-              let host = parent.view else { return }
-        // Content belongs to the selected tab. UIKit keeps its native floating
-        // bar above this page and propagates the page's safe-area insets.
-        if webView.superview !== host {
-            UIView.performWithoutAnimation {
-                webView.isHidden = true
-                NSLayoutConstraint.deactivate(webHostConstraints)
-                webView.removeFromSuperview()
-                host.insertSubview(webView, at: 0)
-            webView.translatesAutoresizingMaskIntoConstraints = false
-                webHostConstraints = [webView.topAnchor.constraint(equalTo: host.topAnchor),
-                    webView.bottomAnchor.constraint(equalTo: host.bottomAnchor),
-                    webView.leadingAnchor.constraint(equalTo: host.leadingAnchor),
-                    webView.trailingAnchor.constraint(equalTo: host.trailingAnchor)]
-                NSLayoutConstraint.activate(webHostConstraints)
-                // Don't force layout here - it can interfere with tab bar layout during switch.
-                // The constraints will apply on the next natural layout pass.
-                if !suppressWebViewReveal { webView.isHidden = false }
-            }
-        }
+        // WebView is fixed on rootView (never moved between tabs).
+        // Tab switching only toggles visibility + appNavTo. No view hierarchy
+        // churn, no constraint re-activation -> eliminates tab switch jank.
+        guard isViewLoaded else { return }
+        attachNativeHomeIfNeeded()
+    }
+
+    private func attachNativeHomeIfNeeded() {
+        guard let parent = selectedViewController, let host = parent.view else { return }
         attachNativeHome(to: parent, host: host)
-        let scroll = nativePageName == "home" ? (nativeHomeScrollView ?? webView.scrollView) : webView.scrollView
-        if boundScrollViews[ObjectIdentifier(parent)] !== scroll {
+        // Set the correct scroll view for the tab bar
+        let scroll = nativePageName == "home" ? (nativeHomeScrollView ?? webView?.scrollView) : webView?.scrollView
+        if let scroll, boundScrollViews[ObjectIdentifier(parent)] !== scroll {
             parent.setContentScrollView(scroll, for: .bottom)
             boundScrollViews[ObjectIdentifier(parent)] = scroll
         }
