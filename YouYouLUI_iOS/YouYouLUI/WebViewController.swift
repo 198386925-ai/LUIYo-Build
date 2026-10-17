@@ -318,17 +318,12 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             restoredNativeFont = true
         }
 
-        // WebView starts hidden - native homepage shows first.
-        // Only visible on Rules/Settings tabs after appNavTo completes.
-        webView.isHidden = true
         rootView.addSubview(webView)
-        // Fixed position: fill safe area above tab bar. Never moved between tabs.
-        // Tab switching only toggles isHidden + appNavTo. No hierarchy churn.
         NSLayoutConstraint.activate([
-            webView.topAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.topAnchor),
+            webView.topAnchor.constraint(equalTo: rootView.topAnchor),
             webView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor),
             webView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor),
-            webView.bottomAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.bottomAnchor)
+            webView.bottomAnchor.constraint(equalTo: rootView.bottomAnchor)
         ])
 
         // Avoid mutating UITabBarController.tabs during loadView: on iOS 26,
@@ -644,35 +639,30 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     }
 
     private func keepContentBelowNativeBar() {
-        // WebView is fixed on rootView (never moved between tabs).
-        // Tab switching only toggles visibility + appNavTo. No view hierarchy
-        // churn, no constraint re-activation -> eliminates tab switch jank.
-        guard isViewLoaded else { return }
-        attachNativeHomeIfNeeded()
-    }
-
-    private func attachNativeHomeIfNeeded() {
-        guard let parent = selectedViewController, let host = parent.view else { return }
-        attachNativeHome(to: parent, host: host)
-        // Ensure WebView visibility matches the selected tab:
-        // - Homepage (tag 0): hidden (native UI shows)
-        // - Rules/Settings (tag 1,2): visible (WebView shows)
-        if let idx = pageControllers.firstIndex(of: parent) {
-            let showWeb = (idx != 0)
-            webView?.isHidden = !showWeb
-            if showWeb, let wv = webView {
-                // WebView must be above the tab's empty view to receive touches.
-                // The tab VC's view is transparent but would block touches if on top.
-                wv.superview?.bringSubviewToFront(wv)
-                // Also disable touch interception on the empty tab view.
-                parent.view.isUserInteractionEnabled = false
-            } else {
-                parent.view.isUserInteractionEnabled = true
+        guard let webView, isViewLoaded, let parent = selectedViewController,
+              let host = parent.view else { return }
+        // Content belongs to the selected tab. UIKit keeps its native floating
+        // bar above this page and propagates the page's safe-area insets.
+        if webView.superview !== host {
+            UIView.performWithoutAnimation {
+                webView.isHidden = true
+                NSLayoutConstraint.deactivate(webHostConstraints)
+                webView.removeFromSuperview()
+                host.insertSubview(webView, at: 0)
+            webView.translatesAutoresizingMaskIntoConstraints = false
+                webHostConstraints = [webView.topAnchor.constraint(equalTo: host.topAnchor),
+                    webView.bottomAnchor.constraint(equalTo: host.bottomAnchor),
+                    webView.leadingAnchor.constraint(equalTo: host.leadingAnchor),
+                    webView.trailingAnchor.constraint(equalTo: host.trailingAnchor)]
+                NSLayoutConstraint.activate(webHostConstraints)
+                // Don't force layout here - it can interfere with tab bar layout during switch.
+                // The constraints will apply on the next natural layout pass.
+                if !suppressWebViewReveal { webView.isHidden = false }
             }
         }
-        // Set the correct scroll view for the tab bar
-        let scroll = nativePageName == "home" ? (nativeHomeScrollView ?? webView?.scrollView) : webView?.scrollView
-        if let scroll, boundScrollViews[ObjectIdentifier(parent)] !== scroll {
+        attachNativeHome(to: parent, host: host)
+        let scroll = nativePageName == "home" ? (nativeHomeScrollView ?? webView.scrollView) : webView.scrollView
+        if boundScrollViews[ObjectIdentifier(parent)] !== scroll {
             parent.setContentScrollView(scroll, for: .bottom)
             boundScrollViews[ObjectIdentifier(parent)] = scroll
         }
@@ -719,32 +709,26 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         pageSwitchGeneration += 1
         let generation = pageSwitchGeneration
         switchingNativePage = true
-        // If leaving homepage (native UI covers WebView): update WebView content
-        // while it's still hidden underneath, then reveal. User sees homepage
-        // freeze briefly, then the target page appears with no intermediate flash.
-        // If switching between web tabs: freeze-frame (don't hide), old page
-        // stays visible while appNavTo swaps DOM synchronously.
-        let fromHome = (activePageTag == 0)
-        if fromHome {
-            webView.isHidden = true
+        suppressWebViewReveal = true
+        webView.isHidden = true
+        // Switch tab UI immediately for instant feedback (user sees tab change)
+        UIView.performWithoutAnimation {
+            self.selectNativePage(tag)
+            self.updatePageScroll(page)
         }
+        self.keepContentBelowNativeBar()
+        self.updateLayoutMetrics(force: true)
+        // Navigate and wait for render (2 frames) before revealing - no flash
         let js = "appNavTo('" + page + "');window.__syncNativeCardGlass?.();"
         webView.evaluateJavaScript(js) { [weak self] _, _ in
             guard let self else { return }
             guard self.pageSwitchGeneration == generation else { return }
-            UIView.performWithoutAnimation {
-                self.selectNativePage(tag)
-                self.updatePageScroll(page)
-            }
-            self.keepContentBelowNativeBar()
-            if self.nativePageName != "home" {
-                self.webView?.isHidden = false
-            }
-            self.switchingNativePage = false
-            // Defer layout metrics - not on critical path for content display
+            // Wait a tick for render
             DispatchQueue.main.async {
                 guard self.pageSwitchGeneration == generation else { return }
-                self.updateLayoutMetrics(force: true)
+                self.webView?.isHidden = false
+                self.switchingNativePage = false
+                self.suppressWebViewReveal = false
             }
         }
         return false
@@ -1934,139 +1918,3 @@ private final class LUIYoSearchViewController: UIViewController, UITextFieldDele
         return true
     }
 }
-
-// MARK: - Native Settings (build 47+)
-
-// Native Settings page (build 47+)
-// Replaces the WebView-based settings tab with native SwiftUI.
-// The WebView is kept only as a hidden JS engine.
-
-final class NativeSettingsModel: ObservableObject {
-    @Published var deviceCode: String = ""
-    @Published var tier: String = "free"
-    @Published var appBackgroundColor: String = "#F2F2F7"
-    @Published var appCardColor: String = "#FFFFFF"
-    @Published var appButtonColor: String = "#FFFFFF"
-    
-    var onCommand: ((String, [String: Any]) -> Void)?
-    
-    func send(_ action: String, _ values: [String: Any] = [:]) {
-        onCommand?(action, values)
-    }
-}
-
-struct LUIYoNativeSettings: View {
-    @ObservedObject var model: NativeSettingsModel
-    
-    var body: some View {
-        List {
-            // Hero section
-            Section {
-                HStack {
-                    VStack(alignment: .leading) {
-                        Text("LUIYo")
-                            .font(.system(size: 25, weight: .bold))
-                        Text("设置")
-                            .font(.system(size: 13))
-                            .foregroundColor(.secondary)
-                    }
-                    Spacer()
-                    // Tier chip
-                    Text(model.tier == "svip" ? "SVIP会员" : model.tier == "vip" ? "VIP会员" : "免费版")
-                        .font(.system(size: 13))
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(Color.blue.opacity(0.1))
-                        .cornerRadius(12)
-                }
-                .padding(.vertical, 8)
-                
-                if !model.deviceCode.isEmpty {
-                    HStack {
-                        Text("设备码")
-                        Spacer()
-                        Text(model.deviceCode)
-                            .foregroundColor(.secondary)
-                    }
-                }
-            }
-            
-            // Theme section
-            Section(header: Text("主题")) {
-                ColorPickerRow(title: "背景颜色", hex: $model.appBackgroundColor) { hex in
-                    model.send("theme", ["key": "appBackgroundColor", "value": hex])
-                }
-                ColorPickerRow(title: "卡片颜色", hex: $model.appCardColor) { hex in
-                    model.send("theme", ["key": "appCardColor", "value": hex])
-                }
-                ColorPickerRow(title: "按钮颜色", hex: $model.appButtonColor) { hex in
-                    model.send("theme", ["key": "appButtonColor", "value": hex])
-                }
-            }
-            
-            // About section
-            Section(header: Text("关于")) {
-                HStack {
-                    Text("版本")
-                    Spacer()
-                    Text("1.0.7 (Build 47)")
-                        .foregroundColor(.secondary)
-                }
-            }
-        }
-        .listStyle(InsetGroupedListStyle())
-        .navigationTitle("设置")
-    }
-}
-
-struct ColorPickerRow: View {
-    let title: String
-    @Binding var hex: String
-    let onChange: (String) -> Void
-    
-    @State private var color: Color
-    
-    init(title: String, hex: Binding<String>, onChange: @escaping (String) -> Void) {
-        self.title = title
-        self._hex = hex
-        self.onChange = onChange
-        self._color = State(initialValue: Color(hex: hex.wrappedValue) ?? .white)
-    }
-    
-    var body: some View {
-        HStack {
-            Text(title)
-            Spacer()
-            ColorPicker("", selection: $color)
-                .labelsHidden()
-                .onChange(of: color) { newColor in
-                    let newHex = newColor.toHex() ?? "#FFFFFF"
-                    hex = newHex
-                    onChange(newHex)
-                }
-        }
-    }
-}
-
-// Helpers
-extension Color {
-    init?(hex: String) {
-        var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines)
-        hexSanitized = hexSanitized.replacingOccurrences(of: "#", with: "")
-        var rgb: UInt64 = 0
-        guard Scanner(string: hexSanitized).scanHexInt64(&rgb) else { return nil }
-        let r = Double((rgb & 0xFF0000) >> 16) / 255.0
-        let g = Double((rgb & 0x00FF00) >> 8) / 255.0
-        let b = Double(rgb & 0x0000FF) / 255.0
-        self.init(red: r, green: g, blue: b)
-    }
-    
-    func toHex() -> String? {
-        guard let components = UIColor(self).cgColor.components, components.count >= 3 else { return nil }
-        let r = Int(components[0] * 255)
-        let g = Int(components[1] * 255)
-        let b = Int(components[2] * 255)
-        return String(format: "#%02X%02X%02X", r, g, b)
-    }
-}
-
