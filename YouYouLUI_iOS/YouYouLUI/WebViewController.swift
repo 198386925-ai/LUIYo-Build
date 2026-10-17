@@ -10,13 +10,6 @@ import UniformTypeIdentifiers
 /// HTML is content-only and never draws blur/glass itself.
 final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler, UITabBarControllerDelegate, UIDocumentPickerDelegate, PHPickerViewControllerDelegate {
     private var webView: WKWebView!
-    // Independent WebViews for flash-free tab switching (build 39+).
-    // Each stays on its own page; tab switch only shows/hides, no appNavTo.
-    private var webViewRules: WKWebView?
-    private var webViewSettings: WKWebView?
-    // Deferred load chain for independent WebViews (avoid launch stall)
-    private var pendingWebRoot: URL?
-    private var pendingIndexURL: URL?
     private let nativeHomeModel = NativeHomeModel()
     private var nativeHomeHost: UIHostingController<LUIYoNativeHome>?
     private var nativeHomeConstraints: [NSLayoutConstraint] = []
@@ -34,68 +27,6 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     var onPageChanged: ((String) -> Void)?
     private var authorizationMessage = "未激活 · 仅可浏览"
     private var authorizationBusy = false
-
-    // Factory for independent WebViews (build 39+). Each gets the same
-    // message handlers and user scripts; the delegate distinguishes by message.webView.
-    private func makeWebView() -> WKWebView {
-        let configuration = WKWebViewConfiguration()
-        configuration.websiteDataStore = .default()
-        configuration.defaultWebpagePreferences.allowsContentJavaScript = true
-        configuration.userContentController.addUserScript(WKUserScript(source: "if(localStorage.getItem('youyou.theme.bottomSearchMode')===null && localStorage.getItem('youyou.theme.bottomSearchEnabled')===null){localStorage.setItem('youyou.theme.bottomSearchMode','separate')}", injectionTime: .atDocumentStart, forMainFrameOnly: true))
-        configuration.userContentController.add(self, name: "nativeHomeState")
-        configuration.userContentController.add(self, name: "shareZip")
-        configuration.userContentController.add(self, name: "infoPage")
-        configuration.userContentController.add(self, name: "materialMode")
-        configuration.userContentController.add(self, name: "cardGlassRects")
-        configuration.userContentController.add(self, name: "themeBackground")
-        configuration.userContentController.add(self, name: "cardColor")
-        configuration.userContentController.add(self, name: "nativeToggleRects")
-        configuration.userContentController.add(self, name: "buttonColor")
-        configuration.userContentController.add(self, name: "appearanceMode")
-        configuration.userContentController.add(self, name: "themeFont")
-        configuration.userContentController.add(self, name: "zipName")
-        configuration.userContentController.add(self, name: "backgroundImage")
-        configuration.userContentController.add(self, name: "minimizeBottomBar")
-        configuration.userContentController.add(self, name: "pageState")
-        configuration.userContentController.add(self, name: "settingsHeroFrame")
-        configuration.userContentController.add(self, name: "bottomSearch")
-        configuration.userContentController.add(self, name: "activationOpen")
-        configuration.userContentController.add(self, name: "activationSubmit")
-        configuration.userContentController.add(self, name: "luiyoBlocked")
-        configuration.userContentController.addUserScript(WKUserScript(source: Self.activationPreviewScript,
-            injectionTime: .atDocumentEnd, forMainFrameOnly: true))
-
-        if let url = Bundle.main.url(forResource: "native-home-bridge", withExtension: "js", subdirectory: "Web"),
-           let script = try? String(contentsOf: url, encoding: .utf8) {
-            configuration.userContentController.addUserScript(WKUserScript(source: script, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
-        }
-        nativeHomeModel.onCommand = { [weak self] action, values in
-            if ["category", "search"].contains(action) { self?.runNativeEngine(action, values) }
-            else { self?.nativeHomeCommand(action, values) }
-        }
-        nativeHomeModel.onScrollView = { [weak self] scroll in
-            guard let self else { return }
-            self.nativeHomeScrollView = scroll
-            scroll.accessibilityIdentifier = "nativeHomeScroll"
-            scroll.keyboardDismissMode = .interactive
-            self.keepContentBelowNativeBar()
-            #if DEBUG
-            self.nativeHomeScrollObservation = scroll.observe(\.contentOffset, options: [.new]) { [weak self] _, _ in self?.writeNativeHomeDiagnostics() }
-            self.writeNativeHomeDiagnostics()
-            #endif
-        }
-        let wv = WKWebView(frame: .zero, configuration: configuration)
-        wv.navigationDelegate = self
-        wv.uiDelegate = self
-        wv.allowsBackForwardNavigationGestures = false
-        wv.scrollView.contentInsetAdjustmentBehavior = .never
-        wv.scrollView.keyboardDismissMode = .interactive
-        wv.isOpaque = false
-        wv.backgroundColor = .clear
-        wv.scrollView.backgroundColor = .clear
-        wv.translatesAutoresizingMaskIntoConstraints = false
-        return wv
-    }
 
     func setAuthorization(_ allowed: Bool, message: String? = nil, busy: Bool = false) {
         nativeHomeModel.authorized = allowed
@@ -354,16 +285,6 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         webView.scrollView.backgroundColor = .clear
         webView.translatesAutoresizingMaskIntoConstraints = false
         self.webView = webView
-        // Independent WebViews for Rules and Settings (build 39+).
-        // Each loads once and stays on its page; tab switch just shows/hides.
-        let rulesWV = makeWebView()
-        rulesWV.navigationDelegate = self
-        rulesWV.uiDelegate = self
-        self.webViewRules = rulesWV
-        let settingsWV = makeWebView()
-        settingsWV.navigationDelegate = self
-        settingsWV.uiDelegate = self
-        self.webViewSettings = settingsWV
         // Put materials in the SAME scrolling coordinate space as WebKit content.
         // UIScrollView moves both together, including momentum and rubber-banding.
         // No per-frame JS/native offset reconciliation is needed.
@@ -389,30 +310,6 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             controller.view.backgroundColor = .clear
             return controller
         }
-        // Attach independent WebViews to Rules (tag 1) and Settings (tag 2) tabs.
-        // They stay on their pages; tab switch just shows/hides the tab's view.
-        if pageControllers.indices.contains(1), let rulesWV = webViewRules {
-            let host = pageControllers[1].view!
-            host.addSubview(rulesWV)
-            rulesWV.translatesAutoresizingMaskIntoConstraints = false
-            NSLayoutConstraint.activate([
-                rulesWV.topAnchor.constraint(equalTo: host.topAnchor),
-                rulesWV.leadingAnchor.constraint(equalTo: host.leadingAnchor),
-                rulesWV.trailingAnchor.constraint(equalTo: host.trailingAnchor),
-                rulesWV.bottomAnchor.constraint(equalTo: host.bottomAnchor),
-            ])
-        }
-        if pageControllers.indices.contains(2), let settingsWV = webViewSettings {
-            let host = pageControllers[2].view!
-            host.addSubview(settingsWV)
-            settingsWV.translatesAutoresizingMaskIntoConstraints = false
-            NSLayoutConstraint.activate([
-                settingsWV.topAnchor.constraint(equalTo: host.topAnchor),
-                settingsWV.leadingAnchor.constraint(equalTo: host.leadingAnchor),
-                settingsWV.trailingAnchor.constraint(equalTo: host.trailingAnchor),
-                settingsWV.bottomAnchor.constraint(equalTo: host.bottomAnchor),
-            ])
-        }
         searchController.tabBarItem = UITabBarItem(title: "搜索", image: UIImage(systemName: "magnifyingglass"), tag: 3)
         searchController.view.backgroundColor = .clear
         defaultTabAppearance = tabBar.standardAppearance.copy() as? UITabBarAppearance
@@ -421,9 +318,6 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             restoredNativeFont = true
         }
 
-        // Main webView is for the JS engine only; native UI covers it.
-        // Keep it hidden so the web homepage never flashes over the native homepage.
-        webView.isHidden = true
         rootView.addSubview(webView)
         NSLayoutConstraint.activate([
             webView.topAnchor.constraint(equalTo: rootView.topAnchor),
@@ -450,11 +344,6 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             return
         }
         webView.loadFileURL(indexURL, allowingReadAccessTo: webRoot)
-        // Defer loading the independent WebViews until after the main one
-        // finishes, so the homepage doesn't stall at launch. didFinish chains
-        // the loads sequentially. Store URLs for the chain.
-        pendingWebRoot = webRoot
-        pendingIndexURL = indexURL
     }
 
     deinit {
@@ -481,31 +370,6 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        // Independent WebViews: navigate each to its own page once on load.
-        // After this, tab switches just show/hide - no appNavTo needed.
-        if webView === webViewRules {
-            webView.evaluateJavaScript("appNavTo('rules')", completionHandler: nil)
-            // Chain: rules finished -> load settings WebView
-            if let settingsWV = webViewSettings, let root = pendingWebRoot,
-               let idx = Bundle.main.url(forResource: "index", withExtension: "html", subdirectory: "Web") {
-                pendingWebRoot = nil
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak settingsWV] in
-                    settingsWV?.loadFileURL(idx, allowingReadAccessTo: root)
-                }
-            }
-            return
-        }
-        if webView === webViewSettings {
-            webView.evaluateJavaScript("appNavTo('settings')", completionHandler: nil)
-            return
-        }
-        // Chain: main webView finished -> load rules WebView (deferred to avoid launch stall)
-        if webView === self.webView, let rulesWV = webViewRules, let idx = pendingIndexURL, let root = pendingWebRoot {
-            pendingIndexURL = nil
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak rulesWV] in
-                rulesWV?.loadFileURL(idx, allowingReadAccessTo: root)
-            }
-        }
         nativeHomeReady = true
         syncAuthorization()
         if isAuthorized { runNativeEngine("colors", ["values": nativeHomeModel.savedColors]) }
@@ -775,22 +639,32 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
     }
 
     private func keepContentBelowNativeBar() {
-        guard let webView = webView, isViewLoaded, let parent = selectedViewController,
+        guard let webView, isViewLoaded, let parent = selectedViewController,
               let host = parent.view else { return }
-        // Build 40 version: for Rules/Settings, just attach native home and return.
-        // The independent WebViews are already attached to their tab views.
-        if let idx = pageControllers.firstIndex(of: parent), idx == 1 || idx == 2 {
-            attachNativeHome(to: parent, host: host)
-            return
+        // Content belongs to the selected tab. UIKit keeps its native floating
+        // bar above this page and propagates the page's safe-area insets.
+        if webView.superview !== host {
+            UIView.performWithoutAnimation {
+                webView.isHidden = true
+                NSLayoutConstraint.deactivate(webHostConstraints)
+                webView.removeFromSuperview()
+                host.insertSubview(webView, at: 0)
+            webView.translatesAutoresizingMaskIntoConstraints = false
+                webHostConstraints = [webView.topAnchor.constraint(equalTo: host.topAnchor),
+                    webView.bottomAnchor.constraint(equalTo: host.bottomAnchor),
+                    webView.leadingAnchor.constraint(equalTo: host.leadingAnchor),
+                    webView.trailingAnchor.constraint(equalTo: host.trailingAnchor)]
+                NSLayoutConstraint.activate(webHostConstraints)
+                // Don't force layout here - it can interfere with tab bar layout during switch.
+                // The constraints will apply on the next natural layout pass.
+                if !suppressWebViewReveal { webView.isHidden = false }
+            }
         }
-        // For Homepage: ensure main webView stays hidden (engine-only)
-        webView.isHidden = true
         attachNativeHome(to: parent, host: host)
-        let scroll = nativeHomeScrollView ?? webView.scrollView
-        let key = ObjectIdentifier(parent)
-        if boundScrollViews[key] !== scroll {
+        let scroll = nativePageName == "home" ? (nativeHomeScrollView ?? webView.scrollView) : webView.scrollView
+        if boundScrollViews[ObjectIdentifier(parent)] !== scroll {
             parent.setContentScrollView(scroll, for: .bottom)
-            boundScrollViews[key] = scroll
+            boundScrollViews[ObjectIdentifier(parent)] = scroll
         }
     }
 
@@ -824,19 +698,43 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
 
     private func prepareNativePageSelection(_ tag: Int) -> Bool {
         guard nativeHomeReady, tag != activePageTag else { return true }
-        // Independent WebViews (build 39+): each tab's view already contains
-        // its own WebView on the correct page. Just switch the tab - no
-        // appNavTo, no moving WebViews, no hiding. Instant and flash-free.
+        let page = tag == 1 ? "rules" : tag == 2 ? "settings" : "home"
+        // Root cause of the tab-switch flash: the old code moved the shared
+        // WKWebView into the new tab and revealed it BEFORE the async
+        // appNavTo() JS swapped the page, so the old page's DOM showed through
+        // the new tab for a few frames. Neither performWithoutAnimation nor
+        // hide-during-move could fix that ordering. Fix: keep the webView
+        // hidden until the new page's DOM is live, then seat it and reveal.
+        // (Same principle as navigateFromNativeTab: JS content first, move after.)
         pageSwitchGeneration += 1
+        let generation = pageSwitchGeneration
         switchingNativePage = true
-        UIView.performWithoutAnimation {
-            self.selectNativePage(tag)
-            let page = tag == 1 ? "rules" : tag == 2 ? "settings" : "home"
-            self.updatePageScroll(page)
+        // If leaving homepage (native UI covers WebView): update WebView content
+        // while it's still hidden underneath, then reveal. User sees homepage
+        // freeze briefly, then the target page appears with no intermediate flash.
+        // If switching between web tabs: freeze-frame (don't hide), old page
+        // stays visible while appNavTo swaps DOM synchronously.
+        let fromHome = (activePageTag == 0)
+        if fromHome {
+            webView.isHidden = true
         }
-        self.keepContentBelowNativeBar()
-        self.updateLayoutMetrics(force: true)
-        self.switchingNativePage = false
+        let js = "appNavTo('" + page + "');window.__syncNativeCardGlass?.();"
+        webView.evaluateJavaScript(js) { [weak self] _, _ in
+            guard let self else { return }
+            guard self.pageSwitchGeneration == generation else { return }
+            // No extra async tick: appNavTo is synchronous CSS, switch UI immediately
+            // to minimize perceived lag. WebView was hidden (fromHome) so no flash.
+            UIView.performWithoutAnimation {
+                self.selectNativePage(tag)
+                self.updatePageScroll(page)
+            }
+            self.keepContentBelowNativeBar()
+            self.updateLayoutMetrics(force: true)
+            if self.nativePageName != "home" {
+                self.webView?.isHidden = false
+            }
+            self.switchingNativePage = false
+        }
         return false
     }
 
@@ -1679,7 +1577,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             if settingsHero == nil {
                 let hero = LUIYoCreateSettingsHero({ [weak self] in self?.openHeroSection(".guideInline") }, { [weak self] in self?.openHeroSection(".changelogInline") }, { [weak self] in self?.editHeroAvatar() }, { [weak self] in self?.editHeroName() })
                 hero.accessibilityIdentifier = "settingsBrandHero"
-                (message.webView as? WKWebView)?.scrollView.addSubview(hero)
+                webView.scrollView.addSubview(hero)
                 settingsHero = hero
             }
             guard let hero = settingsHero else { return }
