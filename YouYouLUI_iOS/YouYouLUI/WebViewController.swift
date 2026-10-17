@@ -421,6 +421,9 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             restoredNativeFont = true
         }
 
+        // Main webView is for the JS engine only; native UI covers it.
+        // Keep it hidden so the web homepage never flashes over the native homepage.
+        webView.isHidden = true
         rootView.addSubview(webView)
         NSLayoutConstraint.activate([
             webView.topAnchor.constraint(equalTo: rootView.topAnchor),
@@ -795,9 +798,10 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
                     webView.leadingAnchor.constraint(equalTo: host.leadingAnchor),
                     webView.trailingAnchor.constraint(equalTo: host.trailingAnchor)]
                 NSLayoutConstraint.activate(webHostConstraints)
-                // Don't force layout here - it can interfere with tab bar layout during switch.
-                // The constraints will apply on the next natural layout pass.
-                if !suppressWebViewReveal { webView.isHidden = false }
+                // Main webView is engine-only (build 39+); native UI covers it on
+                // Homepage, independent WebViews handle Rules/Settings display.
+                // Keep it hidden so web homepage never flashes over native UI.
+                webView.isHidden = true
             }
         }
         attachNativeHome(to: parent, host: host)
