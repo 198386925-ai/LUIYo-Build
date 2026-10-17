@@ -249,7 +249,7 @@ body.info-open .nativeInfoPage.show{visibility:visible!important;pointer-events:
 #homeTools .batch{background:#0a84ff!important;color:white!important}
 #homeTools .fillpick{background:#eef1f5!important;color:#202832!important}
 #homeTools .fill{background:#34c759!important;color:white!important}
-#searchInput{height:42px!important;border-radius:13px!important;margin-top:9px!important;background:#eef1f5!important;border:0!important;font-size:13px!important}
+#searchInput{height:44px!important;border-radius:13px!important;margin-top:9px!important;background:#eef1f5!important;border:0!important;font-size:13px!important}
 #homeTools .colorfold{height:42px!important;border-radius:13px!important;margin-top:9px!important}
 #homeTools .exportrow{margin-top:9px!important}
 #homeTools .exportrow button{height:43px!important;border-radius:13px!important}
