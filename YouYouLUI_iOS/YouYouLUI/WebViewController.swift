@@ -710,11 +710,8 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         let generation = pageSwitchGeneration
         switchingNativePage = true
         suppressWebViewReveal = true
-        // Fade out for smooth transition (masks the JS delay)
-        UIView.animate(withDuration: 0.25, animations: {
-            self.webView.alpha = 0.0
-        })
-        webView.isHidden = true
+        // Don't hide or fade out at start - keep old content visible.
+        // The smooth fade-in at the end will mask the transition.
         // Switch tab UI immediately for instant feedback (user sees tab change)
         UIView.performWithoutAnimation {
             self.selectNativePage(tag)
@@ -730,12 +727,17 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
             // Wait a tick for render, then fade in
             DispatchQueue.main.async {
                 guard self.pageSwitchGeneration == generation else { return }
+                let wasHidden = self.webView?.isHidden ?? true
                 self.webView?.isHidden = false
-                // Slight delay to ensure content is rendered before fade in
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                    UIView.animate(withDuration: 0.25, animations: {
+                if wasHidden {
+                    // Coming from Homepage: gradual fade-in for smooth appearance
+                    self.webView?.alpha = 0.0
+                    UIView.animate(withDuration: 0.35, delay: 0.05, options: .curveEaseOut, animations: {
                         self.webView?.alpha = 1.0
-                    })
+                    }, completion: nil)
+                } else {
+                    // Web-to-web: ensure fully visible (no fade needed)
+                    self.webView?.alpha = 1.0
                 }
                 self.switchingNativePage = false
                 self.suppressWebViewReveal = false
