@@ -588,6 +588,24 @@ function shrinkSet(on){shrink.setAttribute('aria-checked',on?'true':'false');shr
  function applyShrink(enabled){shrinkSet(enabled);try{localStorage.setItem('youyou.theme.minimizeBottomBar',enabled?'1':'0')}catch(e){}send('minimizeBottomBar',{enabled});}
  if(slider&&value){slider.addEventListener('input',()=>applyTransparency(slider.value));applyTransparency(get('youyou.theme.toolbarTransparency','0'))}
  if(shrink){shrink.addEventListener('click',()=>applyShrink(shrink.getAttribute('aria-checked')!=='true'));applyShrink(get('youyou.theme.minimizeBottomBar','0')==='1')}
+// Native switch overlay: hide div, report position to native
+if(shrink){
+  shrink.style.visibility='hidden';
+  function reportShrinkPos(){
+    try{
+      var r=shrink.getBoundingClientRect();
+      var visible=r.bottom>0&&r.top<window.innerHeight;
+      var enabled=shrink.getAttribute('aria-checked')==='true';
+      if(window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.shrinkSwitchPosition){
+        window.webkit.messageHandlers.shrinkSwitchPosition.postMessage({x:r.left,y:r.top,visible:visible,enabled:enabled});
+      }
+    }catch(e){}
+  }
+  // Report on load, scroll, and when settings page shown
+  window.addEventListener('scroll',reportShrinkPos,true);
+  setInterval(reportShrinkPos,1000);
+  setTimeout(reportShrinkPos,500);
+}
  // Clear any previously stored custom background (feature removed)
  try{
    const native=Boolean(window.webkit?.messageHandlers?.backgroundImage);
