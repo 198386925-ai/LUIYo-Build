@@ -722,20 +722,18 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         webView.evaluateJavaScript(js) { [weak self] _, _ in
             guard let self else { return }
             guard self.pageSwitchGeneration == generation else { return }
-            DispatchQueue.main.async {
-                guard self.pageSwitchGeneration == generation else { return }
-                UIView.performWithoutAnimation {
-                    self.selectNativePage(tag)
-                    self.updatePageScroll(page)
-                }
-                self.keepContentBelowNativeBar()
-                self.updateLayoutMetrics(force: true)
-                // Reveal WebView now that it shows the target page
-                if self.nativePageName != "home" {
-                    self.webView?.isHidden = false
-                }
-                self.switchingNativePage = false
+            // No extra async tick: appNavTo is synchronous CSS, switch UI immediately
+            // to minimize perceived lag. WebView was hidden (fromHome) so no flash.
+            UIView.performWithoutAnimation {
+                self.selectNativePage(tag)
+                self.updatePageScroll(page)
             }
+            self.keepContentBelowNativeBar()
+            self.updateLayoutMetrics(force: true)
+            if self.nativePageName != "home" {
+                self.webView?.isHidden = false
+            }
+            self.switchingNativePage = false
         }
         return false
     }
