@@ -724,15 +724,24 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         webView.evaluateJavaScript(js) { [weak self] _, _ in
             guard let self else { return }
             guard self.pageSwitchGeneration == generation else { return }
-            // Wait a tick for render, then fade in
+            // Wait a tick for render, then reveal
             DispatchQueue.main.async {
                 guard self.pageSwitchGeneration == generation else { return }
-                self.webView?.isHidden = false
-                // Every tab switch: gradual fade-in for smooth appearance
-                self.webView?.alpha = 0.0
-                UIView.animate(withDuration: 0.35, delay: 0.05, options: .curveEaseOut, animations: {
-                    self.webView?.alpha = 1.0
-                }, completion: nil)
+                if page == "home" {
+                    // Homepage is native: fade WebView out, keep hidden
+                    UIView.animate(withDuration: 0.3, animations: {
+                        self.webView?.alpha = 0.0
+                    }, completion: { _ in
+                        self.webView?.isHidden = true
+                    })
+                } else {
+                    // Web pages: gradual fade-in for smooth appearance
+                    self.webView?.isHidden = false
+                    self.webView?.alpha = 0.0
+                    UIView.animate(withDuration: 0.35, delay: 0.05, options: .curveEaseOut, animations: {
+                        self.webView?.alpha = 1.0
+                    }, completion: nil)
+                }
                 self.switchingNativePage = false
                 self.suppressWebViewReveal = false
             }
