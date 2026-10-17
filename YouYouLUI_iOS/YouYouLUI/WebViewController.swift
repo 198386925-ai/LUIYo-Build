@@ -248,6 +248,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         configuration.userContentController.add(self, name: "zipName")
         configuration.userContentController.add(self, name: "backgroundImage")
         configuration.userContentController.add(self, name: "minimizeBottomBar")
+        configuration.userContentController.add(self, name: "openNativeTheme")
         configuration.userContentController.add(self, name: "pageState")
         configuration.userContentController.add(self, name: "settingsHeroFrame")
         configuration.userContentController.add(self, name: "bottomSearch")
@@ -365,6 +366,7 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "zipName")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "backgroundImage")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "minimizeBottomBar")
+        webView?.configuration.userContentController.removeScriptMessageHandler(forName: "openNativeTheme")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "pageState")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "settingsHeroFrame")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "bottomSearch")
@@ -1011,6 +1013,54 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         scrollMinimizeEnabled = enabled
         UserDefaults.standard.set(enabled, forKey: "youyou.minimizeBottomBar")
         if #available(iOS 26.0, *) { tabBarMinimizeBehavior = enabled ? .onScrollDown : .never }
+    }
+
+    private func presentNativeTheme() {
+        let themeView = NativeThemeSection { [weak self] key, value in
+            guard let self else { return }
+            let ud = UserDefaults.standard
+            switch key {
+            case "appearance":
+                if let v = value as? String {
+                    ud.set(v, forKey: "youyou.theme.appearance")
+                    self.webView?.evaluateJavaScript("if(typeof applyMode==='function')applyMode('\(v)')", completionHandler: nil)
+                }
+            case "material":
+                if let v = value as? String {
+                    ud.set(v, forKey: "youyou.cardMaterialMode")
+                    self.webView?.evaluateJavaScript("var b=document.querySelector('#materialModePicker [data-material="\(v)"]');if(b)b.click()", completionHandler: nil)
+                }
+            case "backgroundColor":
+                if let v = value as? String {
+                    ud.set(v, forKey: "youyou.theme.background")
+                    self.webView?.evaluateJavaScript("var c=document.getElementById('appBackgroundColor');if(c){c.value='\(v)';c.dispatchEvent(new Event('input'))}", completionHandler: nil)
+                }
+            case "cardColor":
+                if let v = value as? String {
+                    ud.set(v, forKey: "youyou.theme.heroCardColor")
+                    self.webView?.evaluateJavaScript("var c=document.getElementById('appCardColor');if(c){c.value='\(v)';c.dispatchEvent(new Event('input'))}", completionHandler: nil)
+                }
+            case "bottomSearchMode":
+                if let v = value as? String {
+                    ud.set(v, forKey: "youyou.theme.bottomSearchMode")
+                    self.webView?.evaluateJavaScript("var b=document.querySelector('#bottomSearchModePicker [data-bottom-search-mode="\(v)"]');if(b)b.click()", completionHandler: nil)
+                }
+            case "shrinkOnScroll":
+                if let v = value as? Bool {
+                    self.setScrollMinimize(v)
+                    self.webView?.evaluateJavaScript("if(typeof applyShrink==='function')applyShrink(\(v))", completionHandler: nil)
+                }
+            default:
+                break
+            }
+        }
+        let host = UIHostingController(rootView: themeView)
+        host.modalPresentationStyle = .pageSheet
+        if let sheet = host.sheetPresentationController {
+            sheet.detents = [.large()]
+            sheet.prefersGrabberVisible = true
+        }
+        present(host, animated: true)
     }
 
     private func scheduleShrinkSwitchUpdate() {
@@ -1675,6 +1725,10 @@ final class WebViewController: UITabBarController, WKNavigationDelegate, WKUIDel
         }
         if message.name == "minimizeBottomBar" {
             if let payload = message.body as? [String: Any] { setScrollMinimize(payload["enabled"] as? Bool ?? false) }
+            return
+        }
+        if message.name == "openNativeTheme" {
+            presentNativeTheme()
             return
         }
         if message.name == "zipName" {
