@@ -252,6 +252,11 @@ final class ActivationSession {
     }
 
     private func emit(_ state: ActivationState) {
+        // 未授权时清除会员等级显示，只有授权才显示 SVIP
+        if !state.isAuthorized {
+            preferences.authTier = "free"
+            NotificationCenter.default.post(name: NSNotification.Name("LUIYoTierUpdated"), object: nil)
+        }
         DispatchQueue.main.async { [weak self] in self?.onState?(state) }
     }
 }
