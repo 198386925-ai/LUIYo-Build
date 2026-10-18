@@ -1756,6 +1756,9 @@ function darkNameFor(name){
 function addDarkVariantForExtra(zip,name,blob){
   if(!/@3x\.png$/i.test(name)) return;
   if(/_dark@3x\.png$/i.test(name) || /darkmode@3x\.png$/i.test(name) || /_light@3x\.png$/i.test(name)) return;
+  // Only generate _Dark if dark mode switch is ON (user requirement)
+  const dmEl = document.getElementById('darkModeInvertEnabled');
+  if(!(dmEl && dmEl.checked)) return;
   const darkName=name.replace(/@3x\.png$/i,'_Dark@3x.png');
   zip.file(darkName,blob);
 }
