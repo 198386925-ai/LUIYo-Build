@@ -1,0 +1,24 @@
+const fs=require('fs'),assert=require('assert'),{JSDOM}=require('jsdom');
+const html='<div id="device-overview"><span id="presence-update"></span><b id="presence-total"></b><b id="presence-online"></b><b id="presence-unlicensed"></b><select id="presence-filter"><option value="all">全部</option></select><input id="presence-query"><button id="presence-refresh"></button><input id="presence-csrf" value="test-csrf"><div id="presence-list-count"></div><div class="presence-scroll"><table><tbody id="presence-rows"></tbody></table></div></div>';
+const dom=new JSDOM(html,{url:'https://test.local/admin.php',runScripts:'outside-only',pretendToBeVisual:true});
+const w=dom.window,d=w.document,calls=[];
+const device={device_code:'D-000001',status:'已授权',label:'SVIP 3',online:false,page:'home',model:'iPhone17,4',os_version:'27.2',app_version:'1.0.5',last_seen:2,created_at:1,installation_count:1,installation_codes:['D-000001']};
+w.confirm=()=>true;w.alert=()=>{};
+w.fetch=async(url,options)=>{calls.push({url,options});return{ok:true,headers:{get:()=> 'application/json'},json:async()=>({devices:[device],total:1,online:0,unlicensed:0,server_time:2})}};
+w.eval(fs.readFileSync('server/admin-devices.js','utf8'));
+(async()=>{try{
+ await new Promise(r=>setTimeout(r,40));
+ const heading=d.querySelector('.presence-card-heading');
+ assert.deepEqual([...heading.children].map(el=>el.textContent),['D-000001','已授权 · SVIP 3','离线','首页']);
+ assert(d.querySelector('.presence-card-meta').textContent.includes('App 1.0.5'));
+ assert(d.querySelector('.presence-card-time').textContent);
+ const button=d.querySelector('.presence-card-action');assert.equal(button.textContent,'移出列表');
+ assert(d.querySelector('style').textContent.includes("'meta action' 'time action'"),'Action must occupy the right side beside metadata and time');
+ button.click();await new Promise(r=>setTimeout(r,40));
+ const request=calls.find(c=>c.options?.method==='POST');assert(request);
+ assert.equal(request.options.body.get('installation_codes'),'D-000001');
+ assert.equal(request.options.body.get('csrf'),'test-csrf');
+ d.getElementById('presence-query').value='missing';d.getElementById('presence-query').dispatchEvent(new w.Event('input'));
+ assert.equal(d.querySelector('#presence-rows td').colSpan,7);
+ console.log('Passed: reference card heading order, metadata/time, action on the right, search and authenticated list removal.');
+}finally{w.close()}})().catch(e=>{console.error(e);process.exitCode=1});

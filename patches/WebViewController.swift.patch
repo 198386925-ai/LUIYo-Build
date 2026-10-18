@@ -1,0 +1,63 @@
+--- a/YouYouLUI_iOS/YouYouLUI/WebViewController.swift
++++ b/YouYouLUI_iOS/YouYouLUI/WebViewController.swift
+@@ -142,6 +142,9 @@
+             backgroundImageView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor)
+         ])
+         backgroundImageView.image = UIImage(contentsOfFile: nativeBackgroundURL.path)
++        if backgroundImageView.image != nil {
++            rootView.backgroundColor = .clear
++        }
+         glassContainer.backgroundColor = .clear
+         glassContainer.isUserInteractionEnabled = false
+         glassContainer.accessibilityElementsHidden = true
+@@ -659,10 +662,29 @@
+     }
+ 
+     private func applyStoredPalette() {
+-        view.backgroundColor = storedColor("background", lightDefault: "#F4F2EE", darkDefault: "#121214")
++        // Keep solid palette only when no custom background image is active.
++        if backgroundImageView.image == nil {
++            view.backgroundColor = storedColor("background", lightDefault: "#F4F2EE", darkDefault: "#121214")
++        } else {
++            view.backgroundColor = .clear
++        }
+         cardTintColor = storedColor("cardColor", lightDefault: "#FFFFFF", darkDefault: "#1C1C1E")
+         updateNativeCardTint()
+         renderVisibleNativeMaterials()
++    }
++
++    /// Drop every native card material host so the next rect sync rebuilds a clean layer stack.
++    private func clearAllNativeCardMaterials() {
++        for key in Array(cardMaterialViews.keys) {
++            cardMaterialViews.removeValue(forKey: key)?.removeFromSuperview()
++            cardMaterialHosts.removeValue(forKey: key)?.removeFromSuperview()
++            nativeSegments.removeValue(forKey: key)
++            nativeSegmentStyles.removeValue(forKey: key)
++            nativeSelectedCapsules.removeValue(forKey: key)?.removeFromSuperview()
++        }
++        cardDocumentFrames.removeAll()
++        cardSpecs.removeAll()
++        cardOrder.removeAll()
+     }
+ 
+     private func updateLayoutMetrics(force: Bool = false) {
+@@ -1048,11 +1070,18 @@
+             if payload["reset"] as? Bool == true {
+                 backgroundImageView.image = nil
+                 try? FileManager.default.removeItem(at: nativeBackgroundURL)
++                // Restore solid theme background after removing custom image.
++                applyStoredPalette()
+             } else if let base64 = payload["data"] as? String, let data = Data(base64Encoded: base64), let image = UIImage(data: data) {
+                 backgroundImageView.image = image
+                 try? FileManager.default.createDirectory(at: nativeBackgroundURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+                 try? data.write(to: nativeBackgroundURL, options: .atomic)
+-            }
++                // Custom image is drawn by backgroundImageView; keep root clear to avoid double layering.
++                view.backgroundColor = .clear
++            }
++            // Rebuild native glass materials so stale hosts do not stack over transparent content.
++            clearAllNativeCardMaterials()
++            webView.evaluateJavaScript("window.__syncNativeCardGlass?.()")
+             return
+         }
+         if message.name == "bottomSearch" {

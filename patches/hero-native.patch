@@ -1,0 +1,66 @@
+--- YouYouLUI_iOS/YouYouLUI/LUISettingsHeroAdapter.m
++++ YouYouLUI_iOS/YouYouLUI/LUISettingsHeroAdapter.m
+@@ -116,10 +116,32 @@
+     if (!_LUIYoHeroCustomFont) {
+         _LUIYoHeroCustomFont = LUIYoLoadThemeFontFromDisk();
+     }
+-    NSString *name = [NSUserDefaults.standardUserDefaults stringForKey:@"youyou.hero.name"] ?: @"Liquid UI";
+-    NSString *shortVer = [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleShortVersionString"] ?: @"1.0.6";
+-    NSString *buildNum = [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleVersion"] ?: @"";
+-    NSString *version = [NSString stringWithFormat:@"Version%@ Build%@", shortVer, buildNum];
++    NSString *name = @"LUIYo";
++    // 设备码显示：# ID D-XXXXXX，跟随后端修改
++    NSString *tier = [NSUserDefaults.standardUserDefaults stringForKey:@"youyou.auth.tier"] ?: @"free";
++    BOOL isMember = ![tier isEqualToString:@"free"];
++    NSString *deviceCode = [NSUserDefaults.standardUserDefaults stringForKey:@"youyou.device.code"];
++    if (!deviceCode || deviceCode.length == 0) {
++        // 未设置时用设备 UUID 生成，避免全显示 000000
++        NSString *uuid = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
++        NSString *shortId = [[uuid stringByReplacingOccurrencesOfString:@"-" withString:@""] substringToIndex:6];
++        deviceCode = [NSString stringWithFormat:@"D-%@", [shortId uppercaseString]];
++    }
++    NSString *version = [NSString stringWithFormat:@"# ID %@", deviceCode];
+     [cell configureWithTitle:name version:version key:@"luiyo.hero.enabled"];
++    // 颜色：未授权灰色，会员金色
++    UIColor *bgStart, *bgEnd, *textColor;
++    if (isMember) {
++        bgStart = [UIColor colorWithRed:0.78 green:0.60 blue:0.23 alpha:1.0];
++        bgEnd = [UIColor colorWithRed:0.64 green:0.49 blue:0.16 alpha:1.0];
++        textColor = [UIColor whiteColor];
++    } else {
++        bgStart = [UIColor colorWithRed:0.92 green:0.92 blue:0.94 alpha:1.0];
++        bgEnd = [UIColor colorWithRed:0.85 green:0.85 blue:0.87 alpha:1.0];
++        textColor = [UIColor colorWithRed:0.45 green:0.45 blue:0.48 alpha:1.0];
++    }
++    cell.versionChip.textColor = textColor;
++    for (CALayer *layer in [cell.versionChip.layer.sublayers copy]) {
++        if ([layer.name isEqualToString:@"badgeGradient"]) [layer removeFromSuperlayer];
++    }
++    CAGradientLayer *gradient = [CAGradientLayer layer];
++    gradient.name = @"badgeGradient";
++    gradient.colors = @[(id)bgStart.CGColor, (id)bgEnd.CGColor];
++    gradient.cornerRadius = 9;
++    [cell.versionChip.layer insertSublayer:gradient atIndex:0];
++    dispatch_async(dispatch_get_main_queue(), ^{ gradient.frame = cell.versionChip.bounds; });
+--- YouYouLUI_iOS/YouYouLUI/WebViewController.swift
++++ YouYouLUI_iOS/YouYouLUI/WebViewController.swift
+@@ -33,6 +33,19 @@
+         isAuthorized = allowed
+         authorizationMessage = message ?? (allowed ? "已授权" : "未激活 · 仅可浏览")
+         authorizationBusy = busy
++        // 保存会员等级到 UserDefaults，供原生铭牌读取
++        let msg = authorizationMessage
++        let tier: String
++        if !allowed {
++            tier = "free"
++        } else if msg.contains("永久") || msg.contains("SVIP") {
++            tier = "svip"
++        } else {
++            tier = "vip"
++        }
++        UserDefaults.standard.set(tier, forKey: "youyou.auth.tier")
++        // 刷新原生铭牌
++        if let hero = settingsHero { LUIYoRefreshSettingsHero(hero) }
+         syncAuthorization()
+         if allowed, nativeHomeReady { runNativeEngine("colors", ["values": nativeHomeModel.savedColors]) }
+     }

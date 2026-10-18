@@ -1,0 +1,59 @@
+name: Build LUIYo IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: luiyo-ipa-main
+  cancel-in-progress: true
+
+jobs:
+  build:
+    if: github.event.repository.private == false
+    runs-on: macos-15-intel
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Xcode 26
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d /Applications/Xcode_26.3.app/Contents/Developer
+          echo 'DEVELOPER_DIR=/Applications/Xcode_26.3.app/Contents/Developer' >> "$GITHUB_ENV"
+      - name: Verify checked-out source
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Building repository source at $GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test -f YouYouLUI_iOS/YouYouLUI.xcodeproj/project.pbxproj
+          test -f scripts/build-ipa.sh
+          test ! -e /tmp/luiyo-src.zip
+          git status --short
+      - name: Build unsigned IPA from repository source
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/build-ipa.sh
+          ls -lh output/
+          shasum -a 256 output/*.ipa
+      - name: Save IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: LUIYo-v1.0.6-build41-IPA
+          path: output/*.ipa
+          if-no-files-found: error
+          retention-days: 5
+      - name: Publish latest IPA link
+        if: success()
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          bash .github/scripts/publish-ipa.sh

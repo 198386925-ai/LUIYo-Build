@@ -1,0 +1,31 @@
+name: Mobile preview only
+on:
+  push:
+    branches: ['preview/**']
+    paths:
+      - 'YouYouLUI_iOS/**'
+      - 'scripts/preview-mobile.sh'
+      - '.github/workflows/mobile-preview.yml'
+permissions:
+  contents: read
+jobs:
+  preview:
+    if: github.event.repository.private == false
+    runs-on: macos-26
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Xcode
+        run: echo 'DEVELOPER_DIR=/Applications/Xcode_26.3.app/Contents/Developer' >> "$GITHUB_ENV"
+      - name: Check content and native bridge
+        run: node YouYouLUI_iOS/verify-material-bridge.js YouYouLUI_iOS/YouYouLUI/Web/index.html
+      - name: Render and test on iPhone simulator
+        run: bash scripts/preview-mobile.sh
+      - name: Save preview screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: LUIYo-mobile-preview-${{ github.run_number }}
+          path: mobile-preview/
+          if-no-files-found: ignore
+          retention-days: 1
