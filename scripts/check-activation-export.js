@@ -1,7 +1,9 @@
 // Execute the full page and injected authorization UI, including fill -> ZIP -> native bridge.
 const fs=require('fs'),assert=require('assert'),{JSDOM,VirtualConsole}=require('jsdom');
 const htmlPath=process.argv[2]||'YouYouLUI_iOS/YouYouLUI/Web/index.html';
-const swift=fs.readFileSync('YouYouLUI_iOS/YouYouLUI/WebViewController.swift','utf8');
+const swiftRoot='YouYouLUI_iOS/YouYouLUI/';
+function readSwift(dir){return fs.readdirSync(swiftRoot+dir,{withFileTypes:true}).flatMap(e=>e.isDirectory()?readSwift(dir+e.name+'/'):(e.name.endsWith('.swift')?[fs.readFileSync(swiftRoot+dir+e.name,'utf8')]:[])).join('\n');}
+const swift=readSwift('');
 const injected=swift.match(/activationPreviewScript = #"""([\s\S]*?)"""#/)[1];
 const html=fs.readFileSync(htmlPath,'utf8').replace('<script src="jszip.min.js"></script>','');
 const watchdog=setTimeout(()=>{console.error('Export regression timed out');process.exit(1)},10000);
@@ -23,7 +25,9 @@ const dom=new JSDOM(html,{url:'https://test.local',runScripts:'dangerously',pret
  w.__luiyoSetAuthorized(false,'检查中',true);assert(field.disabled);assert(!form.hidden);
  w.__luiyoSetAuthorized(true);assert(form.hidden);assert.equal(field.value,'');assert.equal(d.getElementById('luiyoAuthState').textContent,'已授权');
  assert(swift.includes('nativeHomeReady = true\n        syncAuthorization()'),'Native authorization must replay after document load');
- const gate=fs.readFileSync('YouYouLUI_iOS/YouYouLUI/AppDelegate.swift','utf8');assert(!gate.includes('openActivation()'),'No activation overlay');assert(!gate.includes('offerIdentification')&&!gate.includes('startIdentification')&&!swift.includes('deviceIdentification'),'No user-facing UDID collection bridge');assert(!/udid/i.test(gate)&&! /udidStart|luiyoUDIDAction|__luiyoSetUDID/.test(swift),'UDID mode must be removed');assert(gate.includes('action: "register"')&&gate.includes('action: "heartbeat"'),'Presence remains enabled');
+ // The gate lives in App/ + Activation/ after the architecture rewrite.
+ const gate=fs.readFileSync(swiftRoot+'App/AppDelegate.swift','utf8')+readSwift('Activation/');
+ assert(!gate.includes('openActivation()'),'No activation overlay');assert(!gate.includes('offerIdentification')&&!gate.includes('startIdentification')&&!swift.includes('deviceIdentification'),'No user-facing UDID collection bridge');assert(!/udid/i.test(gate)&&! /udidStart|luiyoUDIDAction|__luiyoSetUDID/.test(swift),'UDID mode must be removed');assert(/\.register\b/.test(gate)&&/\.heartbeat\b/.test(gate),'Presence remains enabled');
  w.eval(fs.readFileSync(htmlPath.replace('index.html','jszip.min.js'),'utf8'));
  w.eval("const generate=JSZip.prototype.generateAsync;JSZip.prototype.generateAsync=async function(options){const bytes=await generate.call(this,{...options,type:'uint8array'});return new Blob([bytes],{type:'application/zip'})}");
  // Pixel conversion is independently tested; keep this regression focused on completion and bridges.

@@ -1,5 +1,9 @@
 const fs=require('fs'),assert=require('assert'),{JSDOM,VirtualConsole}=require('jsdom');
-const root='YouYouLUI_iOS/YouYouLUI/',swift=fs.readFileSync(root+'WebViewController.swift','utf8');
+const root='YouYouLUI_iOS/YouYouLUI/';
+// The native layer is split across folders; concatenate every Swift file so the
+// checks below stay independent of the file layout.
+function readSwift(dir){return fs.readdirSync(root+dir,{withFileTypes:true}).flatMap(e=>e.isDirectory()?readSwift(dir+e.name+'/'):(e.name.endsWith('.swift')?[fs.readFileSync(root+dir+e.name,'utf8')]:[])).join('\n');}
+const swift=readSwift('');
 const injected=swift.match(/activationPreviewScript = #"""([\s\S]*?)"""#/)[1];
 const messages=[],errors=[],vc=new VirtualConsole();vc.on('jsdomError',e=>errors.push(e.message));
 const watchdog=setTimeout(()=>{console.error('Native home test timed out');process.exit(1)},15000);
