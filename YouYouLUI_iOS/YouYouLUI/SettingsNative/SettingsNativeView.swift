@@ -521,16 +521,9 @@ struct CheckUpdateRow: View {
             .padding(.horizontal, 20)
             .padding(.vertical, 16)
         }
-        .background(
-            Group {
-                if #available(iOS 26.0, *) {
-                    Color.clear.glassEffect(.regular, in: .capsule)
-                } else {
-                    Capsule().fill(Color(.systemBackground))
-                }
-            }
-        )
+        .background(Color(.systemBackground))
         .clipShape(Capsule())
+        .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 2)
         .padding(.horizontal, 16)
         .alert("发现新版本", isPresented: $updater.showUpdateAlert) {
             Button("下载 IPA") { updater.downloadIPA() }
