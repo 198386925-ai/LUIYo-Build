@@ -26,35 +26,8 @@ def render(version, notes):
         result.append('<section class="inlineVersion"><div class="inlineVersionTitle">'+title+'</div>'+''.join(paragraphs)+'</section>')
     return '\n'.join(result)
 
-UPDATE_BTN = '''
-<button id="checkUpdateBtn" onclick="checkAppUpdate()" style="display:block;width:100%;margin:16px 0 0;padding:14px;background:#007aff;color:#fff;border:none;border-radius:14px;font-size:16px;">检查更新</button>
-<div id="updateResult" style="margin-top:10px;font-size:14px;color:#666;text-align:center;"></div>
-<script>
-function checkAppUpdate(){
-  var btn=document.getElementById('checkUpdateBtn');
-  var res=document.getElementById('updateResult');
-  btn.textContent='\u68c0\u67e5\u4e2d\u2026'; btn.disabled=true;
-  fetch('https://mistoto.cc.cd/luiyo/version.php')
-    .then(function(r){return r.json();})
-    .then(function(d){
-      btn.textContent='\u68c0\u67e5\u66f4\u65b0'; btn.disabled=false;
-      if(!d.ok){ res.textContent='\u68c0\u67e5\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u91cd\u8bd5'; return; }
-      var cur=17;
-      if(d.build>cur){
-        res.innerHTML='\u53d1\u73b0\u65b0\u7248 '+d.version;
-        if(confirm('\u53d1\u73b0\u65b0\u7248\u672c '+d.version)){
-          window.location.href=d.download_url;
-        }
-      }else{
-        res.textContent='\u5df2\u662f\u6700\u65b0\u7248\u672c';
-      }
-    })
-    .catch(function(e){ btn.textContent='\u68c0\u67e5\u66f4\u65b0'; btn.disabled=false; res.textContent='\u7f51\u7edc\u9519\u8bef'; });
-}
-</script>'''
-
 def update(page,version,notes):
-    body=UPDATE_BTN + render(version,notes)
+    body=render(version,notes)
     page,n=re.subn(r'(<div class="settingsFoldBody changelogInline">)[\s\S]*?(\n    </div>\n  </details>)',lambda m:m[1]+'\n'+body+m[2],page,count=1)
     assert n==1,'Missing changelog container'
     page=re.sub(r'<b>(?:更新日志|当前版本)</b><small>[^<]*(</small>)',lambda m:'<b>更新日志</b><small>'+'Version '+html.escape(version)+' · 当前版本'+m[1],page,count=1)

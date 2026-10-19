@@ -85,6 +85,9 @@ struct SettingsNativeView: View {
                             .padding(.horizontal, 16)
                             .padding(.bottom, 17)
                     }
+
+                    // 检查更新（独立行，不用展开更新日志，原生液态玻璃）
+                    CheckUpdateRow(isDark: isDark)
                 }
 
                 // Footer
@@ -463,4 +466,77 @@ struct ChangelogBodyView: View {
 
 #Preview {
     SettingsNativeView()
+}
+
+// MARK: - 检查更新独立行（原生液态玻璃）
+struct CheckUpdateRow: View {
+    let isDark: Bool
+    @StateObject private var updater = AppUpdateChecker()
+
+    var body: some View {
+        Button {
+            updater.checkForUpdate()
+        } label: {
+            HStack(spacing: 14) {
+                Image(systemName: "arrow.triangle.2.circlepath")
+                    .font(.system(size: 22))
+                    .foregroundColor(.primary)
+                    .frame(width: 32, height: 32)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("检查更新")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(.primary)
+                    switch updater.state {
+                    case .idle:
+                        Text("检查主 App 是否有新版本")
+                            .font(.system(size: 13))
+                            .foregroundColor(.secondary)
+                    case .checking:
+                        Text("正在检查…")
+                            .font(.system(size: 13))
+                            .foregroundColor(.secondary)
+                    case .downloading(let p):
+                        Text("下载中 \(Int(p * 100))%")
+                            .font(.system(size: 13))
+                            .foregroundColor(.secondary)
+                    case .error(let msg):
+                        Text(msg)
+                            .font(.system(size: 13))
+                            .foregroundColor(msg == "已是最新版本" ? .secondary : .red)
+                    case .readyToShare:
+                        Text("下载完成，点我分享")
+                            .font(.system(size: 13))
+                            .foregroundColor(.secondary)
+                    }
+                }
+                Spacer()
+                if case .checking = updater.state {
+                    ProgressView()
+                } else {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(.tertiaryLabel))
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
+        }
+        .background(
+            Group {
+                if #available(iOS 26.0, *) {
+                    Color.clear.glassEffect(.regular, in: .capsule)
+                } else {
+                    Capsule().fill(Color(.systemBackground))
+                }
+            }
+        )
+        .clipShape(Capsule())
+        .padding(.horizontal, 16)
+        .alert("发现新版本", isPresented: $updater.showUpdateAlert) {
+            Button("下载 IPA") { updater.downloadIPA() }
+            Button("稍后", role: .cancel) { }
+        } message: {
+            Text("\(updater.latestVersion)（构建\(updater.latestBuild)）\n\(updater.changelog)")
+        }
+    }
 }
