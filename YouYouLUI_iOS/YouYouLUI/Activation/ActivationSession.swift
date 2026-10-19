@@ -142,7 +142,11 @@ final class ActivationSession {
                 self.allowAccess()
                 return
             }
-            if response.status == 401 { DeviceIdentity.token = nil }
+            if response.status == 401 {
+                DeviceIdentity.token = nil
+                // 清除过期的设备码缓存，下次同步会从后台重新获取
+                preferences.deviceCode = nil
+            }
             if response.error == "version_blocked" { self.blockVersion(response); return }
             if response.status == 403, response.error == "access_revoked" {
                 self.emit(.banned(reason: response.body?["reason"] ?? ""))
