@@ -23,6 +23,7 @@
 		FA75A29E53D8539252B3301E /* App/AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAF17EB8379178EF804B1C97 /* App/AppDelegate.swift */; };
 		FABC4267DF3746C01AC3D6BA /* App/AppRoot.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA8607389A9BCC6E4DA03044 /* App/AppRoot.swift */; };
 		FAE075DE7478C9CCA6215355 /* App/AppConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAC27303F1BB572179545909 /* App/AppConfiguration.swift */; };
+		DAD3992D3DF4A1946D95A3A8 /* SettingsNative/AppUpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6871F0F81E2317B1BD48E8EA /* SettingsNative/AppUpdateChecker.swift */; };
 		FA2961FB5633FC10E2AF92FF /* Activation/ActivationSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = FABB56384934C201D01ADE15 /* Activation/ActivationSession.swift */; };
 		FA50B0034834700E2E4CC499 /* Activation/ActivationClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACD8C46F898050E42BF7744 /* Activation/ActivationClient.swift */; };
 		FAC1D9BB473106800C85707D /* Activation/ActivationGateViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE564ABA9BE31FCCE5518B9 /* Activation/ActivationGateViewController.swift */; };
@@ -73,6 +74,7 @@
 		FAF17EB8379178EF804B1C97 /* App/AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		FA8607389A9BCC6E4DA03044 /* App/AppRoot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRoot.swift; sourceTree = "<group>"; };
 		FAC27303F1BB572179545909 /* App/AppConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfiguration.swift; sourceTree = "<group>"; };
+		6871F0F81E2317B1BD48E8EA /* SettingsNative/AppUpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfiguration.swift; sourceTree = "<group>"; };
 		FABB56384934C201D01ADE15 /* Activation/ActivationSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivationSession.swift; sourceTree = "<group>"; };
 		FACD8C46F898050E42BF7744 /* Activation/ActivationClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivationClient.swift; sourceTree = "<group>"; };
 		FAE564ABA9BE31FCCE5518B9 /* Activation/ActivationGateViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivationGateViewController.swift; sourceTree = "<group>"; };
@@ -118,6 +120,7 @@
 		FA52015293B909858DF42796 /* SettingsHero/LUISettingsHeroAdapter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LUISettingsHeroAdapter.h; sourceTree = "<group>"; };
 		FA398813A2ED933153604ACE /* SettingsHero/LUISettingsHeroCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LUISettingsHeroCell.m; sourceTree = "<group>"; };
 		FA1507F021100E808DBE2FAA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		FA1507F021100E808DBE2FAB /* LUIYo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LUIYo.entitlements; sourceTree = "<group>"; };
 		FA5B04B2273026590A440D27 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		FA4FC18BE78CBD110735400A /* Web */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Web; sourceTree = "<group>"; };
 		B10000000000000000000006 /* YouYouLUI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = YouYouLUI.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -151,6 +154,7 @@
 				FA5B04B2273026590A440D27 /* Assets.xcassets */,
 				FA4FC18BE78CBD110735400A /* Web */,
 				FA1507F021100E808DBE2FAA /* Info.plist */,
+				FA1507F021100E808DBE2FAB /* LUIYo.entitlements */,
 			);
 			path = YouYouLUI;
 			sourceTree = "<group>";
@@ -358,6 +362,7 @@
 				FA75A29E53D8539252B3301E /* App/AppDelegate.swift in Sources */,
 				FABC4267DF3746C01AC3D6BA /* App/AppRoot.swift in Sources */,
 				FAE075DE7478C9CCA6215355 /* App/AppConfiguration.swift in Sources */,
+				DAD3992D3DF4A1946D95A3A8 /* SettingsNative/AppUpdateChecker.swift in Sources */,
 				FA2961FB5633FC10E2AF92FF /* Activation/ActivationSession.swift in Sources */,
 				FA50B0034834700E2E4CC499 /* Activation/ActivationClient.swift in Sources */,
 				FAC1D9BB473106800C85707D /* Activation/ActivationGateViewController.swift in Sources */,
@@ -443,6 +448,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 40;
 				GENERATE_INFOPLIST_FILE = NO;
+				CODE_SIGN_ENTITLEMENTS = YouYouLUI/LUIYo.entitlements;
 				INFOPLIST_FILE = YouYouLUI/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0.6;
@@ -463,6 +469,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 39;
 				GENERATE_INFOPLIST_FILE = NO;
+				CODE_SIGN_ENTITLEMENTS = YouYouLUI/LUIYo.entitlements;
 				INFOPLIST_FILE = YouYouLUI/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0.6;

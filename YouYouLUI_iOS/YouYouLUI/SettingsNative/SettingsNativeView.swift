@@ -284,6 +284,7 @@ struct ChangelogVersion: Identifiable {
 
 struct ChangelogBodyView: View {
     let isDark: Bool
+    @StateObject private var updater = AppUpdateChecker()
 
     private var titleColor: Color {
         isDark ? Color(red: 0xF2 / 255, green: 0xF2 / 255, blue: 0xF7 / 255)
@@ -415,6 +416,46 @@ struct ChangelogBodyView: View {
                         }
                     }
                 }
+            }
+
+            // 检查更新按钮
+            Button {
+                updater.checkForUpdate()
+            } label: {
+                HStack {
+                    Spacer()
+                    switch updater.state {
+                    case .checking:
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        Text("检查中…")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.white)
+                    case .downloading(let progress):
+                        Text("下载中 \(Int(progress * 100))%")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.white)
+                    case .error(let message):
+                        Text(message)
+                            .font(.system(size: 15))
+                            .foregroundColor(.white)
+                    default:
+                        Text("检查更新")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.white)
+                    }
+                    Spacer()
+                }
+                .padding(.vertical, 12)
+                .background(Color(red: 0x0A / 255, green: 0x84 / 255, blue: 0xFF / 255))
+                .cornerRadius(14)
+            }
+            .padding(.top, 8)
+            .alert("发现新版本", isPresented: $updater.showUpdateAlert) {
+                Button("下载 IPA") { updater.downloadIPA() }
+                Button("稍后", role: .cancel) { }
+            } message: {
+                Text("版本 \(updater.latestVersion) · 构建 \(updater.latestBuild)\n\(updater.changelog)")
             }
         }
     }
