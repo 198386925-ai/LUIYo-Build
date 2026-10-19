@@ -74,7 +74,7 @@
 		FAF17EB8379178EF804B1C97 /* App/AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		FA8607389A9BCC6E4DA03044 /* App/AppRoot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRoot.swift; sourceTree = "<group>"; };
 		FAC27303F1BB572179545909 /* App/AppConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfiguration.swift; sourceTree = "<group>"; };
-		6871F0F81E2317B1BD48E8EA /* SettingsNative/AppUpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfiguration.swift; sourceTree = "<group>"; };
+		6871F0F81E2317B1BD48E8EA /* SettingsNative/AppUpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "YouYouLUI/SettingsNative/AppUpdateChecker.swift"; sourceTree = SOURCE_ROOT; };
 		FABB56384934C201D01ADE15 /* Activation/ActivationSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivationSession.swift; sourceTree = "<group>"; };
 		FACD8C46F898050E42BF7744 /* Activation/ActivationClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivationClient.swift; sourceTree = "<group>"; };
 		FAE564ABA9BE31FCCE5518B9 /* Activation/ActivationGateViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivationGateViewController.swift; sourceTree = "<group>"; };
