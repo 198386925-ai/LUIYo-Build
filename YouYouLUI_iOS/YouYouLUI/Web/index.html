@@ -1328,6 +1328,45 @@ function checkAppUpdate(){
 </script>
     </div>
   </details>
+
+  <!-- 检查更新（独立卡片，不用展开更新日志） -->
+  <div class="settingsFold" id="checkUpdateCard" style="margin-top:12px;">
+    <div class="settingsFoldBody" style="padding:16px 20px;">
+      <button id="checkUpdateBtn2" style="display:block;width:100%;padding:14px;background:#007aff;color:#fff;border:none;border-radius:14px;font-size:16px;">检查更新</button>
+      <div id="checkUpdateResult2" style="text-align:center;font-size:14px;color:#666;margin-top:8px;"></div>
+    </div>
+  </div>
+  <script>
+  (function(){
+    var btn = document.getElementById('checkUpdateBtn2');
+    var res = document.getElementById('checkUpdateResult2');
+    var cur = 24;
+    if(!btn) return;
+    btn.addEventListener('click', function(){
+      btn.disabled = true;
+      btn.textContent = '检查中…';
+      res.textContent = '';
+      fetch('https://mistoto.cc.cd/luiyo/version.php')
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          btn.disabled = false;
+          btn.textContent = '检查更新';
+          if(d.ok && d.build > cur && d.download_url){
+            if(confirm('发现新版本 ' + d.version + '\n' + (d.changelog||''))){
+              window.location.href = d.download_url;
+            }
+          } else {
+            res.textContent = '已是最新版本';
+          }
+        })
+        .catch(function(){
+          btn.disabled = false;
+          btn.textContent = '检查更新';
+          res.textContent = '网络错误';
+        });
+    });
+  })();
+  </script>
   <details class="settingsFold" id="specialThanks" hidden>
     <summary><span class="settingsFoldIcon" data-system-icon="heart">♡</span><span class="settingsFoldText"><b>特别鸣谢</b><small>感谢支持与帮助</small></span><span class="settingsFoldChevron"></span></summary>
     <div class="settingsFoldBody"><p>感谢每一位为本项目提供反馈与帮助的朋友。</p></div>
