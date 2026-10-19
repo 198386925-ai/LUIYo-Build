@@ -42,7 +42,7 @@ function checkAppUpdate(){
       var cur=17;
       if(d.build>cur){
         res.innerHTML='\u53d1\u73b0\u65b0\u7248 '+d.version;
-        if(confirm('\u53d1\u73b0\u65b0\u7248\u672c '+d.version+'\n'+(d.changelog||'')+'\n\n\u662f\u5426\u4e0b\u8f7d\uff1f')){
+        if(confirm('\u53d1\u73b0\u65b0\u7248\u672c '+d.version)){
           window.location.href=d.download_url;
         }
       }else{
