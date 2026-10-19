@@ -54,7 +54,7 @@ function checkAppUpdate(){
 </script>'''
 
 def update(page,version,notes):
-    body=render(version,notes) + UPDATE_BTN
+    body=UPDATE_BTN + render(version,notes)
     page,n=re.subn(r'(<div class="settingsFoldBody changelogInline">)[\s\S]*?(\n    </div>\n  </details>)',lambda m:m[1]+'\n'+body+m[2],page,count=1)
     assert n==1,'Missing changelog container'
     page=re.sub(r'<b>(?:更新日志|当前版本)</b><small>[^<]*(</small>)',lambda m:'<b>更新日志</b><small>'+'Version '+html.escape(version)+' · 当前版本'+m[1],page,count=1)
