@@ -1299,7 +1299,32 @@ background:transparent!important;backdrop-filter:none!important;-webkit-backdrop
 <section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.2</div><p><b class="add">新增</b> 卡片液态效果开关；关闭后切换为 UIKit 原生磨砂效果。</p><p><b class="add">新增</b> 主题内自定义字体，可导入 TTF、OTF、WOFF、WOFF2 文件并持久保存。</p><p><b class="add">新增</b> 卡片材质、液态玻璃、原生磨砂两种模式直接切换/低于26+不生效液态玻璃。</p><p><b class="add">新增</b> 主题增加卡片颜色，可修改纯色卡片颜色</p><p><b class="opt">优化</b> 规则页移除图片导入入口，仅显示规则名称与图标规则名。</p><p><b class="opt">优化</b> 首页采用新的双列卡片UI，上传区工具区与顶部信息重新布局。</p><p><b class="opt">优化</b> 设置页入口卡片进一步压缩高度与文字尺寸。</p><p><b class="opt">优化</b> 首页白色工具控件、搜索框、颜色展开项、清空按钮、分类未选中项和上传框统一接入 UIKit 原生玻璃/磨砂材质。</p><p><b class="opt">优化</b> 材质切换与首页分类分段切换改为参考图的胶囊式，选中项使用内嵌白色圆角块。</p><p><b class="opt">优化</b> 首页按钮、搜索框、颜色入口与导出操作统一为分类栏同类圆润胶囊轮廓。</p><p><b class="opt">优化</b> 纯色模式下首页操作框统一为同一中性底色，补全图片、自定义颜色、清空等入口保持清晰可见。</p><p><b class="fix">修复</b> 设置页使用说明与更新日志改为原位下拉拉伸卡片。</p><p><b class="fix">修复</b> 规则页顶部安全区与状态栏重叠问题。</p><p><b class="fix">修复</b> 首页、规则、设置三页卡片视觉统一，首页工具卡不再使用单独的透明样式。</p><p><b class="fix">修复</b> 使用说明、更新日志与主题卡片收起响应延迟，收起动画改为快速响应。</p><p><b class="fix">修复</b> 纯色模式默认不显示卡片描边；只有主动开启卡片描边后才显示所选描边颜色。</p><p><b class="fix">修复</b> 背景颜色现在同步到 UIKit 根视图，修改后立即生效并保存。</p><p><b class="fix">修复</b> 首页双分类切换中间露出的白色材质块；分类容器不再重复叠加玻璃。</p><p><b class="fix">修复</b> 液态玻璃与原生磨砂在刷新、筛选和重绘时原生材质层重新绑定导致的跳动。</p></section>
 <section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.1</div><p><b class="add">新增</b> 全局换图标规则页，可按规则名称与图标规则名查找。</p><p><b class="add">新增</b> 关键词批量导入、双分类补全、同名项目自动联动与 ZIP 自定义名称分享。</p><p><b class="add">新增</b> 浅色选中、深色选中及全部图标颜色自定义。</p><p><b class="opt">优化</b> 设置页的使用说明与更新日志改为原位下拉拉伸，不再弹出独立页面。</p><p><b class="opt">优化</b> iOS 26+ 使用 UIKit 系统原生 Liquid Glass；不使用 CSS 自绘玻璃。</p><p><b class="opt">优化</b> iOS 25 及以下自动回退 UIKit 原生 systemMaterial 磨砂。</p><p><b class="opt">优化</b> 规则页移除图片导入入口，只保留规则名称与图标规则名。</p><p><b class="fix">修复</b> 规则页安全区，避免标题与状态栏重叠。</p></section>
 <section class="inlineVersion"><div class="inlineVersionTitle">Version 1.0.0</div><p><b class="add">新增</b> 优优 LUI 图标补全基础功能。</p><p><b class="add">新增</b> LiquidUI / 原版微信图标上传、补全与 ZIP 导出。</p></section>
+<button id="checkUpdateBtn" onclick="checkAppUpdate()" style="display:block;width:100%;margin:16px 0 0;padding:14px;background:#007aff;color:#fff;border:none;border-radius:14px;font-size:16px;">检查更新</button>
+<div id="updateResult" style="margin-top:10px;font-size:14px;color:#666;text-align:center;"></div>
     </div>
+<script>
+function checkAppUpdate(){
+  var btn=document.getElementById('checkUpdateBtn');
+  var res=document.getElementById('updateResult');
+  btn.textContent='检查中…'; btn.disabled=true;
+  fetch('https://mistoto.cc.cd/luiyo/version.php')
+    .then(r=>r.json())
+    .then(d=>{
+      btn.textContent='检查更新'; btn.disabled=false;
+      if(!d.ok){ res.textContent='检查失败，请稍后重试'; return; }
+      var cur=16; // 当前构建号
+      if(d.build>cur){
+        res.innerHTML='发现新版 '+d.version+'（构建'+d.build+'）<br>'+(d.changelog||'');
+        if(confirm('发现新版本 '+d.version+'\n'+(d.changelog||'')+'\n\n是否下载？')){
+          window.location.href=d.download_url;
+        }
+      }else{
+        res.textContent='已是最新版本';
+      }
+    })
+    .catch(e=>{ btn.textContent='检查更新'; btn.disabled=false; res.textContent='网络错误，请稍后重试'; });
+}
+</script>
   </details>
   <details class="settingsFold" id="specialThanks" hidden>
     <summary><span class="settingsFoldIcon" data-system-icon="heart">♡</span><span class="settingsFoldText"><b>特别鸣谢</b><small>感谢支持与帮助</small></span><span class="settingsFoldChevron"></span></summary>
