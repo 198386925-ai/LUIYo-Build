@@ -13,10 +13,12 @@ final class RulesNativeModel: ObservableObject {
 /// shell's bottom search bar via RulesNativeModel.
 struct RulesNativeView: View {
     @ObservedObject var model: RulesNativeModel
+    @ObservedObject var homeModel: NativeHomeModel
     @Environment(\.colorScheme) private var colorScheme
 
-    init(model: RulesNativeModel = RulesNativeModel()) {
+    init(model: RulesNativeModel = RulesNativeModel(), homeModel: NativeHomeModel = NativeHomeModel()) {
         self.model = model
+        self.homeModel = homeModel
     }
 
     private var isDark: Bool { colorScheme == .dark }
@@ -31,9 +33,6 @@ struct RulesNativeView: View {
     private var headSubColor: Color {
         isDark ? Color(red: 0xA9 / 255, green: 0xA9 / 255, blue: 0xB0 / 255)
                : Color(red: 0x8E / 255, green: 0x8E / 255, blue: 0x93 / 255)
-    }
-    private var cardBackground: Color {
-        isDark ? Color(red: 0x1C / 255, green: 0x1C / 255, blue: 0x1E / 255) : .white
     }
     private var ruleNameColor: Color {
         isDark ? Color(red: 0xF5 / 255, green: 0xF5 / 255, blue: 0xF7 / 255)
@@ -100,7 +99,9 @@ struct RulesNativeView: View {
             .padding(.horizontal, 14)
             .padding(.bottom, 110)
         }
-        .background(pageBackground)
+        .environment(\.nativeUseBlur, homeModel.useBlur)
+        .environment(\.nativeHomeTheme, homeModel.theme)
+        .background(Color(UIColor(nativeHex: homeModel.theme.background)))
     }
 
     private func sectionCard(_ section: String) -> some View {
@@ -142,7 +143,8 @@ struct RulesNativeView: View {
             }
             .padding(.bottom, 6)
         }
-        .background(RoundedRectangle(cornerRadius: 24).fill(cardBackground))
+        .modifier(NativeCardSurface())
+        .clipShape(RoundedRectangle(cornerRadius: 20))
     }
 }
 

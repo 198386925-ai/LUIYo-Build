@@ -66,7 +66,7 @@ extension MainShellViewController {
         if let existing = objc_getAssociatedObject(self, &AssociatedKeys.settingsHost) as? UIHostingController<SettingsNativeView> {
             return existing
         }
-        let controller = UIHostingController(rootView: SettingsNativeView(model: settingsModel))
+        let controller = UIHostingController(rootView: SettingsNativeView(model: settingsModel, homeModel: homeModel))
         controller.view.backgroundColor = .clear
         objc_setAssociatedObject(self, &AssociatedKeys.settingsHost, controller, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         return controller
@@ -77,7 +77,7 @@ extension MainShellViewController {
         if let existing = objc_getAssociatedObject(self, &AssociatedKeys.rulesHost) as? UIHostingController<RulesNativeView> {
             return existing
         }
-        let controller = UIHostingController(rootView: RulesNativeView(model: rulesModel))
+        let controller = UIHostingController(rootView: RulesNativeView(model: rulesModel, homeModel: homeModel))
         controller.view.backgroundColor = .clear
         objc_setAssociatedObject(self, &AssociatedKeys.rulesHost, controller, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         return controller

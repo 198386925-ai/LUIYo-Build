@@ -6,10 +6,12 @@ import SwiftUI
 /// No Form, no Section, no default List styling, no UISegmentedControl.
 struct SettingsNativeView: View {
     @ObservedObject var model: SettingsNativeModel
+    @ObservedObject var homeModel: NativeHomeModel
     @Environment(\.colorScheme) private var colorScheme
 
-    init(model: SettingsNativeModel = SettingsNativeModel()) {
+    init(model: SettingsNativeModel = SettingsNativeModel(), homeModel: NativeHomeModel = NativeHomeModel()) {
         self.model = model
+        self.homeModel = homeModel
     }
 
     private var isDark: Bool { colorScheme == .dark }
@@ -116,7 +118,9 @@ struct SettingsNativeView: View {
                 }
                 .padding(.horizontal, 14) // .app { padding:0 14px }
             }
-            .background(pageBackground)
+            .environment(\.nativeUseBlur, homeModel.useBlur)
+            .environment(\.nativeHomeTheme, homeModel.theme)
+            .background(Color(UIColor(nativeHex: homeModel.theme.background)))
             .onChange(of: model.pendingScroll) { target in
                 guard let target else { return }
                 withAnimation(.easeInOut(duration: 0.3)) {
@@ -208,11 +212,8 @@ struct SettingsFold<Content: View>: View {
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
-        .background(RoundedRectangle(cornerRadius: 22).fill(cardBackground))
-        .overlay(
-            RoundedRectangle(cornerRadius: 22)
-                .stroke(cardBorder, lineWidth: 1)
-        )
+        .modifier(NativeCardSurface())
+        .clipShape(RoundedRectangle(cornerRadius: 20))
     }
 }
 
@@ -334,6 +335,7 @@ struct ChangelogBodyView: View {
             ChangelogEntry(tag: "优化", text: "首页搜索只匹配图标标题，不再匹配别名，搜索结果更准确。"),
             ChangelogEntry(tag: "优化", text: "「双分类补全」支持按搜索过滤：搜了只补搜出来的，没搜全补。"),
             ChangelogEntry(tag: "优化", text: "设置与规则页改为原生 SwiftUI 界面，滑动与切换更流畅。"),
+            ChangelogEntry(tag: "优化", text: "规则与设置页统一首页的原生液态玻璃效果。"),
             ChangelogEntry(tag: "修复", text: "修复深色模式图标无条件反转的问题：现在只有打开对应开关才会反转，关闭时保留原图。"),
             ChangelogEntry(tag: "修复", text: "修复「全部图标」分组小字描述，与「打开才生效」的新逻辑对齐。"),
             ChangelogEntry(tag: "修复", text: "未授权时不再显示SVIP，只有授权才显示"),
@@ -606,11 +608,8 @@ struct ActivationCard: View {
             }
         }
         .padding(15)
-        .background(RoundedRectangle(cornerRadius: 22).fill(cardBackground))
-        .overlay(
-            RoundedRectangle(cornerRadius: 22)
-                .stroke(cardBorder, lineWidth: 1)
-        )
+        .modifier(NativeCardSurface())
+        .clipShape(RoundedRectangle(cornerRadius: 20))
     }
 }
 
@@ -691,11 +690,8 @@ struct CheckUpdateRow: View {
             .frame(minHeight: 76)
         }
         .buttonStyle(.plain)
-        .background(RoundedRectangle(cornerRadius: 22).fill(cardBackground))
-        .overlay(
-            RoundedRectangle(cornerRadius: 22)
-                .stroke(cardBorder, lineWidth: 1)
-        )
+        .modifier(NativeCardSurface())
+        .clipShape(RoundedRectangle(cornerRadius: 20))
         .alert("发现新版本", isPresented: $updater.showUpdateAlert) {
             Button("下载 IPA") { updater.downloadIPA() }
             Button("稍后", role: .cancel) { }
