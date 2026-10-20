@@ -27,84 +27,104 @@ struct SettingsNativeView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 0) {
-                // .settingsHead { padding:10px 4px 18px }
-                VStack(alignment: .leading, spacing: 5) {
-                    Text("设置")
-                        .font(.system(size: 28, weight: .heavy)) // weight 800
-                        .tracking(-0.5)
-                        .foregroundColor(headTitleColor)
-                    Text("主题、使用说明与更新日志")
-                        .font(.system(size: 14))
-                        .foregroundColor(gray)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.top, 10)
-                .padding(.horizontal, 4)
-                .padding(.bottom, 18)
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(spacing: 0) {
+                    // .settingsHead { padding:10px 4px 18px }
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text("设置")
+                            .font(.system(size: 28, weight: .heavy)) // weight 800
+                            .tracking(-0.5)
+                            .foregroundColor(headTitleColor)
+                        Text("主题、使用说明与更新日志")
+                            .font(.system(size: 14))
+                            .foregroundColor(gray)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, 10)
+                    .padding(.horizontal, 4)
+                    .padding(.bottom, 18)
 
-                // The three collapsible cards
-                VStack(spacing: 12) {
-                    SettingsFold(
-                        icon: "circle.lefthalf.filled",
-                        title: "主题",
-                        subtitle: "卡片材质、背景、按钮与字体",
-                        isExpanded: $model.themeExpanded,
-                        isDark: isDark
-                    ) {
-                        // .themeBody { padding:4px 14px 8px }
-                        ThemeSectionView(model: model)
-                            .padding(.top, 4)
-                            .padding(.horizontal, 14)
-                            .padding(.bottom, 8)
+                    // 身份卡（原生 ObjC hero，与原 Web 页同一视图）
+                    SettingsHeroView(model: model)
+                        .frame(height: 116)
+                        .padding(.bottom, 12)
+
+                    // 激活授权卡（原生，接同一套授权回调）
+                    ActivationCard(model: model, isDark: isDark)
+                        .padding(.bottom, 12)
+
+                    // The three collapsible cards
+                    VStack(spacing: 12) {
+                        SettingsFold(
+                            icon: "circle.lefthalf.filled",
+                            title: "主题",
+                            subtitle: "卡片材质、背景、按钮与字体",
+                            isExpanded: $model.themeExpanded,
+                            isDark: isDark
+                        ) {
+                            // .themeBody { padding:4px 14px 8px }
+                            ThemeSectionView(model: model)
+                                .padding(.top, 4)
+                                .padding(.horizontal, 14)
+                                .padding(.bottom, 8)
+                        }
+
+                        SettingsFold(
+                            icon: "questionmark",
+                            title: "使用说明",
+                            subtitle: "查看功能说明与操作方法",
+                            isExpanded: $model.guideExpanded,
+                            isDark: isDark
+                        ) {
+                            GuideBodyView(isDark: isDark)
+                                .padding(.top, 14)
+                                .padding(.horizontal, 16)
+                                .padding(.bottom, 17)
+                        }
+                        .id("guide")
+
+                        SettingsFold(
+                            icon: "clock",
+                            title: "更新日志",
+                            subtitle: "Version 1.0.7-1 · 当前版本",
+                            isExpanded: $model.changelogExpanded,
+                            isDark: isDark
+                        ) {
+                            ChangelogBodyView(isDark: isDark)
+                                .padding(.top, 14)
+                                .padding(.horizontal, 16)
+                                .padding(.bottom, 17)
+                        }
+                        .id("changelog")
+
+                        // 检查更新（独立行，不用展开更新日志）
+                        CheckUpdateRow(isDark: isDark)
                     }
 
-                    SettingsFold(
-                        icon: "questionmark",
-                        title: "使用说明",
-                        subtitle: "查看功能说明与操作方法",
-                        isExpanded: $model.guideExpanded,
-                        isDark: isDark
-                    ) {
-                        GuideBodyView(isDark: isDark)
-                            .padding(.top, 14)
-                            .padding(.horizontal, 16)
-                            .padding(.bottom, 17)
+                    // Footer
+                    VStack(spacing: 4) {
+                        Text("特别鸣谢 Mk · 作者：优优")
+                        Text("仅供学习交流")
                     }
-
-                    SettingsFold(
-                        icon: "clock",
-                        title: "更新日志",
-                        subtitle: "Version 1.0.6 · 当前版本",
-                        isExpanded: $model.changelogExpanded,
-                        isDark: isDark
-                    ) {
-                        ChangelogBodyView(isDark: isDark)
-                            .padding(.top, 14)
-                            .padding(.horizontal, 16)
-                            .padding(.bottom, 17)
-                    }
-
-                    // 检查更新（独立行，不用展开更新日志，原生液态玻璃）
-                    CheckUpdateRow(isDark: isDark)
+                    .font(.system(size: 12))
+                    .foregroundColor(gray)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 16)
+                    .padding(.bottom, 110)
                 }
-
-                // Footer
-                VStack(spacing: 4) {
-                    Text("特别鸣谢 Mk · 作者：优优")
-                    Text("仅供学习交流")
-                }
-                .font(.system(size: 12))
-                .foregroundColor(gray)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: .infinity)
-                .padding(.top, 16)
-                .padding(.bottom, 32)
+                .padding(.horizontal, 14) // .app { padding:0 14px }
             }
-            .padding(.horizontal, 14) // .app { padding:0 14px }
+            .background(pageBackground)
+            .onChange(of: model.pendingScroll) { target in
+                guard let target else { return }
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    proxy.scrollTo(target, anchor: .top)
+                }
+                model.pendingScroll = nil
+            }
         }
-        .background(pageBackground)
     }
 }
 
@@ -308,7 +328,25 @@ struct ChangelogBodyView: View {
     }
 
     private let versions: [ChangelogVersion] = [
-        ChangelogVersion(title: "Version 1.0.6", isCurrent: true, entries: [
+        ChangelogVersion(title: "Version 1.0.7-1", isCurrent: true, entries: [
+            ChangelogEntry(tag: "新增", text: "自定义颜色新增「深色模式」分组：可单独开关深色图标反转，并自定义深色颜色。"),
+            ChangelogEntry(tag: "优化", text: "设置页「滚动时缩小底栏」开关改为网页原生样式，直接焊死在 HTML 里，展开/收起自动同步，不再飘移。"),
+            ChangelogEntry(tag: "优化", text: "首页搜索只匹配图标标题，不再匹配别名，搜索结果更准确。"),
+            ChangelogEntry(tag: "优化", text: "「双分类补全」支持按搜索过滤：搜了只补搜出来的，没搜全补。"),
+            ChangelogEntry(tag: "优化", text: "设置与规则页改为原生 SwiftUI 界面，滑动与切换更流畅。"),
+            ChangelogEntry(tag: "修复", text: "修复深色模式图标无条件反转的问题：现在只有打开对应开关才会反转，关闭时保留原图。"),
+            ChangelogEntry(tag: "修复", text: "修复「全部图标」分组小字描述，与「打开才生效」的新逻辑对齐。"),
+            ChangelogEntry(tag: "修复", text: "未授权时不再显示SVIP，只有授权才显示"),
+        ]),
+        ChangelogVersion(title: "Version 1.0.7", isCurrent: false, entries: [
+            ChangelogEntry(tag: "优化", text: "启动授权秒进：已登录时直接进入界面，后台静默验证，不再等待转圈。"),
+            ChangelogEntry(tag: "优化", text: "底栏切换增加柔和渐入动效，页面过渡更顺滑。"),
+            ChangelogEntry(tag: "优化", text: "自定义颜色页开关改为 iPhone 系统样式。"),
+            ChangelogEntry(tag: "修复", text: "修复主题折叠时开关按钮卡顿残留的问题。"),
+            ChangelogEntry(tag: "修复", text: "修复首页/规则/设置切换时闪过旧页面残影的问题。"),
+            ChangelogEntry(tag: "修复", text: "修复设置主题中开关按钮的显示残留，改用 iOS 风格开关。"),
+        ]),
+        ChangelogVersion(title: "Version 1.0.6", isCurrent: false, entries: [
             ChangelogEntry(tag: "新增", text: "支持图标上传、关键词批量导入、双分类补全与 ZIP 导出。"),
             ChangelogEntry(tag: "优化", text: "首页、规则与设置采用系统原生玻璃，低版本自动使用原生磨砂；缩小工具栏文字与规则条目间距。"),
             ChangelogEntry(tag: "优化", text: "原版微信与 LiquidUI 分类及导入入口互换，默认显示原版微信；统一反馈与客服联系入口图标。"),
@@ -468,16 +506,201 @@ struct ChangelogBodyView: View {
     SettingsNativeView()
 }
 
-// MARK: - 检查更新独立行（极简测试版）
+// MARK: - 身份卡（嵌入原生 ObjC hero 视图）
+
+struct SettingsHeroView: UIViewRepresentable {
+    let model: SettingsNativeModel
+
+    func makeUIView(context: Context) -> UIView {
+        let model = self.model
+        return LUIYoCreateSettingsHero(
+            {
+                withAnimation(.easeInOut(duration: 0.28)) { model.guideExpanded.toggle() }
+                if model.guideExpanded { model.pendingScroll = "guide" }
+            },
+            {
+                withAnimation(.easeInOut(duration: 0.28)) { model.changelogExpanded.toggle() }
+                if model.changelogExpanded { model.pendingScroll = "changelog" }
+            },
+            { model.onEditAvatar?() },
+            { model.onEditName?() }
+        )
+    }
+
+    func updateUIView(_ uiView: UIView, context: Context) {
+        LUIYoRefreshSettingsHero(uiView)
+        LUIYoSetSettingsHeroFont(uiView, model.fontController?.font)
+    }
+}
+
+// MARK: - 激活授权卡
+
+struct ActivationCard: View {
+    @ObservedObject var model: SettingsNativeModel
+    let isDark: Bool
+    @State private var code: String = ""
+
+    private var cardBackground: Color {
+        isDark ? Color(red: 28 / 255, green: 28 / 255, blue: 30 / 255, opacity: 0.48)
+               : Color.white.opacity(0.50)
+    }
+    private var cardBorder: Color {
+        isDark ? Color.white.opacity(0.13)
+               : Color(red: 120 / 255, green: 120 / 255, blue: 128 / 255, opacity: 0.18)
+    }
+    private var titleColor: Color {
+        isDark ? Color(red: 0xF2 / 255, green: 0xF2 / 255, blue: 0xF7 / 255)
+               : Color(red: 0x20 / 255, green: 0x28 / 255, blue: 0x32 / 255)
+    }
+    private var trimmedCode: String {
+        code.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 8) {
+                Image(systemName: "key.fill")
+                    .font(.system(size: 15))
+                    .foregroundColor(titleColor)
+                Text("激活授权")
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundColor(titleColor)
+                Spacer()
+                if model.authBusy {
+                    ProgressView()
+                }
+            }
+            Text(model.authMessage)
+                .font(.system(size: 12.5))
+                .foregroundColor(model.isAuthorized
+                    ? Color(red: 0x34 / 255, green: 0xC7 / 255, blue: 0x59 / 255)
+                    : Color(red: 0xD7 / 255, green: 0x00 / 255, blue: 0x15 / 255))
+                .fixedSize(horizontal: false, vertical: true)
+            if !model.isAuthorized {
+                HStack(spacing: 10) {
+                    TextField("输入卡密", text: $code)
+                        .font(.system(size: 14))
+                        .autocorrectionDisabled(true)
+                        .textInputAutocapitalization(.characters)
+                        .padding(.horizontal, 14)
+                        .frame(height: 42)
+                        .background(
+                            Capsule().fill(isDark ? Color.white.opacity(0.10) : Color.white)
+                        )
+                        .overlay(
+                            Capsule().stroke(Color(red: 120 / 255, green: 120 / 255, blue: 128 / 255, opacity: 0.25), lineWidth: 1)
+                        )
+                    Button {
+                        guard !trimmedCode.isEmpty else { return }
+                        model.onSubmitLicense?(trimmedCode)
+                    } label: {
+                        Image(systemName: "arrow.right")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.white)
+                            .frame(width: 42, height: 42)
+                            .background(Circle().fill(Color(red: 0x0A / 255, green: 0x84 / 255, blue: 0xFF / 255)))
+                    }
+                    .disabled(trimmedCode.isEmpty || model.authBusy)
+                    .opacity(trimmedCode.isEmpty ? 0.45 : 1)
+                }
+            }
+        }
+        .padding(15)
+        .background(RoundedRectangle(cornerRadius: 22).fill(cardBackground))
+        .overlay(
+            RoundedRectangle(cornerRadius: 22)
+                .stroke(cardBorder, lineWidth: 1)
+        )
+    }
+}
+
+// MARK: - 检查更新独立行
+
 struct CheckUpdateRow: View {
     let isDark: Bool
+    @StateObject private var updater = AppUpdateChecker()
+
+    private var cardBackground: Color {
+        isDark ? Color(red: 28 / 255, green: 28 / 255, blue: 30 / 255, opacity: 0.48)
+               : Color.white.opacity(0.50)
+    }
+    private var cardBorder: Color {
+        isDark ? Color.white.opacity(0.13)
+               : Color(red: 120 / 255, green: 120 / 255, blue: 128 / 255, opacity: 0.18)
+    }
+    private var titleColor: Color {
+        isDark ? Color(red: 0xF2 / 255, green: 0xF2 / 255, blue: 0xF7 / 255)
+               : Color(red: 0x20 / 255, green: 0x28 / 255, blue: 0x32 / 255)
+    }
+    private var gray: Color {
+        Color(red: 0x8E / 255, green: 0x8E / 255, blue: 0x93 / 255)
+    }
+    private var statusText: String {
+        switch updater.state {
+        case .idle: return "点按检查新版本"
+        case .checking: return "检查中…"
+        case .downloading(let progress): return "下载中 \(Int(progress * 100))%"
+        case .readyToShare: return "已下载，点按重新检查"
+        case .error(let message): return message
+        }
+    }
+    private var isBusy: Bool {
+        switch updater.state {
+        case .checking, .downloading: return true
+        default: return false
+        }
+    }
+
     var body: some View {
-        Text("检查更新")
-            .font(.system(size: 17, weight: .bold))
-            .foregroundColor(.red)
-            .padding()
-            .background(Color.yellow)
-            .cornerRadius(12)
-            .padding(.horizontal, 16)
+        Button {
+            if !isBusy { updater.checkForUpdate() }
+        } label: {
+            HStack(spacing: 11) {
+                Image(systemName: "arrow.down.circle")
+                    .font(.system(size: 21))
+                    .foregroundColor(titleColor)
+                    .frame(width: 42, height: 42)
+                    .background(
+                        Circle().fill(
+                            isDark ? Color.white.opacity(0.20)
+                                   : Color.white.opacity(0.38)
+                        )
+                    )
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("检查更新")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundColor(titleColor)
+                    Text(statusText)
+                        .font(.system(size: 11.5))
+                        .foregroundColor(gray)
+                        .lineLimit(1)
+                }
+                Spacer(minLength: 0)
+                if isBusy {
+                    ProgressView()
+                        .frame(width: 18)
+                } else {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(gray)
+                        .frame(width: 18)
+                }
+            }
+            .padding(.horizontal, 15)
+            .padding(.vertical, 12)
+            .frame(minHeight: 76)
+        }
+        .buttonStyle(.plain)
+        .background(RoundedRectangle(cornerRadius: 22).fill(cardBackground))
+        .overlay(
+            RoundedRectangle(cornerRadius: 22)
+                .stroke(cardBorder, lineWidth: 1)
+        )
+        .alert("发现新版本", isPresented: $updater.showUpdateAlert) {
+            Button("下载 IPA") { updater.downloadIPA() }
+            Button("稍后", role: .cancel) { }
+        } message: {
+            Text("版本 \(updater.latestVersion) · 构建 \(updater.latestBuild)\n\(updater.changelog)")
+        }
     }
 }

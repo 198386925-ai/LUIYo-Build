@@ -8,7 +8,21 @@ extension MainShellViewController {
     /// Seats the shared web view inside the selected tab and keeps the native
     /// homepage on top of it when it is the active page.
     func keepContentBelowNativeBar() {
-        guard isViewLoaded, let webView, let parent = selectedViewController, let host = parent.view else { return }
+        guard isViewLoaded, let parent = selectedViewController, let host = parent.view else { return }
+        // Route A: Rules and Settings are native SwiftUI pages seated in
+        // their own tabs; the Web engine stays parked under the homepage.
+        if activePage == .rules {
+            attachNativePage(rulesHost, to: parent, host: host)
+            bindNativeContentScroll(rulesHost.view, parent: parent)
+            return
+        }
+        if activePage == .settings {
+            attachNativePage(settingsHost, to: parent, host: host)
+            bindNativeContentScroll(settingsHost.view, parent: parent)
+            return
+        }
+        lastFadedNativePage = nil
+        guard let webView else { return }
         // Content belongs to the selected tab. UIKit keeps its native floating
         // bar above this page and propagates the page's safe-area insets.
         if webView.superview !== host {
@@ -100,5 +114,50 @@ extension MainShellViewController {
             }
         }
 
+    }
+}
+
+// MARK: - Native page seating (route A)
+
+extension MainShellViewController {
+    /// Seats a native page host inside its tab, mirroring attachNativeHome.
+    func attachNativePage(_ controller: UIViewController, to parent: UIViewController, host: UIView) {
+        if controller.parent == nil {
+            parent.addChild(controller)
+            host.addSubview(controller.view)
+            controller.view.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                controller.view.topAnchor.constraint(equalTo: host.topAnchor),
+                controller.view.bottomAnchor.constraint(equalTo: host.bottomAnchor),
+                controller.view.leadingAnchor.constraint(equalTo: host.leadingAnchor),
+                controller.view.trailingAnchor.constraint(equalTo: host.trailingAnchor)
+            ])
+            controller.didMove(toParent: parent)
+        }
+        controller.view.isHidden = false
+        if lastFadedNativePage != activePage {
+            lastFadedNativePage = activePage
+            controller.view.alpha = 0
+            UIView.animate(withDuration: 0.3, delay: 0.02, options: .curveEaseOut, animations: {
+                controller.view.alpha = 1
+            })
+        }
+    }
+
+    /// Binds the native page's scroll view for the bottom-bar behaviours.
+    func bindNativeContentScroll(_ contentView: UIView, parent: UIViewController) {
+        guard let scroll = Self.findScrollView(in: contentView) else { return }
+        if boundScrollViews[ObjectIdentifier(parent)] !== scroll {
+            if #available(iOS 18.0, *) { parent.setContentScrollView(scroll, for: .bottom) }
+            boundScrollViews[ObjectIdentifier(parent)] = scroll
+        }
+    }
+
+    private static func findScrollView(in view: UIView) -> UIScrollView? {
+        if let scroll = view as? UIScrollView { return scroll }
+        for subview in view.subviews {
+            if let found = findScrollView(in: subview) { return found }
+        }
+        return nil
     }
 }

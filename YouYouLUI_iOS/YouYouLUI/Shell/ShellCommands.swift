@@ -92,6 +92,7 @@ extension MainShellViewController {
         page.onClose = { [weak self] in
             guard let self else { return }
             self.homeModel.query = ""
+            self.rulesModel.query = ""
             self.evaluate("window.__clearBottomSearch?.()")
             let overlay = self.activeSearchController
             self.activeSearchController = nil
@@ -123,6 +124,7 @@ extension MainShellViewController {
 
     func applyBottomSearch(_ query: String) {
         if activeSearchPage == "home" { homeModel.query = query }
+        if activeSearchPage == "rules" { rulesModel.query = query }
         evaluate(arguments: [query, activeSearchPage], function: "applyBottomSearch")
     }
 

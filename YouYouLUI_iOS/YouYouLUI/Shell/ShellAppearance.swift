@@ -41,6 +41,7 @@ extension MainShellViewController {
 
     /// Re-renders the settings hero card (name, version, tier, avatar, colours, font).
     func refreshHero() {
+        notifyHeroNeedsRefresh()
         guard let hero = settingsHero else { return }
         LUIYoRefreshSettingsHero(hero)
         LUIYoSetSettingsHeroFont(hero, fontController.font)

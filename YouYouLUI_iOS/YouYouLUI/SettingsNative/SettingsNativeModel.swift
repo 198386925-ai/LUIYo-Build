@@ -8,15 +8,33 @@ final class SettingsNativeModel: ObservableObject {
     /// Font controller for custom font import. Set by the hosting shell.
     var fontController: ThemeFontController?
 
+    // MARK: - Authorization (pushed by the shell's setAuthorization)
+    @Published var isAuthorized: Bool = false
+    @Published var authMessage: String = "未激活 · 仅可浏览"
+    @Published var authBusy: Bool = false
+    /// Bumped when the native hero card should re-render (name/avatar change).
+    @Published var heroRefreshToken: Int = 0
+    /// Set by hero buttons: which fold to scroll to after expanding.
+    @Published var pendingScroll: String?
+    var onSubmitLicense: ((String) -> Void)?
+    var onEditAvatar: (() -> Void)?
+    var onEditName: (() -> Void)?
+    var onAppearanceChanged: ((String) -> Void)?
+    var onCardMaterialChanged: ((String) -> Void)?
+    var onColorsChanged: (() -> Void)?
+    var onMinimizeChanged: ((Bool) -> Void)?
+    var onBottomSearchLayoutChanged: ((String) -> Void)?
+    var onFontChanged: (() -> Void)?
+
     // MARK: - Appearance
     @Published var appearanceMode: String {
-        didSet { prefs.appearanceMode = appearanceMode }
+        didSet { prefs.appearanceMode = appearanceMode; onAppearanceChanged?(appearanceMode) }
     }
 
     // MARK: - Card material
     /// "liquid" or "blur"
     @Published var cardMaterial: String {
-        didSet { prefs.cardMaterialMode = cardMaterial }
+        didSet { prefs.cardMaterialMode = cardMaterial; onCardMaterialChanged?(cardMaterial) }
     }
 
     // MARK: - Colors (hex strings)
@@ -26,12 +44,12 @@ final class SettingsNativeModel: ObservableObject {
 
     // MARK: - Bottom search
     @Published var bottomSearchLayout: String {
-        didSet { prefs.bottomSearchLayout = bottomSearchLayout }
+        didSet { prefs.bottomSearchLayout = bottomSearchLayout; onBottomSearchLayoutChanged?(bottomSearchLayout) }
     }
 
     // MARK: - Minimize bottom bar (TRUE NATIVE Toggle)
     @Published var minimizeBottomBar: Bool {
-        didSet { prefs.minimizeBottomBar = minimizeBottomBar }
+        didSet { prefs.minimizeBottomBar = minimizeBottomBar; onMinimizeChanged?(minimizeBottomBar) }
     }
 
     // MARK: - Custom font
@@ -71,6 +89,7 @@ final class SettingsNativeModel: ObservableObject {
         backgroundColorHex = def
         let appearance = prefs.appearanceMode == "dark" ? "dark" : "light"
         prefs.setColorHex(def, kind: .background, appearance: appearance)
+        onColorsChanged?()
     }
 
     func resetCardColor() {
@@ -78,6 +97,7 @@ final class SettingsNativeModel: ObservableObject {
         cardColorHex = def
         let appearance = prefs.appearanceMode == "dark" ? "dark" : "light"
         prefs.setColorHex(def, kind: .heroCardColor, appearance: appearance)
+        onColorsChanged?()
     }
 
     func resetButtonColor() {
@@ -91,12 +111,14 @@ final class SettingsNativeModel: ObservableObject {
         backgroundColorHex = hex
         let appearance = prefs.appearanceMode == "dark" ? "dark" : "light"
         prefs.setColorHex(hex, kind: .background, appearance: appearance)
+        onColorsChanged?()
     }
 
     func updateCardColor(_ hex: String) {
         cardColorHex = hex
         let appearance = prefs.appearanceMode == "dark" ? "dark" : "light"
         prefs.setColorHex(hex, kind: .heroCardColor, appearance: appearance)
+        onColorsChanged?()
     }
 }
 

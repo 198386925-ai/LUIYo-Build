@@ -2,26 +2,71 @@ import SwiftUI
 import UIKit
 import ObjectiveC
 
-/// Native page hosts for the rewritten Settings and Rules.
-/// Follows the same pattern as nativeHomeHost: UIHostingControllers whose
-/// views are shown/hidden based on the active page. No WebView involved.
+/// Native page models + hosts for the SwiftUI Settings and Rules pages.
+/// Route A (2026-10-20): the visible Rules/Settings pages are native; the
+/// Web engine keeps running hidden under the homepage. Hosts are seated
+/// per-tab by ShellWebPlacement.keepContentBelowNativeBar().
 extension MainShellViewController {
+    /// The shared Settings model, created once and wired to the shell.
+    var settingsModel: SettingsNativeModel {
+        if let existing = objc_getAssociatedObject(self, &AssociatedKeys.settingsModel) as? SettingsNativeModel {
+            return existing
+        }
+        let model = SettingsNativeModel()
+        model.fontController = self.fontController
+        if let font = self.fontController.font {
+            model.hasCustomFont = true
+            model.customFontName = "已导入自定义字体"
+        }
+        model.isAuthorized = isAuthorized
+        model.authMessage = authorizationMessage
+        model.authBusy = authorizationBusy
+        model.onSubmitLicense = { [weak self] code in self?.onLicenseSubmitted?(code) }
+        model.onEditAvatar = { [weak self] in self?.editHeroAvatar() }
+        model.onEditName = { [weak self] in self?.editHeroName() }
+        model.onAppearanceChanged = { [weak self] mode in self?.applyAppearance(mode) }
+        model.onCardMaterialChanged = { [weak self] mode in self?.setCardMaterialMode(mode) }
+        model.onColorsChanged = { [weak self] in self?.applyStoredPalette() }
+        model.onMinimizeChanged = { [weak self] enabled in self?.setScrollMinimize(enabled) }
+        model.onBottomSearchLayoutChanged = { [weak self] layout in
+            guard let self else { return }
+            let enabled = layout != "off"
+            let separate = layout == "separate"
+            if enabled != self.bottomSearchEnabled || separate != self.separateSearch {
+                self.bottomSearchEnabled = enabled
+                self.separateSearch = separate
+                self.preferences.bottomSearchEnabled = enabled
+                self.preferences.isSeparateSearch = separate
+                UIView.performWithoutAnimation { self.refreshTabItems() }
+            }
+        }
+        model.onFontChanged = { [weak self] in
+            guard let self else { return }
+            self.homeModel.fontName = self.fontController.font?.fontName
+            self.homeModel.importedFont = self.fontController.font
+            FontSchemeHandlerStore.shared.handler?.fontData = self.fontController.savedFontData
+            self.applyFont(self.fontController.font)
+        }
+        objc_setAssociatedObject(self, &AssociatedKeys.settingsModel, model, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+        return model
+    }
+
+    /// The shared Rules model (the shell's bottom search writes its query).
+    var rulesModel: RulesNativeModel {
+        if let existing = objc_getAssociatedObject(self, &AssociatedKeys.rulesModel) as? RulesNativeModel {
+            return existing
+        }
+        let model = RulesNativeModel()
+        objc_setAssociatedObject(self, &AssociatedKeys.rulesModel, model, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+        return model
+    }
+
     /// Returns the hosting controller for the Settings page, creating it once.
     var settingsHost: UIHostingController<SettingsNativeView> {
         if let existing = objc_getAssociatedObject(self, &AssociatedKeys.settingsHost) as? UIHostingController<SettingsNativeView> {
             return existing
         }
-        // Create model and inject the font controller
-        let model = SettingsNativeModel()
-        model.fontController = self.fontController
-        // Sync initial font state
-        if let font = self.fontController.font {
-            model.hasCustomFont = true
-            // Font name is not persisted, use generic label
-            model.customFontName = "已导入自定义字体"
-        }
-        let settingsView = SettingsNativeView(model: model)
-        let controller = UIHostingController(rootView: settingsView)
+        let controller = UIHostingController(rootView: SettingsNativeView(model: settingsModel))
         controller.view.backgroundColor = .clear
         objc_setAssociatedObject(self, &AssociatedKeys.settingsHost, controller, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         return controller
@@ -32,51 +77,32 @@ extension MainShellViewController {
         if let existing = objc_getAssociatedObject(self, &AssociatedKeys.rulesHost) as? UIHostingController<RulesNativeView> {
             return existing
         }
-        let controller = UIHostingController(rootView: RulesNativeView())
+        let controller = UIHostingController(rootView: RulesNativeView(model: rulesModel))
         controller.view.backgroundColor = .clear
         objc_setAssociatedObject(self, &AssociatedKeys.rulesHost, controller, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         return controller
     }
 
-    /// Seats the native Settings and Rules views in the tab controller's view.
-    /// Called from keepContentBelowNativeBar() or selectPage().
-    func updateNativePageVisibility() {
-        guard isViewLoaded else { return }
+    /// Pushes the shell's current authorization state into the native
+    /// Settings model (called from setAuthorization).
+    func syncNativeSettingsAuth() {
+        guard let model = objc_getAssociatedObject(self, &AssociatedKeys.settingsModel) as? SettingsNativeModel else { return }
+        model.isAuthorized = isAuthorized
+        model.authMessage = authorizationMessage
+        model.authBusy = authorizationBusy
+    }
 
-        // Ensure hosts are added as children
-        for host in [settingsHost as UIViewController, rulesHost as UIViewController] {
-            if host.parent == nil {
-                addChild(host)
-                view.addSubview(host.view)
-                host.view.translatesAutoresizingMaskIntoConstraints = false
-                NSLayoutConstraint.activate([
-                    host.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-                    host.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-                    host.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-                    host.view.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
-                ])
-                host.didMove(toParent: self)
-            }
-        }
-
-        // Show/hide based on active page
-        // Home is handled by nativeHomeHost in ShellWebPlacement
-        settingsHost.view.isHidden = (activePage != .settings)
-        rulesHost.view.isHidden = (activePage != .rules)
-        settingsHost.view.accessibilityElementsHidden = (activePage != .settings)
-        rulesHost.view.accessibilityElementsHidden = (activePage != .rules)
-
-        // Bring the active native page to front
-        if activePage == .settings {
-            view.bringSubviewToFront(settingsHost.view)
-        } else if activePage == .rules {
-            view.bringSubviewToFront(rulesHost.view)
-        }
+    /// Re-renders the native hero card after name/avatar changes.
+    func notifyHeroNeedsRefresh() {
+        guard let model = objc_getAssociatedObject(self, &AssociatedKeys.settingsModel) as? SettingsNativeModel else { return }
+        model.heroRefreshToken += 1
     }
 }
 
-/// Associated object keys for the native page hosts.
+/// Associated object keys for the native page hosts and models.
 private enum AssociatedKeys {
     static var settingsHost = "settingsHost"
     static var rulesHost = "rulesHost"
+    static var settingsModel = "settingsModel"
+    static var rulesModel = "rulesModel"
 }

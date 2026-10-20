@@ -95,8 +95,10 @@ struct ThemeSectionView: View {
                         showFontPicker = true
                     }
                     WebSmallButton(title: "恢复", isDark: isDark) {
+                        model.fontController?.reset()
                         model.customFontName = "使用默认字体"
                         model.hasCustomFont = false
+                        model.onFontChanged?()
                     }
                 }
             }
@@ -115,6 +117,7 @@ struct ThemeSectionView: View {
                             if model.fontController?.apply(data) == true {
                                 model.customFontName = url.lastPathComponent
                                 model.hasCustomFont = true
+                                model.onFontChanged?()
                             }
                         }
                     }

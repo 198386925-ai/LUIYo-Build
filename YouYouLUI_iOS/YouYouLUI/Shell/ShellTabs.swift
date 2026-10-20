@@ -93,7 +93,13 @@ extension MainShellViewController {
             // Wait a tick for render, then reveal.
             DispatchQueue.main.async {
                 guard self.pageSwitchGeneration == generation else { return }
-                self.revealWebViewAfterSwitch(to: page)
+                if page == .rules || page == .settings {
+                    // Native page: already seated by selectPage; no WebView to reveal.
+                    self.switchingPage = false
+                    self.suppressWebViewReveal = false
+                } else {
+                    self.revealWebViewAfterSwitch(to: page)
+                }
             }
         }
         return false

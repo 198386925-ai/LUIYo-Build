@@ -24,6 +24,12 @@
 		FABC4267DF3746C01AC3D6BA /* App/AppRoot.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA8607389A9BCC6E4DA03044 /* App/AppRoot.swift */; };
 		FAE075DE7478C9CCA6215355 /* App/AppConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAC27303F1BB572179545909 /* App/AppConfiguration.swift */; };
 		DAD3992D3DF4A1946D95A3A8 /* SettingsNative/AppUpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6871F0F81E2317B1BD48E8EA /* SettingsNative/AppUpdateChecker.swift */; };
+		AA2700000000000000000101 /* Shell/ShellNativePages.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2700000000000000000001 /* Shell/ShellNativePages.swift */; };
+		AA2700000000000000000102 /* SettingsNative/SettingsNativeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2700000000000000000002 /* SettingsNative/SettingsNativeView.swift */; };
+		AA2700000000000000000103 /* SettingsNative/ThemeSectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2700000000000000000003 /* SettingsNative/ThemeSectionView.swift */; };
+		AA2700000000000000000104 /* SettingsNative/SettingsNativeModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2700000000000000000004 /* SettingsNative/SettingsNativeModel.swift */; };
+		AA2700000000000000000105 /* RulesNative/RulesNativeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2700000000000000000005 /* RulesNative/RulesNativeView.swift */; };
+		AA2700000000000000000106 /* RulesNative/NamingRulesData.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2700000000000000000006 /* RulesNative/NamingRulesData.swift */; };
 		FA2961FB5633FC10E2AF92FF /* Activation/ActivationSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = FABB56384934C201D01ADE15 /* Activation/ActivationSession.swift */; };
 		FA50B0034834700E2E4CC499 /* Activation/ActivationClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACD8C46F898050E42BF7744 /* Activation/ActivationClient.swift */; };
 		FAC1D9BB473106800C85707D /* Activation/ActivationGateViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE564ABA9BE31FCCE5518B9 /* Activation/ActivationGateViewController.swift */; };
@@ -75,6 +81,12 @@
 		FA8607389A9BCC6E4DA03044 /* App/AppRoot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRoot.swift; sourceTree = "<group>"; };
 		FAC27303F1BB572179545909 /* App/AppConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfiguration.swift; sourceTree = "<group>"; };
 		6871F0F81E2317B1BD48E8EA /* SettingsNative/AppUpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "YouYouLUI/SettingsNative/AppUpdateChecker.swift"; sourceTree = SOURCE_ROOT; };
+		AA2700000000000000000001 /* Shell/ShellNativePages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "YouYouLUI/Shell/ShellNativePages.swift"; sourceTree = SOURCE_ROOT; };
+		AA2700000000000000000002 /* SettingsNative/SettingsNativeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "YouYouLUI/SettingsNative/SettingsNativeView.swift"; sourceTree = SOURCE_ROOT; };
+		AA2700000000000000000003 /* SettingsNative/ThemeSectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "YouYouLUI/SettingsNative/ThemeSectionView.swift"; sourceTree = SOURCE_ROOT; };
+		AA2700000000000000000004 /* SettingsNative/SettingsNativeModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "YouYouLUI/SettingsNative/SettingsNativeModel.swift"; sourceTree = SOURCE_ROOT; };
+		AA2700000000000000000005 /* RulesNative/RulesNativeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "YouYouLUI/RulesNative/RulesNativeView.swift"; sourceTree = SOURCE_ROOT; };
+		AA2700000000000000000006 /* RulesNative/NamingRulesData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "YouYouLUI/RulesNative/NamingRulesData.swift"; sourceTree = SOURCE_ROOT; };
 		FABB56384934C201D01ADE15 /* Activation/ActivationSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivationSession.swift; sourceTree = "<group>"; };
 		FACD8C46F898050E42BF7744 /* Activation/ActivationClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivationClient.swift; sourceTree = "<group>"; };
 		FAE564ABA9BE31FCCE5518B9 /* Activation/ActivationGateViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivationGateViewController.swift; sourceTree = "<group>"; };
@@ -363,6 +375,12 @@
 				FABC4267DF3746C01AC3D6BA /* App/AppRoot.swift in Sources */,
 				FAE075DE7478C9CCA6215355 /* App/AppConfiguration.swift in Sources */,
 				DAD3992D3DF4A1946D95A3A8 /* SettingsNative/AppUpdateChecker.swift in Sources */,
+				AA2700000000000000000101 /* Shell/ShellNativePages.swift in Sources */,
+				AA2700000000000000000102 /* SettingsNative/SettingsNativeView.swift in Sources */,
+				AA2700000000000000000103 /* SettingsNative/ThemeSectionView.swift in Sources */,
+				AA2700000000000000000104 /* SettingsNative/SettingsNativeModel.swift in Sources */,
+				AA2700000000000000000105 /* RulesNative/RulesNativeView.swift in Sources */,
+				AA2700000000000000000106 /* RulesNative/NamingRulesData.swift in Sources */,
 				FA2961FB5633FC10E2AF92FF /* Activation/ActivationSession.swift in Sources */,
 				FA50B0034834700E2E4CC499 /* Activation/ActivationClient.swift in Sources */,
 				FAC1D9BB473106800C85707D /* Activation/ActivationGateViewController.swift in Sources */,

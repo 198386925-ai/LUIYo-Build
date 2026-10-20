@@ -60,6 +60,7 @@ final class MainShellViewController: UITabBarController {
     var switchingPage = false
     var suppressWebViewReveal = false
     var pageSwitchGeneration = 0
+    var lastFadedNativePage: ShellPage?
     var reportedTabTop: CGFloat = -1
     private var scrollOffsetObservation: NSKeyValueObservation?
     #if DEBUG
@@ -273,6 +274,7 @@ final class MainShellViewController: UITabBarController {
         authorizationMessage = message ?? (allowed ? "已授权" : "未激活 · 仅可浏览")
         authorizationBusy = busy
         syncAuthorization()
+        syncNativeSettingsAuth()
         if allowed, nativeHomeReady { runNativeEngine("colors", ["values": homeModel.savedColors]) }
     }
 
