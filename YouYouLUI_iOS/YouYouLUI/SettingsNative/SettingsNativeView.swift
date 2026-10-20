@@ -212,8 +212,7 @@ struct SettingsFold<Content: View>: View {
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
-        .modifier(NativeCardSurface())
-        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .modifier(NativePageCardSurface(radius: 22))
     }
 }
 
@@ -339,6 +338,7 @@ struct ChangelogBodyView: View {
             ChangelogEntry(tag: "修复", text: "修复深色模式图标无条件反转的问题：现在只有打开对应开关才会反转，关闭时保留原图。"),
             ChangelogEntry(tag: "修复", text: "修复「全部图标」分组小字描述，与「打开才生效」的新逻辑对齐。"),
             ChangelogEntry(tag: "修复", text: "未授权时不再显示SVIP，只有授权才显示"),
+            ChangelogEntry(tag: "修复", text: "规则与设置页卡片改用与旧版一致的静态原生液态玻璃，去掉多余高光。"),
         ]),
         ChangelogVersion(title: "Version 1.0.7", isCurrent: false, entries: [
             ChangelogEntry(tag: "优化", text: "启动授权秒进：已登录时直接进入界面，后台静默验证，不再等待转圈。"),
@@ -608,8 +608,7 @@ struct ActivationCard: View {
             }
         }
         .padding(15)
-        .modifier(NativeCardSurface())
-        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .modifier(NativePageCardSurface(radius: 22))
     }
 }
 
@@ -690,8 +689,7 @@ struct CheckUpdateRow: View {
             .frame(minHeight: 76)
         }
         .buttonStyle(.plain)
-        .modifier(NativeCardSurface())
-        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .modifier(NativePageCardSurface(radius: 22))
         .alert("发现新版本", isPresented: $updater.showUpdateAlert) {
             Button("下载 IPA") { updater.downloadIPA() }
             Button("稍后", role: .cancel) { }

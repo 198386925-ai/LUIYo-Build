@@ -143,8 +143,7 @@ struct RulesNativeView: View {
             }
             .padding(.bottom, 6)
         }
-        .modifier(NativeCardSurface())
-        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .modifier(NativePageCardSurface(radius: 24))
     }
 }
 

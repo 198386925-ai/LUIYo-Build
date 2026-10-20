@@ -124,3 +124,77 @@ struct NativeHomeActionButtonStyle: ButtonStyle {
             .contentShape(Capsule())
     }
 }
+
+// MARK: - Static page-card surface (pre-migration material-layer recipe)
+
+/// A UIVisualEffectView configured exactly like the shell's CardMaterialLayer
+/// surfaces: iOS 26 UIGlassEffect in its STATIC form (never interactive —
+/// interactive glass adds a specular highlight meant for buttons), shaped by
+/// cornerConfiguration; UIBlurEffect + 24% tint on older systems / blur mode.
+final class StaticGlassSurfaceView: UIVisualEffectView {
+    var glassRadius: CGFloat = 22
+    private var appliedSignature = ""
+
+    func configure(useBlur: Bool, tint: UIColor) {
+        var blur = useBlur
+        if #available(iOS 26.0, *) {} else { blur = true }
+        let signature = "\(blur)|\(tint.nativeHex)|\(glassRadius)"
+        guard signature != appliedSignature else { return }
+        appliedSignature = signature
+        if #available(iOS 26.0, *), !blur {
+            let glass = UIGlassEffect(style: .regular)
+            let hex = tint.nativeHex.uppercased()
+            if !["#FFFFFF", "#1C1C1E"].contains(hex) { glass.tintColor = tint.withAlphaComponent(0.12) }
+            effect = glass
+            contentView.backgroundColor = .clear
+        } else {
+            effect = UIBlurEffect(style: .systemMaterial)
+            contentView.backgroundColor = tint.withAlphaComponent(0.24)
+        }
+        setNeedsLayout()
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        guard bounds.width > 0, bounds.height > 0 else { return }
+        layer.cornerRadius = min(glassRadius, min(bounds.width, bounds.height) / 2)
+        if #available(iOS 26.0, *), effect is UIGlassEffect {
+            cornerConfiguration = .uniformCorners(radius: .fixed(Double(layer.cornerRadius)))
+            clipsToBounds = false
+        } else {
+            clipsToBounds = true
+        }
+    }
+}
+
+struct StaticGlassSurface: UIViewRepresentable {
+    var useBlur: Bool
+    var tint: UIColor
+    var radius: CGFloat
+
+    func makeUIView(context: Context) -> StaticGlassSurfaceView {
+        let view = StaticGlassSurfaceView()
+        view.isUserInteractionEnabled = false
+        view.accessibilityElementsHidden = true
+        return view
+    }
+
+    func updateUIView(_ view: StaticGlassSurfaceView, context: Context) {
+        view.glassRadius = radius
+        view.configure(useBlur: useBlur, tint: tint)
+    }
+}
+
+/// Card surface for full-width page cards (rules / settings), matching the
+/// surfaces the Web UI floated over: static native glass, theme card tint.
+struct NativePageCardSurface: ViewModifier {
+    var radius: CGFloat = 22
+    @Environment(\.nativeUseBlur) private var useBlur
+    @Environment(\.nativeHomeTheme) private var theme
+
+    func body(content: Content) -> some View {
+        content.background(
+            StaticGlassSurface(useBlur: useBlur, tint: UIColor(nativeHex: theme.card), radius: radius)
+        )
+    }
+}
